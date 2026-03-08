@@ -828,6 +828,136 @@ select option {
   background: var(--cyan);
 }
 
+/* User Guide Tab */
+.guide-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.guide-nav a {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--cyan);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--cyan-dim);
+  border-radius: 3px;
+  transition: background var(--transition);
+}
+.guide-nav a:hover { background: var(--cyan-dim); color: #fff; }
+.guide-section {
+  margin-bottom: 28px;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan);
+  border-radius: var(--radius);
+  scroll-margin-top: 80px;
+}
+.guide-section-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--cyan);
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.guide-section-title .goto-btn {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  background: transparent;
+  transition: all var(--transition);
+  letter-spacing: 0.5px;
+}
+.guide-section-title .goto-btn:hover {
+  color: var(--cyan);
+  border-color: var(--cyan-dim);
+  background: var(--cyan-dim);
+}
+.guide-steps { list-style: none; padding: 0; margin: 0; }
+.guide-steps li {
+  display: flex;
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  line-height: 1.5;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+.guide-steps li:last-child { border-bottom: none; }
+.guide-step-num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid var(--cyan-dim);
+  border-radius: 3px;
+  min-width: 24px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.guide-tip {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(0,255,136,0.04);
+  border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--green);
+  font-family: var(--font-mono);
+  line-height: 1.5;
+}
+.guide-warn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(255,0,102,0.04);
+  border: 1px solid var(--pink-dim);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: var(--pink);
+  font-family: var(--font-mono);
+  line-height: 1.5;
+}
+.guide-key {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-bright);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.guide-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.guide-badge.cyan { color: var(--cyan); background: var(--cyan-dim); border: 1px solid var(--cyan-dim); }
+.guide-badge.green { color: var(--green); background: var(--green-dim); border: 1px solid var(--green-dim); }
+.guide-badge.pink { color: var(--pink); background: var(--pink-dim); border: 1px solid var(--pink-dim); }
+.guide-badge.yellow { color: var(--yellow); background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); }
+.guide-badge.purple { color: var(--purple); background: rgba(139,92,246,0.1); border: 1px solid var(--purple-dim); }
+
 /* Start button */
 .start-section {
   text-align: center;
@@ -1324,6 +1454,7 @@ select option {
     <button class="tab-btn" data-tab="manager">管理</button>
     <button class="tab-btn" data-tab="logs">日誌</button>
     <button class="tab-btn" data-tab="workflow">架構</button>
+    <button class="tab-btn" data-tab="guide">指南</button>
     <button class="tab-btn" data-tab="settings" style="margin-left:auto;font-size:0.65rem;">⚙️</button>
   </nav>
 
@@ -1585,6 +1716,246 @@ select option {
 </div>
 
   <!-- ═══════════════════════════════════════════
+       TAB: GUIDE
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-guide">
+    <div class="panel" style="padding:20px 24px;">
+      <div class="panel-header" style="margin-bottom:20px;">// 使用指南 — USER GUIDE</div>
+
+      <!-- Quick Nav -->
+      <nav class="guide-nav">
+        <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);align-self:center;">快速跳轉：</span>
+        <a href="#guide-quickstart">🚀 快速開始</a>
+        <a href="#guide-login">🔐 登入 &amp; 帳號</a>
+        <a href="#guide-category">📁 分類管理</a>
+        <a href="#guide-download">⬇️ 下載影片</a>
+        <a href="#guide-manager">📊 下載管理</a>
+        <a href="#guide-logs">📋 活動日誌</a>
+        <a href="#guide-settings">⚙️ 設定</a>
+        <a href="#guide-faq">❓ 常見問題</a>
+      </nav>
+
+      <!-- Section 1: Quick Start -->
+      <div class="guide-section" id="guide-quickstart">
+        <div class="guide-section-title">🚀 快速開始（3 步下載第一條片）</div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span>登入系統（首次使用請向管理員取得帳號密碼）</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span>點選 <button class="goto-btn" onclick="goToTab('download')">⬇️ 前往下載 Tab</button> → 在右上方選擇分類（或保留「未分類」）→ 貼上 YouTube 網址 → 點擊 <span class="guide-key">分析</span></span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span>選擇畫質（如 1080p）與格式（MP4 / MKV / MOV）→ 確認檔名日期前綴設定 → 點擊 <span class="guide-key">開始下載</span></span>
+          </li>
+        </ol>
+        <div class="guide-tip">✅ 下載完成後會自動上傳至 Google Drive，並發送 Telegram 通知。無需手動操作。</div>
+      </div>
+
+      <!-- Section 2: Login -->
+      <div class="guide-section" id="guide-login">
+        <div class="guide-section-title">🔐 登入 &amp; 帳號管理</div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>登入：</strong>輸入用戶名（電郵格式）及密碼，點擊 <span class="guide-key">LOGIN</span>。Session 有效期 24 小時，到期後需重新登入。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>忘記密碼：</strong>點擊登入頁的 <span class="guide-key">Forgot Password?</span> → 輸入註冊電郵 → 系統發送 6 位數驗證碼 → 輸入驗證碼 → 顯示當前密碼（驗證碼 10 分鐘內有效，最多 5 次嘗試）</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>修改密碼：</strong><button class="goto-btn" onclick="goToTab('settings')">⚙️ 前往設定</button> → 「帳號安全」→ 輸入目前密碼 + 新密碼 + 確認新密碼 → 儲存。儲存後所有登入 Session 自動清除，需重新登入。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>登出：</strong><button class="goto-btn" onclick="goToTab('settings')">⚙️ 前往設定</button> → 點擊「🚪 登出」按鈕</span>
+          </li>
+        </ol>
+        <div class="guide-warn">⚠️ 密碼儲存在伺服器環境變數，請勿將帳號資訊分享給他人。</div>
+      </div>
+
+      <!-- Section 3: Categories -->
+      <div class="guide-section" id="guide-category">
+        <div class="guide-section-title">📁 分類管理 <button class="goto-btn" onclick="goToTab('categories')">→ 前往分類 Tab</button></div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>新增分類：</strong>在輸入框輸入分類名稱（如「AI」、「音樂」）→ 點擊 <span class="guide-key">+ 新增</span>。分類會建立對應的 Google Drive 子資料夾。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>修改名稱：</strong>點擊分類卡片上的 ✏️ 圖示 → 直接在卡片上修改名稱 → 點擊 ✅ 確認。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>刪除分類：</strong>點擊 🗑️ 圖示 → 確認刪除彈窗。注意：「未分類」為系統預設分類，無法刪除。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>拖曳排序：</strong>按住左側 <span class="guide-key">⠿</span> 拖曳手柄，上下拖動即可重新排序分類。排序會即時同步至伺服器。</span>
+          </li>
+        </ol>
+        <div class="guide-tip">💡 分類會顯示在下載頁的下拉選單中，同時對應 Google Drive 的子資料夾結構。建議先建好分類再開始下載。</div>
+      </div>
+
+      <!-- Section 4: Download -->
+      <div class="guide-section" id="guide-download">
+        <div class="guide-section-title">⬇️ 下載影片（完整流程） <button class="goto-btn" onclick="goToTab('download')">→ 前往下載 Tab</button></div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>選擇分類：</strong>在頁面左上角的下拉選單選擇目標分類（如「AI」）。此選擇決定影片儲存的 Google Drive 資料夾。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>貼上 YouTube 網址：</strong>在輸入框貼上完整 YouTube 影片網址（支援 youtu.be 短網址及 youtube.com 長網址）。亦可直接按 <span class="guide-key">Enter</span> 觸發分析。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>點擊「分析」：</strong>系統呼叫 yt-dlp 分析影片元數據（約 3-10 秒）。分析成功後顯示：影片縮圖、標題、頻道名稱、時長，以及各畫質選項與預計檔案大小。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>選擇封裝格式：</strong>在「格式」區選擇 <span class="guide-badge cyan">MP4</span> <span class="guide-badge purple">MKV</span> 或 <span class="guide-badge yellow">MOV</span>。三者均為無損封裝（不重新編碼），檔案大小相同，建議使用 MP4（兼容性最佳）。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">5</span>
+            <span><strong>選擇畫質：</strong>在「畫質」區點選所需解析度（如 <span class="guide-badge cyan">1080p</span>）。右側顯示預計檔案大小（影片 + 音訊串流合計）。可用畫質取決於原片，最高可至 2160p（4K）。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">6</span>
+            <span><strong>日期前綴（選填）：</strong>若影片有上傳日期，頁面會顯示開關。啟用後檔名格式為 <span class="guide-key">YYYYMMDD-標題.mp4</span>（如 <span class="guide-key">20260308-影片標題.mp4</span>），方便按日期排序。預設開啟。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">7</span>
+            <span><strong>點擊「開始下載」：</strong>系統在背景啟動下載，頁面自動跳轉至「管理」Tab 追蹤進度。</span>
+          </li>
+        </ol>
+        <div class="guide-tip">💡 下載過程：yt-dlp 分別下載影片串流 + 音訊串流 → ffmpeg 合併 → 自動上傳 Google Drive → 發送 Telegram 通知。全程無需干預。</div>
+        <div class="guide-warn">⚠️ 部分影片（年齡限制 / 地區限制）需要 YouTube Cookies 才能下載。請到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 上傳 cookies.txt。</div>
+      </div>
+
+      <!-- Section 5: Manager -->
+      <div class="guide-section" id="guide-manager">
+        <div class="guide-section-title">📊 下載管理 <button class="goto-btn" onclick="goToTab('manager')">→ 前往管理 Tab</button></div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>下載狀態：</strong>管理頁分為「進行中」與「已完成」兩個區域，自動每 2 秒刷新。
+              <br>狀態流程：<span class="guide-badge cyan">等待中</span> → <span class="guide-badge cyan">下載中</span> → <span class="guide-badge yellow">合併中</span> → <span class="guide-badge purple">上傳 Drive</span> → <span class="guide-badge green">完成</span> / <span class="guide-badge pink">失敗</span></span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>下載中：</strong>顯示即時進度條、下載速度（如 5.2 MB/s）、預計剩餘時間（ETA）及已下載大小。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>完成後：</strong>顯示 Google Drive 連結，點擊 <span class="guide-key">🔗 Drive</span> 即可在瀏覽器開啟並播放影片。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>重試失敗：</strong>下載失敗的記錄會顯示錯誤原因及 <span class="guide-key">↻ 重試</span> 按鈕，點擊自動使用原設定重新下載。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">5</span>
+            <span><strong>刪除記錄：</strong>點擊 🗑️ 可刪除下載記錄（不刪除本地檔案及 Google Drive 上的檔案）。</span>
+          </li>
+        </ol>
+        <div class="guide-tip">💡 Telegram 也會自動收到通知，無需一直留在管理頁等候。</div>
+      </div>
+
+      <!-- Section 6: Logs -->
+      <div class="guide-section" id="guide-logs">
+        <div class="guide-section-title">📋 活動日誌 <button class="goto-btn" onclick="goToTab('logs')">→ 前往日誌 Tab</button></div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>概覽統計：</strong>頁面頂部顯示日誌總數、今日數量、成功 / 錯誤計數。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>篩選日誌：</strong>可按「類別」篩選：<span class="guide-badge cyan">下載</span> <span class="guide-badge yellow">上傳</span> <span class="guide-badge purple">分析</span> <span class="guide-badge pink">認證</span> <span class="guide-badge green">分類</span> 系統；可按「等級」篩選：INFO / <span class="guide-badge green">SUCCESS</span> / WARN / <span class="guide-badge pink">ERROR</span>。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>查看詳情：</strong>點擊任意日誌條目展開詳細資訊（如下載 URL、錯誤訊息、Drive 連結等）。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>載入更多：</strong>日誌每次顯示 50 條，點擊底部「載入更多」可載入更舊的記錄（最多保存 500 條）。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">5</span>
+            <span><strong>清除日誌：</strong>點擊右上角「清除」按鈕可清空所有日誌記錄（不可恢復）。</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Section 7: Settings -->
+      <div class="guide-section" id="guide-settings">
+        <div class="guide-section-title">⚙️ 系統設定 <button class="goto-btn" onclick="goToTab('settings')">→ 前往設定</button></div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">1</span>
+            <span><strong>字體大小：</strong>選擇「中」（預設 16px）、「大」（~19px）或「特大」（~22px）。設定即時生效並永久保存，適合不同螢幕尺寸。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">2</span>
+            <span><strong>YouTube Cookies：</strong>如需下載年齡限制或會員內容，需上傳從瀏覽器匯出的 <span class="guide-key">cookies.txt</span>。
+              <br>匯出方法：安裝 Chrome 擴充 <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank" rel="noopener" style="color:var(--cyan);">Get cookies.txt LOCALLY</a>，登入 YouTube 後點擊匯出。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">3</span>
+            <span><strong>修改帳號：</strong>輸入目前密碼 → 填寫新用戶名及/或新密碼（兩次確認）→ 點擊「💾 儲存帳號設定」。所有 Session 將立即失效。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">4</span>
+            <span><strong>登出：</strong>點擊「🚪 登出」按鈕，Session 即時失效並跳轉至登入頁。</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Section 8: FAQ -->
+      <div class="guide-section" id="guide-faq">
+        <div class="guide-section-title" style="border-left-color:var(--yellow);">❓ 常見問題</div>
+        <ol class="guide-steps">
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>分析失敗，提示「Sign in to confirm you're not a bot」</strong><br>→ 需要上傳 YouTube Cookies。前往 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 上傳 cookies.txt。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>下載後看不到 Google Drive 連結</strong><br>→ Drive 上傳可能失敗。查看 <button class="goto-btn" onclick="goToTab('logs')">📋 日誌</button> 的「上傳」類別，確認錯誤原因（常見：Drive 容量已滿）。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>下載速度慢 / 被限速</strong><br>→ 屬於 YouTube 伺服器端限速，為正常現象。高畫質影片（4K / 1080p）需要較長下載時間。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>選擇的畫質（如 4K）不在列表中</strong><br>→ 原始影片可能沒有該解析度。yt-dlp 只列出影片實際提供的畫質選項。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>網站出現 Cloudflare Error 1033</strong><br>→ Cloudflare Tunnel 服務中斷，請通知管理員重啟 Tunnel。</span>
+          </li>
+          <li>
+            <span class="guide-step-num">Q</span>
+            <span><strong>MP4 / MKV / MOV 有什麼分別？</strong><br>→ 三者均為封裝格式（container），影音內容完全一樣、檔案大小相同，只是「外殼」不同。<span class="guide-badge cyan">MP4</span> 兼容性最佳（Windows / macOS / iOS / Android 均支援），建議優先選用。</span>
+          </li>
+        </ol>
+        <div class="guide-tip" style="border-color:var(--cyan-dim);color:var(--text-secondary);">📖 如需了解完整系統架構，請前往 <button class="goto-btn" onclick="goToTab('workflow')">→ 架構 Tab</button> 查看 Workflow Infographic。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
        TAB: WORKFLOW
        ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-workflow">
@@ -1679,6 +2050,12 @@ function escapeHtml(str) {
 /* ═══════════════════════════════════════════════
    TAB SWITCHING
    ═══════════════════════════════════════════════ */
+// Helper: programmatically switch tab (used by guide links)
+function goToTab(name) {
+  const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+  if (btn) btn.click();
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
