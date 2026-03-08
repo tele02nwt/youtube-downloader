@@ -30,9 +30,14 @@
 - [x] Task 3.3: 下載頁面（URL 分析、格式/畫質選擇、分類下拉）
 - [x] Task 3.4: 管理頁面（進度條、status badges、auto-refresh）
 
-**Phase 4: 整合 + 通知** 🔲
-- [ ] Task 4.1: 下載完成 Telegram 通知
-- [ ] Task 4.2: 最終整合測試
+**Phase 4: 整合 + 通知** ✅
+- [x] Task 4.1: 下載完成 Telegram 通知（成功/失敗都通知）
+- [x] Task 4.2: Google Drive 整合（via gog CLI）
+  - 自動建立 "Youtube Downloader" 根資料夾
+  - 按分類建子目錄
+  - 下載完成自動上傳 Drive
+  - 已完成清單顯示 Drive 連結
+  - "上傳 Drive" 狀態 + 黃色脈衝動畫
 
 ## 技術 Stack
 - Backend: Express.js + yt-dlp + ffmpeg
