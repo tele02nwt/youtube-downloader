@@ -226,3 +226,69 @@
 **Browser Title + Subtitle**：
 - `<title>YT DOWNLOADER</title>`（index.html + login.html）
 - 副標題：`// Powered by Wilson NG`
+
+---
+
+## Phase 9: Standalone Setup + Windows 支援
+
+### 2026-03-08 — Cloudflare + Google Drive 設定面板 ✅
+
+**目標**：讓 app 可以在本機電腦（非 VPS）獨立運行，提供 Web UI 設定 Cloudflare Tunnel 和 Google Drive。
+
+**新增 `lib/setup.js`**：
+- `findBinary(name)` — 跨平台 binary 偵測（IS_WINDOWS 分支；Windows 搜尋 winget links/scoop/chocolatey，Unix 搜尋 brew/usr/bin）
+- `getCloudflaredStatus()` — 偵測 cloudflared 安裝、讀 `data/tunnel.pid` 用 `process.kill(pid, 0)` 確認存活、返回最近 8 行日誌
+- `startTunnel(mode, options)` — Quick（`--url localhost:PORT`）或 Token（`run --token`）模式；detached spawn + PID file
+- `stopTunnel()` — SIGTERM + cleanup
+- `getGdriveStatus()` — `gog drive ls --max 1 -j` 測試認證；timeout 12s
+- `startGdriveAuth() / getAuthPoll()` — spawn `gog auth login`，stdout/stderr 存 `_authOutput`，前端 setInterval poll
+
+**server.js 新增 6 個 `/api/setup/*` 路由**
+
+**Settings Tab 兩個新 Panel**：
+- `// CLOUDFLARE TUNNEL`：status badge + Quick/Token 模式 radio + token input（password 類型）+ port + Tunnel 日誌 + 安裝指引（Windows winget 優先）
+- `// GOOGLE DRIVE`：status badge + 一鍵授權 + auth output log（gd-auth-log）+ 安裝指引（Windows WSL2 警告框）
+
+**CSS 新組件**：
+- `.status-badge.ok/.warn/.err/.off` — pill 形狀，各色邊框 + 背景
+- `.status-dot.green/.yellow/.red/.grey` — 8px 圓點，green 有 glow
+- `.setup-section` — divider 分隔區塊
+- `.setup-log` — monospace 日誌框，max-height 130px + overflow scroll
+- `.cf-mode-card` — clickable radio label card，hover cyan glow
+
+**踩坑：gog CLI Windows 限制**
+- `steipete/gogcli` 係 Swift binary，macOS/Linux only，Windows 原生環境完全無法運行
+- Windows 只能用 WSL2 取得完整功能（包括 Google Drive 上傳）
+
+---
+
+### 2026-03-08 — Windows Standalone 支援 ✅
+
+**設定頁 + 指南頁 Windows 內容**：
+- Cloudflare install 框：Windows `winget install Cloudflare.cloudflared` 優先顯示
+- Google Drive install 框：黃色警告框說明 gog 不支援 Windows，推薦 WSL2
+
+**指南頁新章節：`🪟 Windows 安裝指南`**：
+- 方式 A（WSL2，強烈推薦）：`wsl --install` → Ubuntu → Homebrew → brew install 一行搞掂所有依賴 → `bash start.sh`
+- 方式 B（原生 Windows）：winget 安裝 4 工具 + .env 工具路徑配置 + `start.bat` 啟動
+
+**Cloudflare 章節更新**：加 Windows winget install 為第一步驟
+
+**Google Drive 章節更新**：加黃色 Windows 警告框 + 明確說明 macOS/Linux/WSL2 才可用
+
+**新增文件**：
+- `.env.example` — 配置範本，含 YT_DLP_PATH / FFMPEG_PATH Windows 示例
+- `start.bat` — Windows 啟動：自動 npm install → node server.js → start browser；讀寫 data\server.pid
+- `stop.bat` — Windows 停止：taskkill by PID
+
+**`lib/setup.js` findBinary() Windows 路徑清單**：
+- winget links: `%LOCALAPPDATA%\Microsoft\WinGet\Links\`
+- scoop shims: `%USERPROFILE%\scoop\shims\`
+- chocolatey: `C:\ProgramData\chocolatey\bin\`
+- cloudflared 安裝目錄: `C:\Program Files\Cloudflare cloudflared\`
+- fallback: `where.exe` 搜尋 PATH
+
+## 技術 Stack 更新
+- Phase 9 新增: `lib/setup.js`（跨平台 setup module）
+- Windows 啟動: `start.bat` / `stop.bat`
+- 配置: `.env.example`（含 Windows 工具路徑說明）

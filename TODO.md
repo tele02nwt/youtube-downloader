@@ -174,6 +174,47 @@
 
 ---
 
+## Phase 9: Standalone Setup + Windows 支援 ✅
+
+### Task 9.1: `lib/setup.js` — 跨平台 Setup 模組
+- [x] `findBinary(name)` — 跨平台 binary 偵測（Windows winget/scoop/choco + Unix brew/which）
+- [x] `getCloudflaredStatus()` — cloudflared 安裝狀態、PID 存活、最近日誌
+- [x] `startTunnel(mode, options)` — Quick Tunnel（免帳號）+ Token Tunnel（固定域名）
+- [x] `stopTunnel()` — SIGTERM + cleanup PID file
+- [x] `getGdriveStatus()` — gog CLI 偵測 + 認證狀態（`gog drive ls` 測試）
+- [x] `startGdriveAuth()` — spawn `gog auth login`（開瀏覽器 OAuth）
+- [x] `getAuthPoll()` — 返回 auth 程序 output/running/done/success
+
+### Task 9.2: Server API 路由
+- [x] `GET  /api/setup/cloudflare/status`
+- [x] `POST /api/setup/cloudflare/start` — body: `{mode, port, token}`
+- [x] `POST /api/setup/cloudflare/stop`
+- [x] `GET  /api/setup/gdrive/status`
+- [x] `POST /api/setup/gdrive/auth`
+- [x] `GET  /api/setup/gdrive/auth-poll`
+
+### Task 9.3: Settings Tab UI
+- [x] `// CLOUDFLARE TUNNEL` panel — status badge, Quick/Token 模式選擇, token input, port, 日誌, 安裝指引
+- [x] `// GOOGLE DRIVE` panel — status badge, 一鍵授權, auth log 串流, 安裝指引
+- [x] CSS 新增：`.status-badge(.ok/.warn/.err/.off)`, `.status-dot(.green/.yellow/.red/.grey)`, `.setup-section`, `.setup-log`, `.cf-mode-card`
+- [x] Tab 切換時自動 refresh 狀態（settings tab click → cfRefreshStatus + gdRefreshStatus）
+- [x] Windows 警告框（Google Drive panel 內）— 黃色邊框說明 gog 不支援 Windows
+- [x] Windows install 指令（cloudflared 安裝框加 winget 優先）
+
+### Task 9.4: Guide Tab 更新
+- [x] 新增 `🪟 Windows 安裝指南` 章節（nav + section id=guide-windows）
+- [x] WSL2 方案完整步驟（wsl --install → brew → node server）
+- [x] 原生 Windows 方案（winget 4 工具 + .env 路徑 + start.bat）
+- [x] Cloudflare 章節加 Windows winget install 步驟
+- [x] Google Drive 章節加 Windows WSL2 推薦框 + macOS/Linux/WSL2 clarification
+
+### Task 9.5: Windows 支援文件
+- [x] `.env.example` — 配置範本，含 Windows 工具路徑示例
+- [x] `start.bat` — Windows 一鍵啟動（npm install + node server.js + 開瀏覽器）
+- [x] `stop.bat` — Windows 停止腳本（taskkill by PID）
+
+---
+
 ## 未來可能新增
 - [ ] Playlist 批量下載
 - [ ] 純音頻模式（MP3/AAC）
@@ -182,3 +223,6 @@
 - [ ] 手機響應式優化
 - [ ] Cloudflare Access（SSO 保護）
 - [ ] 多用戶支援
+- [ ] Windows 原生 Google Drive 支援（rclone 整合或原生 API）
+- [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
+- [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）

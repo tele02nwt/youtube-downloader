@@ -20,8 +20,11 @@ youtube-downloader/
 ├── CLAUDE.md           # 本文件
 ├── TODO.md             # 任務清單
 ├── PROGRESS.md         # 進度記錄
-├── start.sh            # 啟動腳本（server + Cloudflare Tunnel）
+├── start.sh            # 啟動腳本（Linux/macOS/WSL2：server + Cloudflare Tunnel）
+├── start.bat           # 啟動腳本（Windows 原生：自動裝依賴、開瀏覽器）
+├── stop.bat            # 停止腳本（Windows 原生）
 ├── .env                # 認證憑證（不 commit）
+├── .env.example        # 配置範本（含 Windows 路徑說明）
 ├── package.json
 ├── server.js           # Express server 入口
 ├── public/
@@ -33,6 +36,7 @@ youtube-downloader/
 │   ├── downloader.js   # yt-dlp 封裝（格式偵測、下載、進度）
 │   ├── logger.js       # 活動日誌引擎（JSON 存儲，max 500 條）
 │   ├── categories.js   # 分類 CRUD
+│   ├── setup.js        # 跨平台 Setup 模組（Cloudflare + Google Drive 設定/驗證）
 │   └── storage.js      # JSON 持久化
 └── data/
     ├── categories.json    # 分類數據
@@ -107,6 +111,14 @@ DELETE /api/cookies              # 清除 cookies
 GET    /api/logs                # 列出日誌（?category=&level=&limit=&before=）
 GET    /api/logs/stats          # 日誌統計（total, today, byLevel, byCategory）
 DELETE /api/logs                # 清除所有日誌
+
+# Setup (Cloudflare + Google Drive — Phase 9)
+GET    /api/setup/cloudflare/status   # CF 狀態（installed, running, pid, recentLog）
+POST   /api/setup/cloudflare/start    # 啟動 Tunnel（body: {mode, port, token}）
+POST   /api/setup/cloudflare/stop     # 停止 Tunnel
+GET    /api/setup/gdrive/status       # GDrive 狀態（installed, authenticated, binPath）
+POST   /api/setup/gdrive/auth         # 啟動 gog auth login（開瀏覽器 OAuth）
+GET    /api/setup/gdrive/auth-poll    # 輪詢授權進度（output, running, done, success）
 ```
 
 ## 關鍵實現細節
@@ -200,15 +212,94 @@ if (!contentType.includes('application/json')) {
 - 後端 `startDownload()` 接受 `datePrefix` 參數，嵌入 yt-dlp output template
 - 如果影片冇 `upload_date`（rare），toggle 自動隱藏
 
+## Phase 9: Standalone Setup（`lib/setup.js`）
+
+### 模組設計
+`lib/setup.js` 負責 Cloudflare Tunnel 和 Google Drive 的設定 + 狀態偵測，**獨立於 downloader.js**。
+
+#### 跨平台 findBinary(name)
+```javascript
+const IS_WINDOWS = process.platform === 'win32';
+const EXE = IS_WINDOWS ? '.exe' : '';
+// Windows: winget links, LOCALAPPDATA, scoop shims, chocolatey, where.exe
+// Unix: brew paths (/opt/homebrew, /home/linuxbrew), /usr/local/bin, which
+```
+⚠️ Windows fallback 用 `where.exe`；Unix 用 `which`。
+
+#### Cloudflare Tunnel 模式
+- **Quick Tunnel**: `cloudflared tunnel --url http://localhost:PORT` — 免帳號，URL 每次不同
+- **Token Tunnel**: `cloudflared tunnel --no-autoupdate run --token <TOKEN>` — 固定域名，需 Zero Trust Dashboard
+
+#### Google Drive auth flow
+```
+POST /api/setup/gdrive/auth → spawn gog auth login
+GET /api/setup/gdrive/auth-poll → { output, running, done, success }
+// 前端每 1.5s poll，done=true 後停止 setInterval
+```
+⚠️ `gog auth login` 只在 macOS/Linux 可用（Swift binary），Windows 需 WSL2。
+
+### Windows Standalone 支援
+
+#### 兩條路
+| 方案 | Google Drive | 啟動方式 | 複雜度 |
+|------|-------------|---------|--------|
+| WSL2（推薦） | ✅ 完整 | `bash start.sh` in WSL | 中 |
+| Windows 原生 | ❌ 不支援 | `start.bat` | 低 |
+
+#### Windows 原生工具安裝（winget）
+```powershell
+winget install OpenJS.NodeJS.LTS
+winget install yt-dlp.yt-dlp
+winget install Gyan.FFmpeg
+winget install Cloudflare.cloudflared
+```
+
+#### .env 工具路徑覆蓋（原生 Windows 用）
+```env
+YT_DLP_PATH=C:\Users\USERNAME\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe
+FFMPEG_PATH=C:\ffmpeg\bin\ffmpeg.exe
+```
+
+#### start.bat / stop.bat
+- `start.bat`：自動 `npm install`、殺舊 PID、`node server.js`、`start http://localhost:3847`
+- `stop.bat`：讀 `data\server.pid` → `taskkill /PID`
+
+### Settings Tab UI Patterns
+
+#### Status Badge 組件
+```css
+.status-badge { display:inline-flex; align-items:center; gap:6px; border-radius:20px; }
+.status-badge.ok   { color:#4ade80; border:1px solid rgba(74,222,128,0.3); }
+.status-badge.warn { color:#fbbf24; border:1px solid rgba(251,191,36,0.3); }
+.status-badge.err  { color:#f87171; border:1px solid rgba(248,113,113,0.3); }
+.status-dot.green { background:#4ade80; box-shadow:0 0 6px #4ade80; } /* glow for running */
+```
+
+#### Auto-refresh on tab open
+```javascript
+// In tab click handler:
+if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); }
+```
+
+#### gog auth 輪詢模式
+```javascript
+// 點 auth → fetch /api/setup/gdrive/auth → setInterval(poll, 1500)
+// poll: /api/setup/gdrive/auth-poll → { output, done }
+// done=true → clearInterval → showToast success/fail
+// setTimeout 180s 自動 abort（防永久 loop）
+```
+
 ## 啟動指令
 ```bash
-# 啟動 server + Cloudflare Tunnel
+# Linux / macOS / WSL2
 bash /data/.openclaw/workspace_project/youtube-downloader/start.sh
 
-# 或手動啟動
+# 手動（任何平台）
 cd /data/.openclaw/workspace_project/youtube-downloader
 node server.js  # localhost:3847
-cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
+
+# Windows 原生（雙擊）
+start.bat
 ```
 
 ## 公開網址
@@ -271,3 +362,14 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 27. ✅ Tab 新增只需：tab button + `id="tab-<name>"` content div（tab switching 係 generic）
 28. ✅ `goToTab(name)` helper：`document.querySelector('.tab-btn[data-tab="name"]').click()`
 29. ✅ Browser title 應只用 app 名，唔加 tagline（tab 空間有限）
+30. ✅ `lib/setup.js` 的 `findBinary()` 用 `process.platform === 'win32'` 分 Windows/Unix 路徑
+31. ✅ Windows 用 `where.exe`，Unix 用 `which` 做 PATH fallback 搜尋
+32. ✅ Cloudflare Quick Tunnel 免帳號（`--url http://localhost:PORT`），適合本機測試
+33. ✅ Token Tunnel 需 CF Zero Trust Dashboard，Token 以 `eyJ` 開頭
+34. ✅ gog CLI（gogcli）係 Swift binary，macOS/Linux only，Windows 必須用 WSL2
+35. ✅ Status badge UI：`.status-badge` + `.status-dot`（ok=green glow / warn=yellow / err=red / off=grey）
+36. ✅ Settings tab 開啟時自動 refresh 狀態（tab click handler 入 `cfRefreshStatus()`/`gdRefreshStatus()`）
+37. ✅ gog auth 用 spawn（非 execSync），前端 setInterval poll 輸出；180s 自動 timeout 防 loop
+38. ✅ Windows .bat 啟動腳本：先殺舊 PID（data\server.pid），再 node server.js，再 start browser
+39. ✅ `.env.example` 是 standalone 分發必備：含 Windows 工具路徑示例 + 每個 key 的說明
+40. ✅ Guide tab 加 Windows 安裝章節：WSL2（推薦）+ 原生 Windows（限制說明）兩條路並列
