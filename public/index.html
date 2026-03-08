@@ -535,7 +535,8 @@ select option {
 }
 
 .url-section select {
-  min-width: 120px;
+  width: 130px;
+  flex-shrink: 0;
   font-size: 0.85rem;
 }
 
@@ -1334,8 +1335,8 @@ select option {
     <div class="panel">
       <div class="panel-header">// 影片分析</div>
       <div class="url-section">
+        <select id="dl-category"></select>
         <input type="url" id="url-input" placeholder="貼上 YouTube 網址...">
-        <select id="dl-category" style="min-width:120px"></select>
         <button class="btn btn-cyan" id="probe-btn">分析</button>
       </div>
 
