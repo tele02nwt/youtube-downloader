@@ -1492,7 +1492,7 @@ select option {
     </div>
 
     <!-- Load more -->
-    <div style="text-align:center;padding:12px;" id="log-load-more-wrap" style="display:none;">
+    <div style="text-align:center;padding:12px;display:none;" id="log-load-more-wrap">
       <button class="btn btn-cyan btn-sm" id="log-load-more" onclick="loadMoreLogs()">載入更多</button>
     </div>
   </div>
@@ -2306,11 +2306,29 @@ async function fetchLogs(append) {
     // Use 'before' cursor for pagination
     if (append && logState.logs.length > 0) {
       var last = logState.logs[logState.logs.length - 1];
-      params.set('before', last.timestamp);
+      if (last && last.timestamp) params.set('before', last.timestamp);
     }
 
-    var res = await fetch('/api/logs?' + params.toString());
+    var res = await fetch('/api/logs?' + params.toString(), { credentials: 'include' });
+
+    // Handle auth expiry
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    // Guard: ensure response is JSON before parsing
+    var contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
+    }
+
     var data = await res.json();
+
+    // Guard: ensure data is an array
+    if (!Array.isArray(data)) {
+      throw new Error(data.error || '回應格式錯誤');
+    }
 
     if (append) {
       logState.logs = logState.logs.concat(data);
@@ -2327,7 +2345,8 @@ async function fetchLogs(append) {
 
 async function loadLogStats() {
   try {
-    var res = await fetch('/api/logs/stats');
+    var res = await fetch('/api/logs/stats', { credentials: 'include' });
+    if (!res.ok) return;
     var stats = await res.json();
     document.getElementById('log-total-count').textContent = stats.total;
     document.getElementById('log-today-count').textContent = stats.today;
