@@ -862,6 +862,13 @@ select option {
   animation: neonPulse 1.5s ease-in-out infinite;
 }
 
+.status-uploading {
+  color: var(--yellow);
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(251,191,36,0.3);
+  animation: neonPulse 1.5s ease-in-out infinite;
+}
+
 .status-completed {
   color: var(--green);
   background: rgba(0,255,136,0.1);
@@ -1478,7 +1485,7 @@ async function loadDownloads() {
 }
 
 function renderDownloads() {
-  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'pending');
+  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending');
   const completed = state.downloads.filter(d => d.status === 'completed');
   const errors = state.downloads.filter(d => d.status === 'error');
 
@@ -1498,11 +1505,11 @@ function renderDownloads() {
 }
 
 function statusClass(s) {
-  return { downloading: 'status-downloading', merging: 'status-merging', completed: 'status-completed', error: 'status-error', pending: 'status-pending' }[s] || 'status-pending';
+  return { downloading: 'status-downloading', merging: 'status-merging', uploading: 'status-uploading', completed: 'status-completed', error: 'status-error', pending: 'status-pending' }[s] || 'status-pending';
 }
 
 function statusLabel(s) {
-  return { downloading: '下載中', merging: '合併中', completed: '完成', error: '失敗', pending: '等待中' }[s] || s;
+  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中' }[s] || s;
 }
 
 function renderActiveCard(d) {
@@ -1545,6 +1552,7 @@ function renderCompletedCard(d) {
       '</div>' +
       '<span class="status-badge status-completed">完成</span>' +
     '</div>' +
+    (d.gdriveLink ? '<div style="padding:0 16px 8px;"><a href="' + escapeHtml(d.gdriveLink) + '" target="_blank" style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem;text-decoration:none;">📁 Google Drive ↗</a></div>' : '') +
     '<div class="dl-card-actions">' +
       '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">刪除記錄</button>' +
     '</div>' +
@@ -1604,7 +1612,7 @@ window.retryDownload = async function(id) {
 };
 
 function managePoll() {
-  var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'pending');
+  var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending');
   if (hasActive && !state.pollTimer) {
     state.pollTimer = setInterval(async () => {
       if (document.getElementById('tab-manager').classList.contains('active')) {
