@@ -39,7 +39,8 @@
   --font-scale: 1;
 }
 
-/* Font size presets */
+/* Font size presets — set on html so rem units scale globally */
+html { font-size: calc(16px * var(--font-scale)); }
 html.font-medium { --font-scale: 1; }
 html.font-large  { --font-scale: 1.2; }
 html.font-xlarge { --font-scale: 1.4; }
@@ -56,7 +57,7 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
-  font-size: calc(16px * var(--font-scale));
+  font-size: 1rem;
   line-height: 1.55;
 }
 
