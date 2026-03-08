@@ -950,6 +950,25 @@ select option {
 /* ═══════════════════════════════════════════════
    MODAL
    ═══════════════════════════════════════════════ */
+/* Cookie Banner */
+.cookie-banner {
+  background: linear-gradient(90deg, rgba(251,191,36,0.1), rgba(255,0,102,0.05));
+  border: 1px solid rgba(251,191,36,0.3);
+  border-radius: var(--radius);
+  margin: 0 auto 12px;
+  max-width: 800px;
+  padding: 10px 16px;
+}
+.cookie-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cookie-icon { font-size: 1.2rem; }
+.cookie-text { font-family: var(--font-mono); font-size: 0.8rem; color: var(--yellow); flex: 1; }
+.btn-sm { padding: 5px 12px; font-size: 0.7rem; }
+
 .modal-overlay {
   display: none;
   position: fixed;
@@ -1056,11 +1075,22 @@ select option {
     <div class="subtitle">// cyber download system v1.0</div>
   </header>
 
+  <!-- COOKIE BANNER -->
+  <div id="cookie-banner" class="cookie-banner" style="display:none;">
+    <div class="cookie-banner-inner">
+      <span class="cookie-icon">🍪</span>
+      <span class="cookie-text">需要 YouTube Cookies 才能下載。</span>
+      <button class="btn btn-cyan btn-sm" onclick="showCookieModal()">上傳 Cookies</button>
+      <button class="btn btn-sm" style="color:var(--text-dim);border:1px solid var(--border);background:transparent;" onclick="dismissCookieBanner()">✕</button>
+    </div>
+  </div>
+
   <!-- TAB NAV -->
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="categories">分類</button>
     <button class="tab-btn" data-tab="download">下載</button>
     <button class="tab-btn" data-tab="manager">管理</button>
+    <button class="tab-btn" data-tab="settings" style="margin-left:auto;font-size:0.65rem;">⚙️</button>
   </nav>
 
   <!-- ═══════════════════════════════════════════
@@ -1168,6 +1198,88 @@ select option {
     <div class="empty-state" id="mgr-empty">
       <div class="empty-icon">&#x2B21;</div>
       <p>NO DOWNLOAD RECORDS</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 4: SETTINGS
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-settings">
+    <div class="panel">
+      <div class="panel-header">// 設定</div>
+      <div style="padding:16px;">
+        <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🍪 YouTube Cookies</h3>
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">YouTube 會封鎖 VPS IP，需要從你的瀏覽器匯出 cookies 才能下載。</p>
+        <div id="cookie-status" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);margin-bottom:16px;">檢查中...</div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">方法 1：上傳 cookies.txt 檔案</label>
+          <input type="file" id="cookie-file-input" accept=".txt" style="display:none;">
+          <button class="btn btn-cyan" onclick="document.getElementById('cookie-file-input').click()">📁 選擇 cookies.txt</button>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">方法 2：直接貼上 cookies 內容</label>
+          <textarea id="cookie-textarea" rows="6" placeholder="# Netscape HTTP Cookie File&#10;.youtube.com&#9;TRUE&#9;/&#9;TRUE&#9;..." style="width:100%;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.75rem;padding:10px;border-radius:var(--radius);resize:vertical;"></textarea>
+          <button class="btn btn-cyan" style="margin-top:8px;" onclick="uploadCookieText()">💾 儲存 Cookies</button>
+        </div>
+
+        <div>
+          <button class="btn btn-pink" onclick="deleteCookies()">🗑️ 清除 Cookies</button>
+        </div>
+
+        <div style="margin-top:20px;padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
+          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何取得 cookies.txt?</p>
+          <ol style="font-size:0.8rem;color:var(--text-secondary);padding-left:20px;line-height:1.8;">
+            <li>安裝 Chrome 擴充套件 <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank" style="color:var(--cyan);">Get cookies.txt LOCALLY</a></li>
+            <li>前往 <a href="https://www.youtube.com" target="_blank" style="color:var(--cyan);">youtube.com</a> 並確保已登入</li>
+            <li>點擊擴充套件圖示 → Export → 下載 cookies.txt</li>
+            <li>返回此頁面上傳該檔案</li>
+          </ol>
+        </div>
+
+        <!-- Account Settings Section -->
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+          <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🔐 帳號設定</h3>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">修改登入用戶名（Email）及密碼。修改後需重新登入。</p>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">USERNAME (EMAIL)</label>
+            <input type="text" id="settings-username" placeholder="your@email.com" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">新密碼</label>
+            <input type="password" id="settings-new-password" placeholder="輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">確認新密碼</label>
+            <input type="password" id="settings-confirm-password" placeholder="再次輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">當前密碼（驗證身份）</label>
+            <input type="password" id="settings-current-password" placeholder="輸入現有密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <button class="btn btn-cyan" onclick="saveAccountSettings()">💾 儲存帳號設定</button>
+          <button class="btn" style="margin-left:8px;" onclick="logoutAccount()">🚪 登出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COOKIE MODAL (for quick upload from banner) -->
+<div class="modal-overlay" id="cookie-modal">
+  <div class="modal-box">
+    <h3>上傳 YouTube Cookies</h3>
+    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">選擇從瀏覽器匯出的 cookies.txt 檔案</p>
+    <input type="file" id="cookie-modal-file" accept=".txt" style="margin-bottom:16px;">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeCookieModal()">取消</button>
+      <button class="btn btn-cyan" onclick="uploadCookieFromModal()">上傳</button>
     </div>
   </div>
 </div>
@@ -1638,9 +1750,153 @@ document.getElementById('delete-modal').addEventListener('click', e => {
 });
 
 /* ═══════════════════════════════════════════════
+   COOKIES MANAGEMENT
+   ═══════════════════════════════════════════════ */
+
+async function checkCookieStatus() {
+  try {
+    const res = await fetch('/api/cookies/status');
+    const data = await res.json();
+    const statusEl = document.getElementById('cookie-status');
+    const banner = document.getElementById('cookie-banner');
+    if (data.hasCookies) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✅ Cookies 已設定（' + data.cookieCount + ' 條記錄）</span>';
+      if (banner) banner.style.display = 'none';
+    } else {
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--pink)">❌ 未設定 Cookies — YouTube 下載可能失敗</span>';
+      if (banner) banner.style.display = 'block';
+    }
+  } catch (e) {
+    console.error('Cookie status check failed:', e);
+  }
+}
+
+function dismissCookieBanner() {
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+
+function showCookieModal() {
+  document.getElementById('cookie-modal').classList.add('active');
+  document.getElementById('cookie-modal').style.display = 'flex';
+}
+
+function closeCookieModal() {
+  document.getElementById('cookie-modal').classList.remove('active');
+  document.getElementById('cookie-modal').style.display = 'none';
+}
+
+async function uploadCookieFromModal() {
+  const fileInput = document.getElementById('cookie-modal-file');
+  if (!fileInput.files.length) { toast('請選擇 cookies.txt 檔案', 'error'); return; }
+  const content = await fileInput.files[0].text();
+  await doUploadCookies(content);
+  closeCookieModal();
+}
+
+document.getElementById('cookie-file-input').addEventListener('change', async function() {
+  if (!this.files.length) return;
+  const content = await this.files[0].text();
+  await doUploadCookies(content);
+});
+
+async function uploadCookieText() {
+  const text = document.getElementById('cookie-textarea').value.trim();
+  if (!text) { toast('請貼上 cookies 內容', 'error'); return; }
+  await doUploadCookies(text);
+}
+
+async function doUploadCookies(content) {
+  try {
+    const res = await fetch('/api/cookies/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    toast('✅ Cookies 已儲存（' + data.cookieCount + ' 條）', 'success');
+    checkCookieStatus();
+  } catch (e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+async function deleteCookies() {
+  try {
+    await fetch('/api/cookies', { method: 'DELETE' });
+    toast('Cookies 已清除', 'success');
+    checkCookieStatus();
+  } catch (e) {
+    toast('清除失敗: ' + e.message, 'error');
+  }
+}
+
+document.getElementById('cookie-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCookieModal();
+});
+
+/* ═══════════════════════════════════════════════
+   ACCOUNT SETTINGS
+   ═══════════════════════════════════════════════ */
+
+async function loadAccountInfo() {
+  try {
+    var res = await fetch('/api/auth/info');
+    var data = await res.json();
+    if (data.username) {
+      document.getElementById('settings-username').value = data.username;
+    }
+  } catch(e) {}
+}
+
+async function saveAccountSettings() {
+  var username = document.getElementById('settings-username').value.trim();
+  var newPass = document.getElementById('settings-new-password').value;
+  var confirmPass = document.getElementById('settings-confirm-password').value;
+  var currentPass = document.getElementById('settings-current-password').value;
+
+  if (!currentPass) { toast('請輸入當前密碼驗證身份', 'error'); return; }
+  if (newPass && newPass !== confirmPass) { toast('新密碼與確認密碼不一致', 'error'); return; }
+  if (!username) { toast('Username 不可為空', 'error'); return; }
+
+  try {
+    var res = await fetch('/api/auth/update-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: currentPass,
+        newUsername: username,
+        newPassword: newPass || undefined
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    toast('✅ 帳號設定已更新，請重新登入', 'success');
+    document.getElementById('settings-new-password').value = '';
+    document.getElementById('settings-confirm-password').value = '';
+    document.getElementById('settings-current-password').value = '';
+    // Redirect to login after short delay
+    setTimeout(function() { window.location.href = '/login.html'; }, 1500);
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+async function logoutAccount() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login.html';
+  } catch(e) {
+    window.location.href = '/login.html';
+  }
+}
+
+/* ═══════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════ */
 loadCategories();
+checkCookieStatus();
+loadAccountInfo();
 </script>
 </body>
 </html>

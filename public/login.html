@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YT DOWNLOADER // ACCESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-panel: #0d1117;
+  --bg-card: #111827;
+  --cyan: #00f0ff;
+  --cyan-dim: #00f0ff44;
+  --cyan-glow: 0 0 15px #00f0ff66, 0 0 30px #00f0ff22;
+  --purple: #8b5cf6;
+  --purple-dim: #8b5cf644;
+  --purple-glow: 0 0 15px #8b5cf666;
+  --pink: #ff0066;
+  --green: #00ff88;
+  --yellow: #fbbf24;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-dim: #475569;
+  --border: #1e293b;
+  --border-bright: #334155;
+  --font-heading: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --radius: 6px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating particles */
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: var(--cyan);
+  border-radius: 50%;
+  opacity: 0;
+  animation: float-up linear infinite;
+}
+@keyframes float-up {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+}
+
+/* Login container */
+.login-wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+}
+
+.login-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px 40px 40px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+
+/* Top accent line */
+.login-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--purple), var(--pink), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Corner decorations */
+.login-box::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid var(--cyan-dim);
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Logo / Icon */
+.logo-section {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logo-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon svg {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 0 10px var(--cyan));
+}
+
+.logo-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--cyan-dim);
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+.logo-ring:nth-child(2) {
+  inset: -6px;
+  border-color: var(--purple-dim);
+  animation-delay: 0.5s;
+}
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.logo-title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+}
+
+.logo-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-top: 4px;
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-dim);
+  transition: color var(--transition);
+  pointer-events: none;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.form-input::placeholder {
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+.form-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim), var(--cyan-glow);
+}
+
+.form-input:focus ~ .icon {
+  color: var(--cyan);
+}
+
+/* Password toggle */
+.pw-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  transition: color var(--transition);
+}
+.pw-toggle:hover { color: var(--cyan); }
+.pw-toggle svg { width: 18px; height: 18px; }
+
+/* Submit button */
+.btn-login {
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, var(--cyan), var(--purple));
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition);
+}
+
+.btn-login::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.5s;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,240,255,0.3), 0 0 40px rgba(139,92,246,0.2);
+}
+.btn-login:hover::before {
+  left: 100%;
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.btn-login:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Loading state */
+.btn-login.loading {
+  pointer-events: none;
+  color: transparent;
+}
+.btn-login.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error message */
+.error-msg {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(255,0,102,0.1);
+  border: 1px solid rgba(255,0,102,0.3);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--pink);
+  text-align: center;
+  display: none;
+  animation: shake 0.4s ease;
+}
+.error-msg.visible { display: block; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+/* Footer text */
+.login-footer {
+  text-align: center;
+  margin-top: 24px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.login-footer .ver {
+  color: var(--cyan);
+}
+
+/* Glitch animation for title on hover */
+.logo-title:hover {
+  animation: glitch 0.3s ease;
+}
+@keyframes glitch {
+  0% { text-shadow: 2px 0 var(--pink), -2px 0 var(--cyan); }
+  25% { text-shadow: -2px 0 var(--pink), 2px 0 var(--cyan); }
+  50% { text-shadow: 2px -1px var(--pink), -2px 1px var(--cyan); }
+  75% { text-shadow: -1px 2px var(--pink), 1px -2px var(--cyan); }
+  100% { text-shadow: none; }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-box { padding: 36px 24px 32px; }
+  .logo-title { font-size: 16px; letter-spacing: 3px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+
+<div class="login-wrapper">
+  <div class="login-box">
+
+    <!-- Logo -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <div class="logo-ring"></div>
+        <div class="logo-ring"></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--cyan)">
+          <polygon points="5,3 19,12 5,21" fill="var(--cyan)" stroke="none" opacity="0.8"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="var(--cyan)" fill="none" opacity="0.4"/>
+        </svg>
+      </div>
+      <div class="logo-title">YT Downloader</div>
+      <div class="logo-subtitle">// SECURE ACCESS //</div>
+    </div>
+
+    <!-- Form -->
+    <form id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrapper">
+          <input type="text" class="form-input" id="username" placeholder="Enter username" autofocus autocomplete="username">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrapper">
+          <input type="password" class="form-input" id="password" placeholder="Enter password" autocomplete="current-password">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <button type="button" class="pw-toggle" id="pw-toggle" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="eye-icon">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-login">
+        Authenticate
+      </button>
+
+      <div class="error-msg" id="error-msg"></div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a href="#" id="forgot-link" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);text-decoration:none;letter-spacing:1px;transition:color 0.25s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">Forgot Password?</a>
+      </div>
+    </form>
+
+    <!-- Forgot Password: Step 1 - Enter Email -->
+    <form id="forgot-form" style="display:none;" autocomplete="off">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-family:var(--font-heading);font-size:14px;color:var(--cyan);letter-spacing:2px;">PASSWORD RECOVERY</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px;">// VERIFICATION REQUIRED //</div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <div class="input-wrapper">
+          <input type="email" class="form-input" id="forgot-email" placeholder="Enter your email (username)" autocomplete="email">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="M22 4L12 13 2 4"/>
+          </svg>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-send-code">
+        Send Verification Code
+      </button>
+
+      <div class="error-msg" id="forgot-error"></div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a href="#" id="back-to-login" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);text-decoration:none;letter-spacing:1px;transition:color 0.25s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">← Back to Login</a>
+      </div>
+    </form>
+
+    <!-- Forgot Password: Step 2 - Enter Code -->
+    <form id="verify-form" style="display:none;" autocomplete="off">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-family:var(--font-heading);font-size:14px;color:var(--cyan);letter-spacing:2px;">ENTER CODE</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px;" id="verify-hint">// CHECK YOUR EMAIL //</div>
+      </div>
+
+      <div class="form-group">
+        <label>Verification Code</label>
+        <div class="input-wrapper">
+          <input type="text" class="form-input" id="verify-code" placeholder="6-digit code" maxlength="6" style="text-align:center;font-family:var(--font-heading);font-size:24px;letter-spacing:8px;" autocomplete="one-time-code">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="btn-verify">
+        Verify Code
+      </button>
+
+      <div class="error-msg" id="verify-error"></div>
+
+      <div style="text-align:center;margin-top:16px;">
+        <a href="#" id="resend-code" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);text-decoration:none;letter-spacing:1px;transition:color 0.25s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">Resend Code</a>
+      </div>
+    </form>
+
+    <!-- Forgot Password: Step 3 - Show Password -->
+    <div id="reveal-section" style="display:none;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-family:var(--font-heading);font-size:14px;color:var(--green);letter-spacing:2px;">✅ VERIFIED</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px;">// YOUR PASSWORD //</div>
+      </div>
+
+      <div style="padding:20px;background:var(--bg-card);border:1px solid var(--green);border-radius:var(--radius);text-align:center;position:relative;">
+        <div id="revealed-password" style="font-family:var(--font-mono);font-size:20px;color:var(--text-primary);letter-spacing:2px;word-break:break-all;"></div>
+        <button type="button" onclick="copyRevealedPassword()" style="margin-top:12px;background:none;border:1px solid var(--border-bright);color:var(--text-secondary);font-family:var(--font-mono);font-size:11px;padding:6px 16px;border-radius:var(--radius);cursor:pointer;letter-spacing:1px;transition:all 0.25s;" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-secondary)'">📋 COPY</button>
+      </div>
+
+      <div style="text-align:center;margin-top:20px;">
+        <a href="#" id="back-to-login-2" style="font-family:var(--font-mono);font-size:12px;color:var(--cyan);text-decoration:none;letter-spacing:1px;">← Back to Login</a>
+      </div>
+    </div>
+
+    <div class="login-footer">
+      SYSTEM <span class="ver">v1.0</span> — ENCRYPTED CHANNEL
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate particles
+(function() {
+  var container = document.getElementById('particles');
+  for (var i = 0; i < 30; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (6 + Math.random() * 8) + 's';
+    p.style.animationDelay = (Math.random() * 6) + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    if (Math.random() > 0.6) p.style.background = 'var(--purple)';
+    container.appendChild(p);
+  }
+})();
+
+// Password visibility toggle
+var pwInput = document.getElementById('password');
+var pwToggle = document.getElementById('pw-toggle');
+var eyeIcon = document.getElementById('eye-icon');
+pwToggle.addEventListener('click', function() {
+  var isPassword = pwInput.type === 'password';
+  pwInput.type = isPassword ? 'text' : 'password';
+  eyeIcon.innerHTML = isPassword
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+});
+
+// Form submission
+var form = document.getElementById('login-form');
+var btn = document.getElementById('btn-login');
+var errorEl = document.getElementById('error-msg');
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  errorEl.classList.remove('visible');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  var username = document.getElementById('username').value.trim();
+  var password = document.getElementById('password').value;
+
+  if (!username || !password) {
+    showError('請輸入用戶名同密碼');
+    return;
+  }
+
+  try {
+    var res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || '認證失敗');
+
+    // Success — redirect
+    window.location.href = '/';
+  } catch (err) {
+    showError(err.message);
+  }
+});
+
+function showError(msg) {
+  errorEl.textContent = msg;
+  errorEl.classList.add('visible');
+  btn.classList.remove('loading');
+  btn.disabled = false;
+  document.getElementById('password').value = '';
+  document.getElementById('password').focus();
+}
+
+// Enter key on username → focus password
+document.getElementById('username').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('password').focus();
+  }
+});
+
+// ═══════════════════════════════════════
+// FORGOT PASSWORD FLOW
+// ═══════════════════════════════════════
+
+var forgotEmail = '';
+
+function showPanel(id) {
+  ['login-form', 'forgot-form', 'verify-form', 'reveal-section'].forEach(function(p) {
+    document.getElementById(p).style.display = (p === id) ? 'block' : 'none';
+  });
+}
+
+// Forgot link
+document.getElementById('forgot-link').addEventListener('click', function(e) {
+  e.preventDefault();
+  showPanel('forgot-form');
+  document.getElementById('forgot-email').focus();
+});
+
+// Back to login links
+document.getElementById('back-to-login').addEventListener('click', function(e) {
+  e.preventDefault();
+  showPanel('login-form');
+});
+document.getElementById('back-to-login-2').addEventListener('click', function(e) {
+  e.preventDefault();
+  showPanel('login-form');
+});
+
+// Step 1: Send verification code
+document.getElementById('forgot-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var emailInput = document.getElementById('forgot-email');
+  var btnSend = document.getElementById('btn-send-code');
+  var errEl = document.getElementById('forgot-error');
+  errEl.classList.remove('visible');
+
+  forgotEmail = emailInput.value.trim();
+  if (!forgotEmail) { showForgotError('請輸入 Email 地址'); return; }
+
+  btnSend.classList.add('loading');
+  btnSend.disabled = true;
+
+  try {
+    var res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // Move to Step 2
+    document.getElementById('verify-hint').textContent = '// CODE SENT TO ' + forgotEmail + ' //';
+    showPanel('verify-form');
+    document.getElementById('verify-code').focus();
+  } catch(err) {
+    showForgotError(err.message);
+  } finally {
+    btnSend.classList.remove('loading');
+    btnSend.disabled = false;
+  }
+});
+
+function showForgotError(msg) {
+  var el = document.getElementById('forgot-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// Step 2: Verify code
+document.getElementById('verify-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var code = document.getElementById('verify-code').value.trim();
+  var btnVerify = document.getElementById('btn-verify');
+  var errEl = document.getElementById('verify-error');
+  errEl.classList.remove('visible');
+
+  if (!code) { showVerifyError('請輸入驗證碼'); return; }
+
+  btnVerify.classList.add('loading');
+  btnVerify.disabled = true;
+
+  try {
+    var res = await fetch('/api/auth/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail, code: code })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // Step 3: Show password
+    document.getElementById('revealed-password').textContent = data.password;
+    showPanel('reveal-section');
+  } catch(err) {
+    showVerifyError(err.message);
+    document.getElementById('verify-code').value = '';
+    document.getElementById('verify-code').focus();
+  } finally {
+    btnVerify.classList.remove('loading');
+    btnVerify.disabled = false;
+  }
+});
+
+function showVerifyError(msg) {
+  var el = document.getElementById('verify-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// Resend code
+document.getElementById('resend-code').addEventListener('click', async function(e) {
+  e.preventDefault();
+  if (!forgotEmail) return;
+  try {
+    var res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    document.getElementById('verify-hint').textContent = '// NEW CODE SENT //';
+    document.getElementById('verify-code').value = '';
+    document.getElementById('verify-code').focus();
+  } catch(err) {
+    showVerifyError(err.message);
+  }
+});
+
+// Copy password
+function copyRevealedPassword() {
+  var pw = document.getElementById('revealed-password').textContent;
+  navigator.clipboard.writeText(pw).then(function() {
+    var btn = event.target;
+    var orig = btn.textContent;
+    btn.textContent = '✅ COPIED';
+    setTimeout(function() { btn.textContent = orig; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
