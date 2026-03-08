@@ -1696,24 +1696,59 @@ select option {
        TAB 5: SETTINGS
        ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-settings">
-    <!-- Font Size Setting -->
+
+    <!-- ═══ 1. 帳號與安全 ═══ -->
     <div class="panel">
-      <div class="panel-header">// 顯示設定</div>
+      <div class="panel-header">// 帳號與安全</div>
       <div style="padding:16px;">
-        <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🔤 字體大小</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="font-size-btns">
-          <button class="btn btn-cyan font-size-btn active" data-size="medium" onclick="setFontSize('medium')">中（預設）</button>
-          <button class="btn font-size-btn" data-size="large" onclick="setFontSize('large')" style="color:var(--text-secondary);border:1px solid var(--border);">大</button>
-          <button class="btn font-size-btn" data-size="xlarge" onclick="setFontSize('xlarge')" style="color:var(--text-secondary);border:1px solid var(--border);">特大</button>
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:20px;">修改登入用戶名（Email）及密碼。修改後所有 Session 即時失效，需重新登入。</p>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">USERNAME (EMAIL)</label>
+          <input type="text" id="settings-username" placeholder="your@email.com" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">新密碼</label>
+          <input type="password" id="settings-new-password" placeholder="輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">確認新密碼</label>
+          <input type="password" id="settings-confirm-password" placeholder="再次輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">當前密碼（驗證身份）</label>
+          <input type="password" id="settings-current-password" placeholder="輸入現有密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-cyan" onclick="saveAccountSettings()">💾 儲存帳號設定</button>
+          <button class="btn btn-pink" style="opacity:0.8;" onclick="logoutAccount()">🚪 登出</button>
         </div>
       </div>
     </div>
 
+    <!-- ═══ 2. 顯示偏好 ═══ -->
     <div class="panel">
-      <div class="panel-header">// 設定</div>
+      <div class="panel-header">// 顯示偏好</div>
       <div style="padding:16px;">
-        <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🍪 YouTube Cookies</h3>
-        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">YouTube 會封鎖 VPS IP，需要從你的瀏覽器匯出 cookies 才能下載。</p>
+        <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🔤 字體大小</h3>
+        <div style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px;">設定即時生效並永久保存，適合不同螢幕尺寸。</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="font-size-btns">
+          <button class="btn btn-cyan font-size-btn active" data-size="medium" onclick="setFontSize('medium')">中（預設 16px）</button>
+          <button class="btn font-size-btn" data-size="large" onclick="setFontSize('large')" style="color:var(--text-secondary);border:1px solid var(--border);">大（~19px）</button>
+          <button class="btn font-size-btn" data-size="xlarge" onclick="setFontSize('xlarge')" style="color:var(--text-secondary);border:1px solid var(--border);">特大（~22px）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 3. YouTube Cookies ═══ -->
+    <div class="panel">
+      <div class="panel-header">// YOUTUBE COOKIES</div>
+      <div style="padding:16px;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">YouTube 會封鎖 VPS IP，需要從你的瀏覽器匯出 cookies 才能下載受限或會員內容。</p>
         <div id="cookie-status" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);margin-bottom:16px;">檢查中...</div>
 
         <div style="margin-bottom:16px;">
@@ -1728,11 +1763,11 @@ select option {
           <button class="btn btn-cyan" style="margin-top:8px;" onclick="uploadCookieText()">💾 儲存 Cookies</button>
         </div>
 
-        <div>
+        <div style="margin-bottom:20px;">
           <button class="btn btn-pink" onclick="deleteCookies()">🗑️ 清除 Cookies</button>
         </div>
 
-        <div style="margin-top:20px;padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
+        <div style="padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
           <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何取得 cookies.txt?</p>
           <ol style="font-size:0.8rem;color:var(--text-secondary);padding-left:20px;line-height:1.8;">
             <li>安裝 Chrome 擴充套件 <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc" target="_blank" style="color:var(--cyan);">Get cookies.txt LOCALLY</a></li>
@@ -1741,40 +1776,11 @@ select option {
             <li>返回此頁面上傳該檔案</li>
           </ol>
         </div>
-
-        <!-- Account Settings Section -->
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
-          <h3 style="font-family:var(--font-heading);font-size:0.9rem;color:var(--cyan);margin-bottom:12px;">🔐 帳號設定</h3>
-          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">修改登入用戶名（Email）及密碼。修改後需重新登入。</p>
-
-          <div style="margin-bottom:16px;">
-            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">USERNAME (EMAIL)</label>
-            <input type="text" id="settings-username" placeholder="your@email.com" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
-          </div>
-
-          <div style="margin-bottom:16px;">
-            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">新密碼</label>
-            <input type="password" id="settings-new-password" placeholder="輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
-          </div>
-
-          <div style="margin-bottom:16px;">
-            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">確認新密碼</label>
-            <input type="password" id="settings-confirm-password" placeholder="再次輸入新密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
-          </div>
-
-          <div style="margin-bottom:16px;">
-            <label style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">當前密碼（驗證身份）</label>
-            <input type="password" id="settings-current-password" placeholder="輸入現有密碼" style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
-          </div>
-
-          <button class="btn btn-cyan" onclick="saveAccountSettings()">💾 儲存帳號設定</button>
-          <button class="btn" style="margin-left:8px;" onclick="logoutAccount()">🚪 登出</button>
-        </div>
       </div>
     </div>
 
     <!-- ═══ CLOUDFLARE TUNNEL PANEL ═══ -->
-    <div class="panel">
+    <div class="panel" id="panel-cloudflare">
       <div class="panel-header">// CLOUDFLARE TUNNEL</div>
       <div style="padding:16px;">
 
@@ -1848,7 +1854,7 @@ select option {
     </div>
 
     <!-- ═══ GOOGLE DRIVE PANEL ═══ -->
-    <div class="panel">
+    <div class="panel" id="panel-gdrive">
       <div class="panel-header">// GOOGLE DRIVE</div>
       <div style="padding:16px;">
 
@@ -1889,7 +1895,7 @@ select option {
     </div>
 
     <!-- ═══ TELEGRAM 通知 PANEL ═══ -->
-    <div class="panel">
+    <div class="panel" id="panel-telegram">
       <div class="panel-header">// TELEGRAM 通知</div>
       <div style="padding:16px;">
 
@@ -1910,7 +1916,7 @@ select option {
         <div id="tg-config-section">
           <div style="margin-bottom:16px;">
             <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">GROUP ID <span style="color:var(--pink);font-size:0.68rem;">(必填)</span></label>
-            <input type="text" id="tg-group-id" placeholder="-1001234567890" autocomplete="off" data-form-type="other"
+            <input type="text" id="tg-group-id" placeholder="-1003817368779" autocomplete="off" data-form-type="other"
               style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;"
               onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
             <div style="margin-top:5px;font-size:0.73rem;color:var(--text-dim);">Telegram Group 的數字 ID（通常以 -100 開頭）。可在 Bot 收到的訊息 JSON 中找到 <code style="background:var(--bg-deep);padding:1px 4px;border-radius:3px;">chat.id</code> 欄位。</div>
@@ -3461,6 +3467,22 @@ async function gdPollAuth() {
     }
   } catch (e) { /* ignore poll errors */ }
 }
+
+/* ═══════════════════════════════════════════════
+   SETTINGS PANEL ORDER
+   目標順序：帳號→顯示→Cookies→Telegram→GDrive→Cloudflare
+   ═══════════════════════════════════════════════ */
+(function reorderSettingsPanels() {
+  var container = document.getElementById('tab-settings');
+  var tg = document.getElementById('panel-telegram');
+  var gd = document.getElementById('panel-gdrive');
+  var cf = document.getElementById('panel-cloudflare');
+  if (!container || !tg || !gd || !cf) return;
+  // Append in target order: TG → GD → CF
+  container.appendChild(tg);
+  container.appendChild(gd);
+  container.appendChild(cf);
+})();
 
 /* ═══════════════════════════════════════════════
    TELEGRAM SETTINGS
