@@ -226,3 +226,42 @@
 - [ ] Windows 原生 Google Drive 支援（rclone 整合或原生 API）
 - [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
 - [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）
+
+---
+
+## Phase 10: Telegram 設定 UI + 分發打包 ✅
+
+### Task 10.1: lib/settings.js — 應用設定持久化模組
+- [x] `loadSettings()` — 從 `data/settings.json` 讀取，deep merge DEFAULTS
+- [x] `saveSettings(settings)` — atomic write via storage.js
+- [x] `getTelegramSettings()` / `saveTelegramSettings()` — Telegram 專用 getter/setter
+- [x] DEFAULTS 預填 groupId `-1003817368779` / topicId `191`
+
+### Task 10.2: 後端 API + downloader 更新
+- [x] `GET /api/settings/telegram` — 讀取 Telegram 設定
+- [x] `POST /api/settings/telegram` — 儲存 Telegram 設定
+- [x] `POST /api/settings/telegram/test` — 發測試訊息（直接用 body 值）
+- [x] `downloader.js` — 移除 hardcoded TG_GROUP/TG_TOPIC，改用 `getTelegramSettings()`
+
+### Task 10.3: 設定頁 Telegram 面板
+- [x] `// TELEGRAM 通知` panel（CSS-only toggle + Group ID + Topic ID）
+- [x] `tgLoadSettings()` / `saveTelegramSettings()` / `testTelegramSettings()` JS 函數
+- [x] Tab 開啟時自動 load（settings tab click handler 加 `tgLoadSettings()`）
+- [x] Info box：如何取得 Group ID / Topic ID
+
+### Task 10.4: 設定頁面板重排
+- [x] 帳號與安全（獨立面板，置頂）
+- [x] 顯示偏好（原字體大小 panel，重命名）
+- [x] YouTube Cookies（獨立 panel，重命名）
+- [x] 新排列順序：帳號 → 顯示 → Cookies → Telegram → GDrive → Cloudflare
+- [x] DOM IIFE 重排（panel-telegram / panel-gdrive / panel-cloudflare）
+
+### Task 10.5: 指南頁 Telegram 章節
+- [x] `📲 Telegram 通知設定` section（id=guide-telegram）
+- [x] nav 加 Telegram 連結
+- [x] 三步教學：取得 Group ID → 取得 Topic ID → 儲存並測試
+
+### Task 10.6: 分發打包
+- [x] `README.md` — 完整安裝說明（需求、安裝步驟、各功能說明、FAQ）
+- [x] `.env.example` — Telegram 設定已移至 UI 的說明
+- [x] `youtube-downloader.tar.gz` — 252KB，排除 node_modules / .env / data / .git 等

@@ -292,3 +292,67 @@
 - Phase 9 新增: `lib/setup.js`（跨平台 setup module）
 - Windows 啟動: `start.bat` / `stop.bat`
 - 配置: `.env.example`（含 Windows 工具路徑說明）
+
+---
+
+## Phase 10: Telegram 設定 UI + 分發打包
+
+### 2026-03-08 — Telegram 通知搬到 Web UI 設定頁 ✅
+
+**背景**：Telegram 的 Group ID 和 Topic ID 原本 hardcode 在 `lib/downloader.js`，每次修改需要重啟 server。現改為透過 Web UI 設定並持久化。
+
+**新增 `lib/settings.js`**：
+- 管理 `data/settings.json`
+- DEFAULTS 包含 Telegram 預設值（`-1003817368779` / `191`）
+- `loadSettings()` 做 deep merge（確保新欄位有 fallback）
+- **⚠️ 陷阱**：`readJSON()` 只接 filename（相對 `data/`），勿傳 absolute path
+
+**`downloader.js` 改動**：
+- 移除 `const TG_GROUP / TG_TOPIC`
+- 改為 `const tg = appSettings.getTelegramSettings()`
+- `if (!tg.enabled || !tg.groupId) return;`（尊重用戶設定）
+
+**新 API endpoints**：
+```
+GET  /api/settings/telegram        # 讀取設定
+POST /api/settings/telegram        # 儲存設定
+POST /api/settings/telegram/test   # 即時測試（直接用 body 值）
+```
+
+**設定頁新面板**：CSS-only toggle + Group/Topic inputs + 儲存/測試按鈕 + Info box
+
+### 2026-03-08 — 設定頁面板重新排列 ✅
+
+**舊問題**：
+- 「設定」面板混合了 Cookies + 帳號（兩件完全不同的事）
+- Cloudflare Tunnel 在 Google Drive 前（功能複雜度較高應放後）
+- Telegram 面板排在最後（但邏輯上比 Drive/CF 更常用）
+
+**新排列**（個人 → 下載 → 通知 → 儲存 → 網絡）：
+`帳號與安全 → 顯示偏好 → YouTube Cookies → Telegram 通知 → Google Drive → Cloudflare Tunnel`
+
+**實現方式**：各 panel 加 `id`，用 DOM IIFE 重排（唔改 HTML 邏輯順序）：
+```javascript
+(function() {
+  var c = document.getElementById('tab-settings');
+  c.appendChild(document.getElementById('panel-telegram'));  // TG 先
+  c.appendChild(document.getElementById('panel-gdrive'));    // GD 其次
+  c.appendChild(document.getElementById('panel-cloudflare')); // CF 最後
+})();
+```
+
+**邏輯**：`appendChild` 先移除後 append。初始 [CF, GD, TG] → append TG → [CF, GD, TG] → append GD → [CF, TG, GD] → append CF → [TG, GD, CF] ✅
+
+### 2026-03-08 — 分發打包 ✅
+
+- `README.md` 新增，包含完整安裝說明、系統需求、各功能說明
+- `.env.example` 更新：Telegram 設定說明改為「已移至 Web UI」
+- `youtube-downloader.tar.gz` 生成（252KB）：
+  - 排除：`node_modules/`、`.env`、`data/`、`.git/`、`openspec/`、`.claude/`
+  - 含：全部 source code + README + .env.example + start.sh / start.bat
+
+### 踩坑（Phase 10）
+
+1. **storage.js readJSON filename**：只接相對名稱（如 `'settings.json'`），傳 absolute path 會組合成錯誤路徑
+2. **502 Bad Gateway**：測試時啟動了多個 server process，exec SIGTERM 把正式 server 也殺掉；重跑 `bash start.sh` 即可
+3. **DOM IIFE 重排直覺錯誤**：要實現 TG→GD→CF，需要按此序 append（而非按「目標順序」反向 append）

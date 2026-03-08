@@ -18,6 +18,7 @@
 ```
 youtube-downloader/
 ├── CLAUDE.md           # 本文件
+├── README.md           # 用戶安裝指南（分發用）
 ├── TODO.md             # 任務清單
 ├── PROGRESS.md         # 進度記錄
 ├── start.sh            # 啟動腳本（Linux/macOS/WSL2：server + Cloudflare Tunnel）
@@ -37,11 +38,13 @@ youtube-downloader/
 │   ├── logger.js       # 活動日誌引擎（JSON 存儲，max 500 條）
 │   ├── categories.js   # 分類 CRUD
 │   ├── setup.js        # 跨平台 Setup 模組（Cloudflare + Google Drive 設定/驗證）
+│   ├── settings.js     # ⭐ 持久化應用設定（Telegram Group/Topic 等）
 │   └── storage.js      # JSON 持久化
 └── data/
     ├── categories.json    # 分類數據
     ├── downloads.json     # 下載記錄
     ├── activity-log.json  # 活動日誌
+    ├── settings.json      # ⭐ 持久化設定（由 lib/settings.js 管理）
     ├── cookies.txt        # YouTube cookies（可選）
     ├── server.log         # Server 日誌
     ├── tunnel.log         # Tunnel 日誌
@@ -119,6 +122,11 @@ POST   /api/setup/cloudflare/stop     # 停止 Tunnel
 GET    /api/setup/gdrive/status       # GDrive 狀態（installed, authenticated, binPath）
 POST   /api/setup/gdrive/auth         # 啟動 gog auth login（開瀏覽器 OAuth）
 GET    /api/setup/gdrive/auth-poll    # 輪詢授權進度（output, running, done, success）
+
+# Settings (Phase 10)
+GET    /api/settings/telegram         # 讀取 Telegram 設定 {enabled, groupId, topicId}
+POST   /api/settings/telegram         # 儲存 Telegram 設定
+POST   /api/settings/telegram/test    # 發送測試訊息（直接用 body 值，不需先 save）
 ```
 
 ## 關鍵實現細節
@@ -170,10 +178,12 @@ GET    /api/setup/gdrive/auth-poll    # 輪詢授權進度（output, running, do
 4. **日誌**（logs）— Activity log，filter + pagination
 5. **架構**（workflow）— Workflow infographic 靜態圖片
 6. **指南**（guide）— User guide，anchor nav + tab jump
-7. **設定**（settings）⚙️ — 字體大小、Cookies、帳號管理
+7. **設定**（settings）⚙️ — 帳號與安全 / 顯示偏好 / YouTube Cookies / Telegram 通知 / Google Drive / Cloudflare Tunnel
 
 ### Telegram 通知
-- Group: `-1003817368779`，Topic: `191`（下載完成通知）
+- Group/Topic 設定**已移至 Web UI 設定頁**（`// TELEGRAM 通知` panel），持久化於 `data/settings.json`
+- 預設值：Group `-1003817368779`，Topic `191`
+- `lib/settings.js` → `getTelegramSettings()` 動態讀取（取代舊版 hardcode const）
 - 呢個 group/topic 唔係 Claude 對話，係獨立通知 topic
 
 ### 重要 CSS 模式
@@ -373,3 +383,8 @@ start.bat
 38. ✅ Windows .bat 啟動腳本：先殺舊 PID（data\server.pid），再 node server.js，再 start browser
 39. ✅ `.env.example` 是 standalone 分發必備：含 Windows 工具路徑示例 + 每個 key 的說明
 40. ✅ Guide tab 加 Windows 安裝章節：WSL2（推薦）+ 原生 Windows（限制說明）兩條路並列
+41. ✅ `lib/settings.js` 管理 `data/settings.json`，readJSON 只接 filename（相對 data/），勿傳 absolute path
+42. ✅ Telegram Group/Topic 從 hardcode 移至 `settings.json`，`getTelegramSettings()` 動態讀取
+43. ✅ 設定面板 Panel 重排用 DOM IIFE：`container.appendChild(tg/gd/cf)` 依序 append 達到目標順序
+44. ✅ Telegram 設定面板：toggle + Group ID + Topic ID + 儲存 + 測試訊息（test 直接用 input 值，不需先 save）
+45. ✅ 分發打包排除 node_modules / .env / data / .git / openspec / .claude，僅 252KB
