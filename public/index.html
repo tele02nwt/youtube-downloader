@@ -661,6 +661,14 @@ select option {
   color: var(--text-primary);
 }
 
+.format-hint {
+  margin-top: 7px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  opacity: 0.7;
+}
+
 /* Quality list */
 .quality-list {
   display: flex;
@@ -1365,10 +1373,11 @@ select option {
             <button class="format-btn" data-format="mkv">MKV</button>
             <button class="format-btn" data-format="mov">MOV</button>
           </div>
+          <div class="format-hint">// 封裝格式只改變容器，不重新編碼，預計大小不受影響</div>
         </div>
 
         <div class="format-section">
-          <div class="panel-header">// 畫質</div>
+          <div class="panel-header">// 畫質 <span style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);font-weight:400;">（串流大小估算）</span></div>
           <div class="quality-list" id="quality-list"></div>
         </div>
 
