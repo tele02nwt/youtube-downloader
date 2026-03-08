@@ -127,6 +127,51 @@
 - [x] 無 upload_date 時 toggle 自動隱藏
 - [x] CSS-only toggle switch（cyber 風格，cyan accent）
 
+## Phase 8: UI 修正 + 體驗優化 ✅
+
+### Task 8.1: 分類下拉佈局修正
+- [x] Select 移到 URL 輸入左邊（HTML 順序對調）
+- [x] Select CSS 改成 `width:130px; flex-shrink:0`，URL input 保持 `flex:1`
+
+### Task 8.2: 字體大小全域 scaling 修正
+- [x] `font-size: calc(16px * var(--font-scale))` 從 `body` 移到 `html`
+- [x] body 改用 `font-size: 1rem`（繼承 html）
+- [x] 效果：全頁 `rem` 單位一齊 scale，唔再只影響 body
+
+### Task 8.3: Probe 後保留分類選擇
+- [x] `loadCategorySelect()` rebuild 前記錄 `prevValue`
+- [x] rebuild 後 restore：`sel.value = prevValue`（若分類仍存在）
+
+### Task 8.4: 格式按鈕 UX 說明
+- [x] 格式區下方加說明文字（封裝格式不影響大小）
+- [x] 畫質 header 加「（串流大小估算）」標籤
+
+### Task 8.5: Telegram 通知群組更新
+- [x] TG_GROUP → `-1003817368779`，TG_TOPIC → `191`
+
+### Task 8.6: 日誌「載入更多」HTML error 修正
+- [x] 修復重複 `style` attribute（`display:none` 被 browser 忽略）
+- [x] `fetchLogs` 加 content-type 驗證、`credentials:'include'`、401 redirect
+- [x] 確認 data 係 array 先 concat
+
+### Task 8.7: 日誌 Timestamp 獨立欄位
+- [x] Timestamp 從 `.log-meta`（.log-body 內）移到獨立 `.log-time` div
+- [x] 固定寬 108px，右對齊，monospace
+
+### Task 8.8: 架構 Tab（Workflow Infographic）
+- [x] 新增「架構」Tab（日誌與設定之間）
+- [x] 顯示 Gemini 生成的 workflow infographic（/workflow.jpg）
+
+### Task 8.9: 指南 Tab（User Guide）
+- [x] 新增「指南」Tab，完整使用說明
+- [x] 頂部 anchor nav（8 個區域快速跳轉）
+- [x] 每個 section 有「前往 XX Tab」按鈕（`goToTab()` helper）
+- [x] 涵蓋：登入、分類、下載、管理、日誌、設定、FAQ
+
+### Task 8.10: 頁面 Title + Subtitle
+- [x] Browser tab title → `YT DOWNLOADER`
+- [x] 副標題 → `// Powered by Wilson NG`
+
 ---
 
 ## 未來可能新增

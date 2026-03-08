@@ -25,7 +25,8 @@ youtube-downloader/
 ├── package.json
 ├── server.js           # Express server 入口
 ├── public/
-│   ├── index.html      # SPA 主頁（分類/下載/管理/日誌/設定 5 個 tab）
+│   ├── index.html      # SPA 主頁（分類/下載/管理/日誌/架構/指南/設定 7 個 tab）
+│   ├── workflow.jpg    # Workflow infographic（架構 tab）
 │   └── login.html      # 登入頁（含忘記密碼流程）
 ├── lib/
 │   ├── auth.js         # 認證模組（session, verification code, email）
@@ -150,6 +151,48 @@ DELETE /api/logs                # 清除所有日誌
 - MKV: `--remux-video mkv`
 - MOV: `--remux-video mov`
 
+### Tabs（目前 7 個）
+1. **分類**（categories）— 分類 CRUD + 拖曳排序
+2. **下載**（download）— URL probe + 格式/畫質選擇 + 開始下載
+3. **管理**（manager）— 下載進度追蹤 + Drive 連結
+4. **日誌**（logs）— Activity log，filter + pagination
+5. **架構**（workflow）— Workflow infographic 靜態圖片
+6. **指南**（guide）— User guide，anchor nav + tab jump
+7. **設定**（settings）⚙️ — 字體大小、Cookies、帳號管理
+
+### Telegram 通知
+- Group: `-1003817368779`，Topic: `191`（下載完成通知）
+- 呢個 group/topic 唔係 Claude 對話，係獨立通知 topic
+
+### 重要 CSS 模式
+
+#### font-size global scaling（必看）
+```css
+/* ✅ 必須設在 html，唔係 body */
+html { font-size: calc(16px * var(--font-scale)); }
+html.font-medium { --font-scale: 1; }
+html.font-large  { --font-scale: 1.2; }
+html.font-xlarge { --font-scale: 1.4; }
+body { font-size: 1rem; } /* 繼承 html */
+```
+原因：`rem` 係相對 `html` root font-size，設在 `body` 無效。
+
+#### goToTab helper（指南頁 tab 跳轉）
+```javascript
+function goToTab(name) {
+  const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+  if (btn) btn.click();
+}
+```
+
+#### fetchLogs 防 HTML error
+```javascript
+const contentType = res.headers.get('content-type') || '';
+if (!contentType.includes('application/json')) {
+  throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
+}
+```
+
 ### 檔名日期前綴（Date Prefix）
 - Probe 返回 `uploadDate`（yt-dlp 的 `upload_date`，YYYYMMDD 格式）
 - 前端 probe result 頁面有 toggle switch（預設開啟）
@@ -220,3 +263,11 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 19. ✅ Activity log 記錄所有關鍵操作，方便 debug 同追蹤
 20. ✅ Date prefix toggle 預設開啟，用 `upload_date` 做 YYYYMMDD prefix
 21. ✅ Toggle switch UI 用 CSS-only（input:checked + sibling selector），唔需要 JS toggle state
+22. ✅ 字體大小 scaling 必須設在 `html`（root），唔係 `body`，因為 `rem` 係相對 `html`
+23. ✅ Dropdown rebuild 前先 `prevValue = sel.value`，rebuild 後 restore（防 selection reset）
+24. ✅ Fetch API 必須先 check `content-type: application/json` 再 `res.json()`，否則 HTML error page 會爆 SyntaxError
+25. ✅ HTML duplicate `style` attribute：browser 只用第一個，第二個被忽略 — 合併成一個 style
+26. ✅ Log timestamp 用獨立固定寬欄（`flex-shrink:0; width:108px`），唔放在 message 下方
+27. ✅ Tab 新增只需：tab button + `id="tab-<name>"` content div（tab switching 係 generic）
+28. ✅ `goToTab(name)` helper：`document.querySelector('.tab-btn[data-tab="name"]').click()`
+29. ✅ Browser title 應只用 app 名，唔加 tagline（tab 空間有限）

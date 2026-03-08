@@ -171,3 +171,58 @@
 ```
 
 **yt-dlp upload_date**：YYYYMMDD 字串，大部分 YouTube 影片都有
+
+---
+
+## Phase 8: UI 修正 + 體驗優化
+
+### 2026-03-08 — 分類下拉佈局 + font scaling + probe 修正 ✅
+
+**分類下拉佈局修正**：
+- HTML 對調順序：select 移到 URL input 左邊
+- `select { width:130px; flex-shrink:0 }` 固定窄寬；`input { flex:1 }` 保持拉伸
+
+**字體大小全域 scaling 修正**：
+- 根本原因：`rem` 單位相對 `html` root，但 `font-size` 設在 `body` → `rem` 元素不受影響
+- 修正：`html { font-size: calc(16px * var(--font-scale)); }` + `body { font-size: 1rem; }`
+- 效果：設定字體大小後，全部 tab（分類/下載/管理/日誌）同步放大
+
+**Probe 後保留分類選擇**：
+- 問題：`probeUrl()` 呼叫 `loadCategorySelect()` rebuild dropdown → selection reset
+- 修正：`const prevValue = sel.value` → rebuild → `sel.value = prevValue`（若選項仍存在）
+
+**格式按鈕 UX 說明**：
+- MP4/MKV/MOV = container only（`--remux-video` 不重新編碼），大小不變
+- 加說明文字：`// 封裝格式只改變容器，不重新編碼，預計大小不受影響`
+- 畫質 header 加「（串流大小估算）」
+
+### 2026-03-08 — Telegram / Log 修正 ✅
+
+**Telegram 通知群組更新**：
+- `TG_GROUP = '-1003817368779'`，`TG_TOPIC = '191'`
+
+**日誌「載入更多」HTML error 修正**：
+- 根本原因一：`log-load-more-wrap` 有重複 `style` attribute，第二個 `display:none` 被忽略
+- 根本原因二：`fetchLogs` 直接 `res.json()` 無先 check content-type
+- 修正：加 content-type 驗證、`credentials:'include'`、`res.status === 401` redirect、array check
+
+**日誌 Timestamp 移到獨立欄位**：
+- 從 `.log-meta`（`.log-body` 內，訊息下方）移到同層獨立 `.log-time` div
+- `width:108px; text-align:right; flex-shrink:0`
+- 佈局：`[dot] [message ——] [MM/DD HH:MM:SS] [badge]`
+
+### 2026-03-08 — 新 Tab + 頁面文案 ✅
+
+**架構 Tab**：
+- 新增靜態圖片 Tab 顯示 workflow infographic（`/workflow.jpg`）
+- Tab switching 係 generic（`'tab-' + btn.dataset.tab`），新 tab 自動支援
+
+**指南 Tab**：
+- `goToTab(name)` helper：`document.querySelector('.tab-btn[data-tab="name"]').click()`
+- Anchor nav + `scroll-margin-top:80px`（防 sticky header 遮蓋）
+- `.guide-section`, `.guide-steps li`, `.guide-tip`, `.guide-warn`, `.guide-badge` CSS 組件
+- 8 個 section + FAQ，每個 section 有「前往 Tab」按鈕
+
+**Browser Title + Subtitle**：
+- `<title>YT DOWNLOADER</title>`（index.html + login.html）
+- 副標題：`// Powered by Wilson NG`
