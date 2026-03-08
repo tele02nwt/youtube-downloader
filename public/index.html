@@ -1385,7 +1385,7 @@ function renderCategories() {
     return;
   }
   list.innerHTML = state.categories.map(c => {
-    const isDefault = c.isDefault;
+    const isDefault = c.id === 'default';
     return '<div class="card cat-card" data-id="' + c.id + '">' +
       '<span class="cat-icon">' + (isDefault ? '&#x2B22;' : '&#x2B21;') + '</span>' +
       '<span class="cat-name">' + escapeHtml(c.name) + '</span>' +
@@ -1418,6 +1418,7 @@ async function addCategory() {
 }
 
 window.startEditCat = function(id) {
+  if (id === 'default') { toast('預設分類無法編輯', 'error'); return; }
   const card = document.querySelector('.cat-card[data-id="' + id + '"]');
   const nameEl = card.querySelector('.cat-name');
   const currentName = nameEl.textContent;
@@ -1439,13 +1440,14 @@ window.saveEditCat = async function(id, newName) {
 };
 
 window.deleteCat = function(id, name) {
+  if (id === 'default') { toast('預設分類無法刪除', 'error'); return; }
   showModal('確定要刪除「' + name + '」分類嗎？', async () => {
     try {
       await api('DELETE', '/categories/' + id);
       toast('分類已刪除');
       loadCategories();
     } catch (e) {
-      toast(e.message, 'error');
+      toast(e.message === 'Cannot delete default category' ? '預設分類無法刪除' : e.message, 'error');
     }
   });
 };
