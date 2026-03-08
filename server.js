@@ -9,6 +9,7 @@ const fs = require('fs');
 const categories = require('./lib/categories');
 const downloader = require('./lib/downloader');
 const auth = require('./lib/auth');
+const logger = require('./lib/logger');
 
 const app = express();
 const PORT = 3847;
@@ -31,6 +32,7 @@ app.post('/api/auth/login', (req, res) => {
   try {
     const { username, password } = req.body;
     const token = auth.login(username, password);
+    logger.info('auth', `用戶登入: ${username}`);
     res.cookie('yt_session', token, {
       httpOnly: true,
       secure: true,
@@ -103,6 +105,7 @@ app.get('/api/categories', (req, res) => {
 app.post('/api/categories', (req, res) => {
   try {
     const cat = categories.add(req.body.name);
+    logger.info('category', `新增分類: ${req.body.name}`);
     res.status(201).json(cat);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -130,6 +133,7 @@ app.put('/api/categories/:id', (req, res) => {
 app.delete('/api/categories/:id', (req, res) => {
   try {
     const cat = categories.remove(req.params.id);
+    logger.info('category', `刪除分類: ${cat.name || req.params.id}`);
     res.json(cat);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -193,6 +197,40 @@ app.delete('/api/downloads/:id', (req, res) => {
     res.json(removed);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// --- Logs API ---
+
+app.get('/api/logs', (req, res) => {
+  try {
+    const { category, level, limit, before } = req.query;
+    const logs = logger.listLogs({
+      category: category || undefined,
+      level: level || undefined,
+      limit: limit ? parseInt(limit) : 100,
+      before: before || undefined
+    });
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/logs/stats', (req, res) => {
+  try {
+    res.json(logger.getStats());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/logs', (req, res) => {
+  try {
+    logger.clearLogs();
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

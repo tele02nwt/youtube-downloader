@@ -1074,6 +1074,140 @@ select option {
 }
 
 /* ═══════════════════════════════════════════════
+   TAB 4: LOGS
+   ═══════════════════════════════════════════════ */
+.log-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.log-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.log-stat-val {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.log-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+  cursor: default;
+}
+
+.log-entry:hover {
+  background: rgba(0,240,255,0.02);
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-level-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.log-level-dot.info { background: var(--cyan); box-shadow: 0 0 6px var(--cyan-dim); }
+.log-level-dot.success { background: var(--green); box-shadow: 0 0 6px var(--green-dim); }
+.log-level-dot.warn { background: var(--yellow); box-shadow: 0 0 6px rgba(251,191,36,0.4); }
+.log-level-dot.error { background: var(--pink); box-shadow: 0 0 6px var(--pink-dim); }
+
+.log-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-msg {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.log-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.log-meta span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+.log-category-badge {
+  font-family: var(--font-heading);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.log-cat-download { color: var(--cyan); background: rgba(0,240,255,0.1); border: 1px solid var(--cyan-dim); }
+.log-cat-upload { color: var(--yellow); background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); }
+.log-cat-probe { color: var(--purple); background: rgba(139,92,246,0.1); border: 1px solid var(--purple-dim); }
+.log-cat-auth { color: var(--pink); background: rgba(255,0,102,0.1); border: 1px solid var(--pink-dim); }
+.log-cat-category { color: var(--green); background: rgba(0,255,136,0.1); border: 1px solid var(--green-dim); }
+.log-cat-system { color: var(--text-secondary); background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.2); }
+
+.log-details {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  word-break: break-all;
+  display: none;
+}
+
+.log-entry.expanded .log-details {
+  display: block;
+}
+
+.log-time {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */
 @media (max-width: 640px) {
@@ -1111,6 +1245,7 @@ select option {
     <button class="tab-btn active" data-tab="categories">分類</button>
     <button class="tab-btn" data-tab="download">下載</button>
     <button class="tab-btn" data-tab="manager">管理</button>
+    <button class="tab-btn" data-tab="logs">日誌</button>
     <button class="tab-btn" data-tab="settings" style="margin-left:auto;font-size:0.65rem;">⚙️</button>
   </nav>
 
@@ -1217,7 +1352,69 @@ select option {
   </div>
 
   <!-- ═══════════════════════════════════════════
-       TAB 4: SETTINGS
+       TAB 4: LOGS
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-logs">
+    <!-- Stats bar -->
+    <div class="panel" style="padding:16px 24px;">
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <div class="log-stat-chip" id="log-stat-total">
+          <span class="log-stat-label">全部</span>
+          <span class="log-stat-val" id="log-total-count">0</span>
+        </div>
+        <div class="log-stat-chip" id="log-stat-today">
+          <span class="log-stat-label">今日</span>
+          <span class="log-stat-val" style="color:var(--cyan);" id="log-today-count">0</span>
+        </div>
+        <div class="log-stat-chip">
+          <span class="log-stat-label">成功</span>
+          <span class="log-stat-val" style="color:var(--green);" id="log-success-count">0</span>
+        </div>
+        <div class="log-stat-chip">
+          <span class="log-stat-label">錯誤</span>
+          <span class="log-stat-val" style="color:var(--pink);" id="log-error-count">0</span>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="log-filter-category" style="min-width:100px;padding:6px 10px;font-size:0.8rem;">
+            <option value="">全部類別</option>
+            <option value="download">下載</option>
+            <option value="upload">上傳</option>
+            <option value="probe">分析</option>
+            <option value="auth">認證</option>
+            <option value="category">分類</option>
+            <option value="system">系統</option>
+          </select>
+          <select id="log-filter-level" style="min-width:90px;padding:6px 10px;font-size:0.8rem;">
+            <option value="">全部等級</option>
+            <option value="info">INFO</option>
+            <option value="success">SUCCESS</option>
+            <option value="warn">WARN</option>
+            <option value="error">ERROR</option>
+          </select>
+          <button class="btn btn-cyan btn-sm" onclick="loadLogs()">刷新</button>
+          <button class="btn btn-pink btn-sm" onclick="clearAllLogs()">清除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log list -->
+    <div class="panel" style="padding:0;max-height:600px;overflow-y:auto;" id="log-list-panel">
+      <div id="log-list" class="log-list"></div>
+      <div class="empty-state" id="log-empty" style="display:none;">
+        <div class="empty-icon">📋</div>
+        <p>NO LOG ENTRIES</p>
+      </div>
+    </div>
+
+    <!-- Load more -->
+    <div style="text-align:center;padding:12px;" id="log-load-more-wrap" style="display:none;">
+      <button class="btn btn-cyan btn-sm" id="log-load-more" onclick="loadMoreLogs()">載入更多</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 5: SETTINGS
        ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-settings">
     <div class="panel">
@@ -1378,6 +1575,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'categories') loadCategories();
     if (btn.dataset.tab === 'download') loadCategorySelect();
     if (btn.dataset.tab === 'manager') loadDownloads();
+    if (btn.dataset.tab === 'logs') loadLogs();
   });
 });
 
@@ -1951,6 +2149,138 @@ async function logoutAccount() {
     window.location.href = '/login.html';
   }
 }
+
+/* ═══════════════════════════════════════════════
+   TAB 4: LOGS
+   ═══════════════════════════════════════════════ */
+var logState = {
+  logs: [],
+  page: 0,
+  pageSize: 50,
+  hasMore: false
+};
+
+async function loadLogs() {
+  logState.page = 0;
+  logState.logs = [];
+  await fetchLogs();
+  await loadLogStats();
+}
+
+async function loadMoreLogs() {
+  logState.page++;
+  await fetchLogs(true);
+}
+
+async function fetchLogs(append) {
+  try {
+    var cat = document.getElementById('log-filter-category').value;
+    var lvl = document.getElementById('log-filter-level').value;
+    var params = new URLSearchParams();
+    if (cat) params.set('category', cat);
+    if (lvl) params.set('level', lvl);
+    params.set('limit', logState.pageSize);
+
+    // Use 'before' cursor for pagination
+    if (append && logState.logs.length > 0) {
+      var last = logState.logs[logState.logs.length - 1];
+      params.set('before', last.timestamp);
+    }
+
+    var res = await fetch('/api/logs?' + params.toString());
+    var data = await res.json();
+
+    if (append) {
+      logState.logs = logState.logs.concat(data);
+    } else {
+      logState.logs = data;
+    }
+
+    logState.hasMore = data.length >= logState.pageSize;
+    renderLogs();
+  } catch (e) {
+    toast('載入日誌失敗: ' + e.message, 'error');
+  }
+}
+
+async function loadLogStats() {
+  try {
+    var res = await fetch('/api/logs/stats');
+    var stats = await res.json();
+    document.getElementById('log-total-count').textContent = stats.total;
+    document.getElementById('log-today-count').textContent = stats.today;
+    document.getElementById('log-success-count').textContent = stats.byLevel.success || 0;
+    document.getElementById('log-error-count').textContent = stats.byLevel.error || 0;
+  } catch (e) { /* silent */ }
+}
+
+function renderLogs() {
+  var list = document.getElementById('log-list');
+  var empty = document.getElementById('log-empty');
+  var moreWrap = document.getElementById('log-load-more-wrap');
+
+  if (!logState.logs.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    moreWrap.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  moreWrap.style.display = logState.hasMore ? 'block' : 'none';
+
+  list.innerHTML = logState.logs.map(function(log) {
+    var catClass = 'log-cat-' + (log.category || 'system');
+    var catLabel = {
+      download: '下載', upload: '上傳', probe: '分析',
+      auth: '認證', category: '分類', system: '系統'
+    }[log.category] || log.category;
+
+    var ts = new Date(log.timestamp);
+    var timeStr = ts.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }) +
+      ' ' + ts.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+    var detailsHtml = '';
+    if (log.details) {
+      var lines = [];
+      for (var k in log.details) {
+        if (log.details[k] != null && log.details[k] !== '') {
+          lines.push(escapeHtml(k) + ': ' + escapeHtml(String(log.details[k])));
+        }
+      }
+      if (lines.length) {
+        detailsHtml = '<div class="log-details">' + lines.join('<br>') + '</div>';
+      }
+    }
+
+    return '<div class="log-entry' + (detailsHtml ? '' : '') + '" onclick="this.classList.toggle(\'expanded\')">' +
+      '<div class="log-level-dot ' + (log.level || 'info') + '"></div>' +
+      '<div class="log-body">' +
+        '<div class="log-msg">' + escapeHtml(log.message) + '</div>' +
+        '<div class="log-meta">' +
+          '<span>' + timeStr + '</span>' +
+        '</div>' +
+        detailsHtml +
+      '</div>' +
+      '<span class="log-category-badge ' + catClass + '">' + catLabel + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function clearAllLogs() {
+  showModal('確定要清除所有日誌嗎？', async function() {
+    try {
+      await fetch('/api/logs', { method: 'DELETE' });
+      toast('日誌已清除');
+      loadLogs();
+    } catch (e) {
+      toast('清除失敗: ' + e.message, 'error');
+    }
+  });
+}
+
+// Filter change listeners
+document.getElementById('log-filter-category').addEventListener('change', function() { loadLogs(); });
+document.getElementById('log-filter-level').addEventListener('change', function() { loadLogs(); });
 
 /* ═══════════════════════════════════════════════
    INIT
