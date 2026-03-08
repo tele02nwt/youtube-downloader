@@ -137,3 +137,37 @@
 - CSS variable `--font-scale` + `calc(16px * var(--font-scale))`
 - 三個 preset：中（1x）、大（1.2x）、特大（1.4x）
 - `localStorage` 持久化 + IIFE 即時套用
+
+---
+
+## Phase 7: 下載增強
+
+### 2026-03-08 — 檔名日期前綴（Date Prefix）✅
+
+**功能**：下載時可選擇在檔名前加 YouTube 影片上傳日期（YYYYMMDD-）
+
+**後端改動**：
+1. `lib/downloader.js` — `parseVideoInfo()` 新增返回 `uploadDate`（yt-dlp 的 `info.upload_date`）
+2. `lib/downloader.js` — `startDownload()` 接受 `datePrefix` 參數，有值時 output template 改為 `YYYYMMDD-%(title)s.%(ext)s`
+3. `server.js` — 傳遞 `datePrefix` 到 downloader
+
+**前端改動**：
+1. CSS-only toggle switch 組件（`.toggle-switch` + `.toggle-slider`）
+2. Probe result 頁面加 `.date-prefix-row`（toggle + 日期預覽）
+3. `probeUrl()` 有 `uploadDate` 時顯示 toggle，冇就隱藏
+4. `startDownload()` 讀 toggle 狀態，checked + 有 uploadDate → 傳 `datePrefix`
+
+**CSS Toggle Switch 設計模式**：
+```css
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+  background: var(--cyan);
+}
+```
+
+**yt-dlp upload_date**：YYYYMMDD 字串，大部分 YouTube 影片都有

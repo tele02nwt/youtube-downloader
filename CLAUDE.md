@@ -91,7 +91,7 @@ PUT    /api/categories/:id          # 修改分類
 DELETE /api/categories/:id          # 刪除分類
 
 # Downloads
-POST   /api/download/probe      # 探測 URL（返回標題、可用畫質、估算大小）
+POST   /api/download/probe      # 探測 URL（返回標題、可用畫質、估算大小、uploadDate）
 POST   /api/download/start      # 開始下載
 GET    /api/download/status/:id # 查詢下載進度
 GET    /api/downloads           # 列出所有下載記錄
@@ -149,6 +149,13 @@ DELETE /api/logs                # 清除所有日誌
 - MP4: `--remux-video mp4`
 - MKV: `--remux-video mkv`
 - MOV: `--remux-video mov`
+
+### 檔名日期前綴（Date Prefix）
+- Probe 返回 `uploadDate`（yt-dlp 的 `upload_date`，YYYYMMDD 格式）
+- 前端 probe result 頁面有 toggle switch（預設開啟）
+- 開啟時 filename = `YYYYMMDD-title.ext`，關閉時 = `title.ext`
+- 後端 `startDownload()` 接受 `datePrefix` 參數，嵌入 yt-dlp output template
+- 如果影片冇 `upload_date`（rare），toggle 自動隱藏
 
 ## 啟動指令
 ```bash
@@ -211,3 +218,5 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 17. ✅ 字體大小用 CSS variable `--font-scale` + `calc()`，方便全局切換
 18. ✅ 用戶偏好（字體大小等）存 `localStorage`，頁面載入 IIFE 立即套用（避免 FOUC）
 19. ✅ Activity log 記錄所有關鍵操作，方便 debug 同追蹤
+20. ✅ Date prefix toggle 預設開啟，用 `upload_date` 做 YYYYMMDD prefix
+21. ✅ Toggle switch UI 用 CSS-only（input:checked + sibling selector），唔需要 JS toggle state

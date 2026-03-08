@@ -117,6 +117,16 @@
 - [x] 設定頁按鈕切換 + localStorage 持久化
 - [x] 頁面載入 IIFE 立即套用（防 FOUC）
 
+## Phase 7: 下載增強 ✅
+
+### Task 7.1: 檔名日期前綴（Date Prefix）
+- [x] 後端 `probe()` 返回 `uploadDate`（yt-dlp `upload_date`，YYYYMMDD）
+- [x] 後端 `startDownload()` 接受 `datePrefix`，嵌入 output template
+- [x] 前端 probe result 頁面加 toggle switch（預設開啟）
+- [x] 開啟：`YYYYMMDD-title.ext`；關閉：`title.ext`
+- [x] 無 upload_date 時 toggle 自動隱藏
+- [x] CSS-only toggle switch（cyber 風格，cyan accent）
+
 ---
 
 ## 未來可能新增
