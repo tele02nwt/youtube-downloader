@@ -54,10 +54,11 @@ POST   /api/auth/forgot-password    # 發送驗證碼到 email
 POST   /api/auth/verify-code        # 驗證碼驗證 → 返回密碼
 
 # Categories
-GET    /api/categories          # 列出所有分類
-POST   /api/categories          # 新增分類
-PUT    /api/categories/:id      # 修改分類
-DELETE /api/categories/:id      # 刪除分類
+GET    /api/categories              # 列出所有分類
+POST   /api/categories              # 新增分類
+PUT    /api/categories/reorder      # 拖曳排序（body: {ids: [...]})
+PUT    /api/categories/:id          # 修改分類
+DELETE /api/categories/:id          # 刪除分類
 
 # Downloads
 POST   /api/download/probe      # 探測 URL（返回標題、可用畫質、估算大小）
@@ -164,3 +165,6 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 8. ✅ 所有非 auth input 加 `autocomplete="off"`
 9. ✅ 密碼比較用 hash + timingSafeEqual（防 timing attack + 長度問題）
 10. ✅ Forgot password 對不存在的 email 也返回 ok（防枚舉）
+11. ✅ Default category（id='default'）前端用 `c.id === 'default'` 判斷，不要用 `c.isDefault`
+12. ✅ Express 固定路由（如 `/reorder`）必須在參數路由（`/:id`）之前定義
+13. ✅ 分類拖曳排序用 HTML5 原生 drag-and-drop，不需第三方庫

@@ -13,6 +13,8 @@
 - [x] CRUD（list, add, update, delete）
 - [x] 預設分類 "未分類" 不可刪除
 - [x] 驗證：名稱不可重複、不可為空
+- [x] 拖曳排序 reorder API（PUT /categories/reorder）
+- [x] 前端隱藏 default 分類的編輯/刪除按鈕 + error toast
 
 ### Task 1.3: yt-dlp Probe 封裝
 - [x] `probe(url)` 函數：呼叫 `yt-dlp -j`，解析 JSON

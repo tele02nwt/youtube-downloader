@@ -76,7 +76,22 @@
 - Forgot password: 驗證碼成功發送到 email + 驗證 + 返回密碼
 - Account update: 修改密碼後自動清 session + 寫入 .env
 
+### 2026-03-08 — Bug Fix + 分類增強（WALL-E 主 session）
+
+**Bug Fix: 未分類刪除/編輯無效**
+- [x] Root cause: `c.isDefault`（undefined）→ 改為 `c.id === 'default'`
+- [x] 前端隱藏 default 分類的編輯/刪除按鈕
+- [x] 前端 guard + 中文 error toast（雙重保護）
+
+**新功能: 分類拖曳排序**
+- [x] 後端 `PUT /api/categories/reorder` + `lib/categories.js reorder(ids)`
+- [x] 前端 HTML5 原生 drag-and-drop（drag handle ⠿）
+- [x] 即時 re-render + API 持久化
+- [x] Cyber 風格視覺反饋（dragging 半透明 + drag-over cyan glow）
+
 ## 踩坑記錄
 1. **cloudflared 權限**: Docker 內 `$HOME=/data`，需手動建 `/data/.cloudflared/` 並 chown
 2. **timingSafeEqual 長度**: email vs 'admin' 長度不同 → 先 SHA256 hash 再比較
 3. **Autocomplete 污染**: Login 後 browser 填 username 到分類 input → `autocomplete="off" data-form-type="other"`
+4. **前後端 field name 不一致**: `c.isDefault` vs `c.id === 'default'` — 用已有的 unique id 判斷更可靠
+5. **Express 路由優先級**: 固定路由（`/reorder`）必須定義在參數路由（`/:id`）之前
