@@ -528,6 +528,11 @@ select option {
   letter-spacing: 0.5px;
 }
 
+.url-section select {
+  min-width: 120px;
+  font-size: 0.85rem;
+}
+
 /* Probe loading */
 .probe-loading {
   display: none;
@@ -1131,6 +1136,7 @@ select option {
       <div class="panel-header">// 影片分析</div>
       <div class="url-section">
         <input type="url" id="url-input" placeholder="貼上 YouTube 網址...">
+        <select id="dl-category" style="min-width:120px"></select>
         <button class="btn btn-cyan" id="probe-btn">分析</button>
       </div>
 
@@ -1163,13 +1169,6 @@ select option {
         <div class="format-section">
           <div class="panel-header">// 畫質</div>
           <div class="quality-list" id="quality-list"></div>
-        </div>
-
-        <div class="dl-row">
-          <div class="dl-field">
-            <label>分類</label>
-            <select id="dl-category"></select>
-          </div>
         </div>
 
         <div class="dl-row">
@@ -1531,8 +1530,9 @@ function updateOutputPath() {
   const sel = document.getElementById('dl-category');
   const opt = sel.options[sel.selectedIndex];
   const catName = opt ? opt.dataset.name : '';
+  const isDefault = opt && opt.value === 'default';
   document.getElementById('output-path').textContent =
-    '~/Google Drive/Youtube Downloader/' + catName + '/';
+    '~/Google Drive/Youtube Downloader/' + (isDefault ? '' : catName + '/');
 }
 
 // Probe
@@ -1956,6 +1956,7 @@ async function logoutAccount() {
    INIT
    ═══════════════════════════════════════════════ */
 loadCategories();
+loadCategorySelect();
 checkCookieStatus();
 loadAccountInfo();
 </script>
