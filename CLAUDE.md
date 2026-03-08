@@ -5,7 +5,7 @@
 
 ## 技術棧
 - **後端**: Node.js (Express) — REST API server
-- **前端**: 單頁應用 (SPA)，純 HTML/CSS/JS，Cyber/Futuristic 風格
+- **前端**: 單頁應用 (SPA)，純 HTML/CSS/JS，Cyber/Futuristic 風格（暗色主題，可調字體大小）
 - **下載引擎**: yt-dlp + ffmpeg
 - **數據存儲**: JSON 文件（categories.json, downloads.json）— 輕量，不需要數據庫
 - **Google Drive**: 透過 gog CLI 上傳（`gog drive upload --parent <folderId>`）
@@ -25,22 +25,52 @@ youtube-downloader/
 ├── package.json
 ├── server.js           # Express server 入口
 ├── public/
-│   ├── index.html      # SPA 主頁（分類/下載/管理/設定 4 個 tab）
+│   ├── index.html      # SPA 主頁（分類/下載/管理/日誌/設定 5 個 tab）
 │   └── login.html      # 登入頁（含忘記密碼流程）
 ├── lib/
 │   ├── auth.js         # 認證模組（session, verification code, email）
 │   ├── downloader.js   # yt-dlp 封裝（格式偵測、下載、進度）
+│   ├── logger.js       # 活動日誌引擎（JSON 存儲，max 500 條）
 │   ├── categories.js   # 分類 CRUD
 │   └── storage.js      # JSON 持久化
 └── data/
-    ├── categories.json # 分類數據
-    ├── downloads.json  # 下載記錄
-    ├── cookies.txt     # YouTube cookies（可選）
-    ├── server.log      # Server 日誌
-    ├── tunnel.log      # Tunnel 日誌
-    ├── server.pid      # Server PID
-    └── tunnel.pid      # Tunnel PID
+    ├── categories.json    # 分類數據
+    ├── downloads.json     # 下載記錄
+    ├── activity-log.json  # 活動日誌
+    ├── cookies.txt        # YouTube cookies（可選）
+    ├── server.log         # Server 日誌
+    ├── tunnel.log         # Tunnel 日誌
+    ├── server.pid         # Server PID
+    └── tunnel.pid         # Tunnel PID
 ```
+
+## 前端設計模式
+
+### CSS Variable Font Scaling（字體大小切換）
+```css
+:root { --font-scale: 1; }
+html.font-medium { --font-scale: 1; }
+html.font-large  { --font-scale: 1.2; }
+html.font-xlarge { --font-scale: 1.4; }
+body { font-size: calc(16px * var(--font-scale)); }
+```
+- 設定頁三個按鈕切換（中/大/特大）
+- 用 `localStorage.setItem('yt-font-size', size)` 持久化
+- 頁面載入時 `(function(){ ... })()` IIFE 立即讀取並套用 class
+- 所有 font-size 用 `rem` 自動跟隨 root 縮放
+
+### 暗色主題文字亮度
+- `--text-primary: #f1f5f9`（最亮，標題/內容）
+- `--text-secondary: #cbd5e1`（次亮，描述/meta）
+- `--text-dim: #94a3b8`（最暗但仍可讀，placeholder/badge）
+- ⚠️ 暗色背景下 `#475569` 太暗，讀唔到，最低用 `#94a3b8`
+
+### Activity Log 系統
+- `lib/logger.js`：JSON 檔存儲，max 500 條，FIFO
+- 分類：download / upload / probe / auth / category / system
+- 等級：info / success / warn / error
+- 前端：stat chips + filter dropdowns + expandable detail cards
+- 每條 log 有 level dot（顏色）、category badge、timestamp、可展開 details
 
 ## API 端點設計
 ```
@@ -71,6 +101,11 @@ DELETE /api/downloads/:id       # 刪除記錄
 GET    /api/cookies/status      # Cookie 狀態
 POST   /api/cookies/upload      # 上傳 cookies.txt
 DELETE /api/cookies              # 清除 cookies
+
+# Logs
+GET    /api/logs                # 列出日誌（?category=&level=&limit=&before=）
+GET    /api/logs/stats          # 日誌統計（total, today, byLevel, byCategory）
+DELETE /api/logs                # 清除所有日誌
 ```
 
 ## 關鍵實現細節
@@ -172,3 +207,7 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 13. ✅ 分類拖曳排序用 HTML5 原生 drag-and-drop，不需第三方庫
 14. ✅ `gog` CLI `-j` 輸出有 wrapper（file/folder/files），必須 unwrap 再用
 15. ✅ 分類下拉放在 url-section（probe 前可見），唔好放 probe-result 內
+16. ✅ 暗色背景文字最低用 `#94a3b8`，`#475569` 太暗根本睇唔到
+17. ✅ 字體大小用 CSS variable `--font-scale` + `calc()`，方便全局切換
+18. ✅ 用戶偏好（字體大小等）存 `localStorage`，頁面載入 IIFE 立即套用（避免 FOUC）
+19. ✅ Activity log 記錄所有關鍵操作，方便 debug 同追蹤

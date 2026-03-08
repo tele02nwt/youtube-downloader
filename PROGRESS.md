@@ -107,3 +107,33 @@
 5. **Express 路由優先級**: 固定路由（`/reorder`）必須定義在參數路由（`/:id`）之前
 6. **gog CLI JSON wrapper**: `upload` → `{file:{...}}`、`mkdir` → `{folder:{...}}`，直接讀 `parsed.id` 會得到 `undefined`
 7. **UI scope 錯誤**: 分類下拉放 `probe-result` 內 → probe 前不可見，應放 `url-section`
+8. **暗色主題文字亮度**: `#475569` 在 `#0a0a0f` 背景下幾乎不可見，dim text 最低用 `#94a3b8`
+9. **CSS Variable Font Scaling**: `calc(base * var(--font-scale))` + `rem` 自動跟隨，比 media query 更靈活
+10. **Activity Log FIFO**: JSON file max 500 條 + cursor-based pagination（`before` timestamp）比 offset 穩定
+
+---
+
+## Phase 6: 活動日誌 + UI 增強
+
+### 2026-03-08 — Activity Log 系統 ✅
+
+**`lib/logger.js`**：
+- JSON 存儲（`data/activity-log.json`），FIFO max 500 條
+- 6 分類（download/upload/probe/auth/category/system）× 4 等級（info/success/warn/error）
+- API: `GET /api/logs`（filter + pagination）、`GET /api/logs/stats`、`DELETE /api/logs`
+
+**downloader.js logging**：probe 成功/失敗、下載開始/完成/失敗、Google Drive 上傳開始/成功/失敗
+
+**前端 LOG Tab**：Stats chips + filter dropdowns + expandable detail cards + pagination
+
+### 2026-03-08 — 文字亮度 + 字體大小設定 ✅
+
+**文字亮度提升**：
+- `--text-primary`: `#e2e8f0` → `#f1f5f9`
+- `--text-secondary`: `#94a3b8` → `#cbd5e1`
+- `--text-dim`: `#475569` → `#94a3b8`
+
+**字體大小設定**（設定頁 → 顯示設定）：
+- CSS variable `--font-scale` + `calc(16px * var(--font-scale))`
+- 三個 preset：中（1x）、大（1.2x）、特大（1.4x）
+- `localStorage` 持久化 + IIFE 即時套用

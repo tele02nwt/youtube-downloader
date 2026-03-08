@@ -89,6 +89,34 @@
 - [x] 分類 input 加 `autocomplete="off" data-form-type="other"`
 - [x] 防止 browser 把 login credentials 填入其他 input
 
+## Phase 6: 活動日誌 + UI 增強 ✅
+
+### Task 6.1: Activity Log 系統
+- [x] `lib/logger.js`：JSON 存儲（data/activity-log.json），max 500 條
+- [x] 6 種分類：download / upload / probe / auth / category / system
+- [x] 4 種等級：info / success / warn / error
+- [x] downloader.js 關鍵時刻寫 log（開始/完成/失敗/上傳）
+- [x] server.js 加 log（auth 登入、分類新增/刪除）
+- [x] API: GET /api/logs, GET /api/logs/stats, DELETE /api/logs
+
+### Task 6.2: LOG Tab（前端）
+- [x] Stats bar（全部/今日/成功/錯誤計數）
+- [x] Filter dropdowns（分類 + 等級）
+- [x] Log entries（level dot + category badge + timestamp + expandable details）
+- [x] 清除全部日誌（確認 modal）
+- [x] 載入更多（cursor-based pagination）
+
+### Task 6.3: 文字亮度提升
+- [x] `--text-primary`: `#e2e8f0` → `#f1f5f9`
+- [x] `--text-secondary`: `#94a3b8` → `#cbd5e1`
+- [x] `--text-dim`: `#475569` → `#94a3b8`
+
+### Task 6.4: 字體大小設定
+- [x] CSS variable `--font-scale` + `calc(16px * var(--font-scale))`
+- [x] 三個 preset：中（1x）、大（1.2x）、特大（1.4x）
+- [x] 設定頁按鈕切換 + localStorage 持久化
+- [x] 頁面載入 IIFE 立即套用（防 FOUC）
+
 ---
 
 ## 未來可能新增
