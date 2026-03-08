@@ -109,6 +109,15 @@ app.post('/api/categories', (req, res) => {
   }
 });
 
+app.put('/api/categories/reorder', (req, res) => {
+  try {
+    const result = categories.reorder(req.body.ids);
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 app.put('/api/categories/:id', (req, res) => {
   try {
     const cat = categories.update(req.params.id, req.body.name);

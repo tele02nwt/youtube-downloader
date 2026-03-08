@@ -472,6 +472,22 @@ select option {
   color: var(--text-primary);
 }
 
+.cat-card .cat-drag-handle {
+  cursor: grab;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  padding: 0 2px;
+  user-select: none;
+  transition: color var(--transition);
+}
+.cat-card .cat-drag-handle:active { cursor: grabbing; }
+.cat-card .cat-drag-handle:hover { color: var(--cyan); }
+.cat-card.drag-over {
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 8px rgba(0,255,255,0.25);
+}
+.cat-card.dragging { opacity: 0.4; }
+
 .cat-action-btn.delete:hover {
   border-color: var(--pink-dim);
   color: var(--pink);
@@ -1384,9 +1400,10 @@ function renderCategories() {
     list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x2B21;</div><p>NO CATEGORIES</p></div>';
     return;
   }
-  list.innerHTML = state.categories.map(c => {
+  list.innerHTML = state.categories.map((c, i) => {
     const isDefault = c.id === 'default';
-    return '<div class="card cat-card" data-id="' + c.id + '">' +
+    return '<div class="card cat-card" data-id="' + c.id + '" data-idx="' + i + '" draggable="true">' +
+      '<span class="cat-drag-handle" title="拖曳排序">⠿</span>' +
       '<span class="cat-icon">' + (isDefault ? '&#x2B22;' : '&#x2B21;') + '</span>' +
       '<span class="cat-name">' + escapeHtml(c.name) + '</span>' +
       (isDefault ? '<span class="cat-badge">DEFAULT</span>' : '') +
@@ -1396,6 +1413,7 @@ function renderCategories() {
       '</div>' : '') +
     '</div>';
   }).join('');
+  initCatDragDrop();
 }
 
 document.getElementById('cat-add-btn').addEventListener('click', addCategory);
@@ -1451,6 +1469,47 @@ window.deleteCat = function(id, name) {
     }
   });
 };
+
+// ── Drag-and-drop reorder ──
+function initCatDragDrop() {
+  const list = document.getElementById('cat-list');
+  let dragId = null;
+  list.querySelectorAll('.cat-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragId = card.dataset.id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      dragId = null;
+      card.classList.remove('dragging');
+      list.querySelectorAll('.cat-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (card.dataset.id !== dragId) card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', async e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (!dragId || card.dataset.id === dragId) return;
+      const fromIdx = state.categories.findIndex(c => c.id === dragId);
+      const toIdx = state.categories.findIndex(c => c.id === card.dataset.id);
+      if (fromIdx === -1 || toIdx === -1) return;
+      const [moved] = state.categories.splice(fromIdx, 1);
+      state.categories.splice(toIdx, 0, moved);
+      renderCategories();
+      try {
+        await api('PUT', '/categories/reorder', { ids: state.categories.map(c => c.id) });
+      } catch (err) {
+        toast(err.message, 'error');
+        loadCategories();
+      }
+    });
+  });
+}
 
 /* ═══════════════════════════════════════════════
    TAB 2: DOWNLOAD
