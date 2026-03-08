@@ -760,6 +760,64 @@ select option {
   word-break: break-all;
 }
 
+/* Date prefix toggle */
+.date-prefix-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.date-prefix-row label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+.date-prefix-row .date-value {
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  transition: 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  bottom: 2px;
+  background: var(--text-dim);
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+  background: var(--cyan);
+}
+
 /* Start button */
 .start-section {
   text-align: center;
@@ -1312,6 +1370,15 @@ select option {
           <div class="quality-list" id="quality-list"></div>
         </div>
 
+        <div class="date-prefix-row" id="date-prefix-row" style="display:none;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="date-prefix-toggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <label for="date-prefix-toggle">檔名日期前綴</label>
+          <span class="date-value" id="date-prefix-value"></span>
+        </div>
+
         <div class="dl-row">
           <div class="dl-field">
             <label>輸出路徑</label>
@@ -1783,6 +1850,18 @@ async function probeUrl() {
     renderQualityOptions(data.qualityOptions || []);
     await loadCategorySelect();
 
+    // Show date prefix toggle if upload date available
+    var datePrefixRow = document.getElementById('date-prefix-row');
+    var datePrefixValue = document.getElementById('date-prefix-value');
+    if (data.uploadDate) {
+      // Format YYYYMMDD → YYYY-MM-DD for display
+      var d = data.uploadDate;
+      datePrefixValue.textContent = d.substring(0,4) + '-' + d.substring(4,6) + '-' + d.substring(6,8) + '  →  ' + d + '-filename.mp4';
+      datePrefixRow.style.display = 'flex';
+    } else {
+      datePrefixRow.style.display = 'none';
+    }
+
     loading.classList.remove('active');
     result.classList.add('active');
   } catch (e) {
@@ -1840,6 +1919,13 @@ async function startDownload() {
   btn.disabled = true;
 
   try {
+    // Check if date prefix toggle is enabled
+    var datePrefixToggle = document.getElementById('date-prefix-toggle');
+    var datePrefix = null;
+    if (datePrefixToggle.checked && state.probeData.uploadDate) {
+      datePrefix = state.probeData.uploadDate;
+    }
+
     await api('POST', '/download/start', {
       url: document.getElementById('url-input').value.trim(),
       title: state.probeData.title,
@@ -1849,6 +1935,7 @@ async function startDownload() {
       categoryId: opt.value,
       categoryName: opt.dataset.name,
       remuxFormat: state.selectedFormat,
+      datePrefix: datePrefix,
     });
     toast('下載已開始');
 

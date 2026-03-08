@@ -157,12 +157,12 @@ app.post('/api/download/probe', async (req, res) => {
 
 app.post('/api/download/start', (req, res) => {
   try {
-    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat } = req.body;
+    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix } = req.body;
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
     const record = downloader.startDownload({
-      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat
+      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix
     });
     res.status(201).json(record);
   } catch (err) {
