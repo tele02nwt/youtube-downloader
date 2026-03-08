@@ -1803,9 +1803,14 @@ async function loadCategorySelect() {
   try {
     state.categories = await api('GET', '/categories');
     const sel = document.getElementById('dl-category');
+    const prevValue = sel.value; // remember current selection
     sel.innerHTML = state.categories.map(c =>
       '<option value="' + c.id + '" data-name="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>'
     ).join('');
+    // restore previous selection if it still exists
+    if (prevValue && sel.querySelector('option[value="' + prevValue + '"]')) {
+      sel.value = prevValue;
+    }
     updateOutputPath();
   } catch (e) { /* silent */ }
 }
