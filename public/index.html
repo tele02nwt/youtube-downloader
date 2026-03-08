@@ -1838,9 +1838,10 @@ select option {
         <div style="padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
           <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何安裝 cloudflared?</p>
           <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.9;">
-            <div><span style="color:var(--cyan);font-family:var(--font-mono);">macOS:</span>&nbsp;&nbsp;<code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></div>
-            <div><span style="color:var(--cyan);font-family:var(--font-mono);">Linux:</span>&nbsp;&nbsp;&nbsp;<code class="setup-code">sudo apt install cloudflared</code></div>
-            <div><span style="color:var(--cyan);font-family:var(--font-mono);">其他:</span>&nbsp;&nbsp;&nbsp;<a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">cloudflare.com/downloads</a></div>
+            <div><span style="color:#4ade80;font-family:var(--font-mono);">Windows:</span>&nbsp;&nbsp;<code class="setup-code">winget install Cloudflare.cloudflared</code></div>
+            <div style="margin-left:80px;font-size:0.74rem;color:var(--text-dim);">或下載 <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">cloudflared-windows-amd64.exe</a> → 改名為 cloudflared.exe → 加入 PATH</div>
+            <div style="margin-top:4px;"><span style="color:var(--cyan);font-family:var(--font-mono);">macOS:</span>&nbsp;&nbsp;&nbsp;&nbsp;<code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></div>
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">Linux:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<code class="setup-code">sudo apt install cloudflared</code></div>
           </div>
         </div>
       </div>
@@ -1873,10 +1874,15 @@ select option {
 
         <!-- Install help -->
         <div style="padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
-          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何安裝 gog CLI?</p>
+          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何安裝 Google Drive CLI?</p>
           <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.9;">
             <div><span style="color:var(--cyan);font-family:var(--font-mono);">macOS/Linux:</span>&nbsp;&nbsp;<code class="setup-code">brew install steipete/tap/gogcli</code></div>
-            <div><span style="color:var(--cyan);font-family:var(--font-mono);">Source:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/steipete/gogcli" target="_blank" style="color:var(--cyan);">github.com/steipete/gogcli</a></div>
+            <div style="margin-top:8px;padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:6px;">
+              <div style="font-family:var(--font-heading);font-size:0.72rem;color:var(--yellow);margin-bottom:4px;">⚠️ Windows 用戶請注意</div>
+              <div style="color:var(--text-secondary);">gog CLI 目前僅支援 macOS/Linux。Windows 建議以下方案：</div>
+              <div style="margin-top:6px;"><span style="color:#4ade80;">推薦:</span> 使用 <strong style="color:var(--text-primary);">WSL2</strong>（Windows Subsystem for Linux）在 Linux 環境內執行整個應用，然後透過 <span class="setup-code">localhost:3847</span> 或 Cloudflare Tunnel 存取。</div>
+              <div style="margin-top:4px;"><span style="color:var(--cyan);">替代:</span> 使用 <a href="https://rclone.org/install/#windows" target="_blank" style="color:var(--cyan);">rclone</a>（需額外配置，詳見指南）</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1896,6 +1902,7 @@ select option {
       <nav class="guide-nav">
         <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);align-self:center;">快速跳轉：</span>
         <a href="#guide-quickstart">🚀 快速開始</a>
+        <a href="#guide-windows">🪟 Windows 安裝</a>
         <a href="#guide-login">🔐 登入 &amp; 帳號</a>
         <a href="#guide-category">📁 分類管理</a>
         <a href="#guide-download">⬇️ 下載影片</a>
@@ -1925,6 +1932,95 @@ select option {
           </li>
         </ol>
         <div class="guide-tip">✅ 下載完成後會自動上傳至 Google Drive，並發送 Telegram 通知。無需手動操作。</div>
+      </div>
+
+      <!-- Section: Windows Installation -->
+      <div class="guide-section" id="guide-windows">
+        <div class="guide-section-title" style="border-left-color:#4ade80;">🪟 Windows 安裝指南（Standalone 本機版）</div>
+        <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:20px;">本節說明如何在 Windows 電腦上從零開始安裝並執行 YouTube Downloader。建議使用 <strong style="color:var(--text-primary);">Windows 11 / Windows 10（版本 1903+）</strong>。</p>
+
+        <!-- Method A: WSL2 (Recommended) -->
+        <div style="margin-bottom:24px;padding:16px;border:1px solid rgba(74,222,128,0.25);border-radius:var(--radius);background:rgba(74,222,128,0.05);">
+          <div style="font-family:var(--font-heading);font-size:0.85rem;color:#4ade80;margin-bottom:10px;">✅ 方式 A：WSL2（強烈推薦）</div>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">透過 WSL2 在 Windows 內執行 Linux 環境，最接近原生體驗，支援所有功能（包括 Google Drive 上傳）。</p>
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span><strong>安裝 WSL2：</strong>以管理員身份執行 PowerShell，輸入：<code class="setup-code">wsl --install</code>&nbsp;→ 重啟電腦</span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span><strong>設定 Ubuntu：</strong>重啟後 Ubuntu 自動開啟，設定用戶名及密碼</span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span><strong>安裝 Homebrew（WSL 內）：</strong><br><code class="setup-code">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></span>
+            </li>
+            <li>
+              <span class="guide-step-num">4</span>
+              <span><strong>安裝所有依賴：</strong><br><code class="setup-code">brew install node yt-dlp ffmpeg cloudflare/cloudflare/cloudflared steipete/tap/gogcli</code></span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span><strong>Clone 及啟動：</strong><br><code class="setup-code">git clone &lt;repo&gt; youtube-downloader &amp;&amp; cd youtube-downloader</code><br><code class="setup-code">cp .env.example .env</code>&nbsp;→ 編輯 .env 填入帳號密碼<br><code class="setup-code">npm install &amp;&amp; bash start.sh</code></span>
+            </li>
+            <li>
+              <span class="guide-step-num">6</span>
+              <span><strong>瀏覽器開啟：</strong>Windows 瀏覽器直接輸入 <span class="guide-key">http://localhost:3847</span> 即可存取（WSL2 自動共享端口）</span>
+            </li>
+          </ol>
+          <div class="guide-tip">💡 WSL2 與 Windows 共享 localhost，無需額外配置即可在 Windows 瀏覽器存取。</div>
+        </div>
+
+        <!-- Method B: Native Windows -->
+        <div style="margin-bottom:16px;padding:16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-deep);">
+          <div style="font-family:var(--font-heading);font-size:0.85rem;color:var(--cyan);margin-bottom:10px;">⚙️ 方式 B：原生 Windows（無 WSL2）</div>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">直接在 Windows 安裝所需工具。<strong style="color:var(--yellow);">注意：Google Drive 自動上傳功能在原生 Windows 下不支援</strong>（gog CLI 為 macOS/Linux 限定）。</p>
+
+          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">① 安裝必要工具（以管理員 PowerShell 執行）</div>
+          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.8;">
+            <div style="color:#94a3b8;"># 安裝 winget 管理的工具</div>
+            <div>winget install OpenJS.NodeJS.LTS</div>
+            <div>winget install yt-dlp.yt-dlp</div>
+            <div>winget install Gyan.FFmpeg</div>
+            <div>winget install Cloudflare.cloudflared</div>
+            <div style="color:#94a3b8;margin-top:4px;"># 安裝完成後重新開啟 PowerShell（刷新 PATH）</div>
+          </div>
+
+          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">② 配置 .env 工具路徑</div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:8px;">Windows 的工具路徑與 Linux 不同，需要在 <span class="setup-code">.env</span> 中指定：</p>
+          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.8;">
+            <div style="color:#94a3b8;"># .env 新增（路徑視乎安裝位置而定）</div>
+            <div>YT_DLP_PATH=C:\Users\%USERNAME%\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe</div>
+            <div>FFMPEG_PATH=C:\ProgramData\chocolatey\bin\ffmpeg.exe</div>
+          </div>
+
+          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">③ 啟動伺服器</div>
+          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:4px;line-height:1.8;">
+            <div style="color:#94a3b8;"># 方法 1：雙擊 start.bat（最簡單）</div>
+            <div style="color:#4ade80;">start.bat</div>
+            <div style="color:#94a3b8;margin-top:6px;"># 方法 2：PowerShell / cmd 手動執行</div>
+            <div>cd youtube-downloader</div>
+            <div>npm install</div>
+            <div>node server.js</div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:12px;">停止伺服器：雙擊 <span class="setup-code">stop.bat</span></div>
+
+          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;">
+            <strong style="color:var(--yellow);">⚠️ 原生 Windows 限制：</strong>
+            <ul style="margin:6px 0 0 16px;line-height:1.8;">
+              <li>Google Drive 自動上傳不支援（gog CLI 為 macOS/Linux 限定）</li>
+              <li>Telegram 通知功能需要額外配置 openclaw</li>
+              <li>建議搭配 Cloudflare Quick Tunnel 取得公開存取 URL</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- FFmpeg PATH note for Windows -->
+        <div style="padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);font-size:0.78rem;color:var(--text-secondary);">
+          <strong style="color:var(--cyan);">💡 Windows ffmpeg PATH 設定：</strong>
+          winget 安裝的 ffmpeg 可能不在 PATH 內。若下載時出現「ffmpeg not found」，需手動將 ffmpeg 安裝目錄加入系統 PATH，或在 <span class="setup-code">.env</span> 中設定 <span class="setup-code">FFMPEG_PATH</span>。
+        </div>
       </div>
 
       <!-- Section 2: Login -->
@@ -2100,9 +2196,10 @@ select option {
         <div style="margin-bottom:20px;">
           <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 先安裝 cloudflared</div>
           <ol class="guide-steps">
-            <li><span class="guide-step-num">1</span><span><strong>macOS：</strong><code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></span></li>
-            <li><span class="guide-step-num">2</span><span><strong>Linux：</strong><code class="setup-code">sudo apt install cloudflared</code> 或從 <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">官網</a> 下載</span></li>
-            <li><span class="guide-step-num">3</span><span>安裝完成後回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Cloudflare Tunnel → 點「🔄 刷新」確認狀態顯示「已安裝」</span></li>
+            <li><span class="guide-step-num">1</span><span><strong style="color:#4ade80;">Windows：</strong><code class="setup-code">winget install Cloudflare.cloudflared</code>&nbsp;（以管理員 PowerShell 執行，安裝後重新開啟終端）<br><span style="color:var(--text-dim);font-size:0.76rem;">或前往 <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">官網</a> 下載 cloudflared-windows-amd64.exe，改名 cloudflared.exe 並加入 PATH</span></span></li>
+            <li><span class="guide-step-num">2</span><span><strong>macOS：</strong><code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></span></li>
+            <li><span class="guide-step-num">3</span><span><strong>Linux：</strong><code class="setup-code">sudo apt install cloudflared</code></span></li>
+            <li><span class="guide-step-num">4</span><span>安裝完成後回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Cloudflare Tunnel → 點「🔄 刷新」確認狀態顯示「已安裝」</span></li>
           </ol>
         </div>
 
@@ -2134,10 +2231,20 @@ select option {
         <div class="guide-section-title">📂 Google Drive 設定 <button class="goto-btn" onclick="goToTab('settings')">→ 前往設定</button></div>
         <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:16px;">Google Drive 整合透過 <strong style="color:var(--text-primary);">gog CLI</strong> 實現，下載完成後自動上傳至你的 Drive 並附上連結。以下是首次設定的完整流程。</p>
 
+        <!-- Windows note -->
+        <div style="margin-bottom:20px;padding:12px 14px;border:1px solid rgba(251,191,36,0.3);border-radius:var(--radius);background:rgba(251,191,36,0.06);">
+          <div style="font-family:var(--font-heading);font-size:0.78rem;color:var(--yellow);margin-bottom:8px;">🪟 Windows 用戶須知</div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.7;">
+            <strong style="color:var(--text-primary);">gog CLI 僅支援 macOS / Linux</strong>，Windows 原生環境無法使用 Google Drive 自動上傳功能。<br>
+            <strong style="color:#4ade80;">推薦方案：</strong>使用 <strong style="color:var(--text-primary);">WSL2</strong> 執行整個應用（參閱 <a href="#guide-windows" style="color:var(--cyan);">Windows 安裝指南</a>），可完整支援所有功能。<br>
+            <strong style="color:var(--cyan);">替代方案：</strong>下載仍可正常運作，但完成後不會自動上傳 Drive，影片存儲在本機的下載目錄。
+          </div>
+        </div>
+
         <div style="margin-bottom:20px;">
-          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 安裝 gog CLI</div>
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 安裝 gog CLI（macOS / Linux / WSL2）</div>
           <ol class="guide-steps">
-            <li><span class="guide-step-num">1</span><span>打開終端，執行：<code class="setup-code">brew install steipete/tap/gogcli</code></span></li>
+            <li><span class="guide-step-num">1</span><span>打開終端（macOS Terminal、Linux bash、或 WSL2 Ubuntu），執行：<code class="setup-code">brew install steipete/tap/gogcli</code></span></li>
             <li><span class="guide-step-num">2</span><span>驗證安裝：<code class="setup-code">gog --version</code>，應顯示版本號</span></li>
             <li><span class="guide-step-num">3</span><span>回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Google Drive → 點「🔄 刷新」確認狀態不再顯示「未安裝」</span></li>
           </ol>
