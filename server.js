@@ -161,6 +161,7 @@ app.post('/api/download/start', (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
+    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| req.body keys:', Object.keys(req.body));
     const record = downloader.startDownload({
       url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix
     });

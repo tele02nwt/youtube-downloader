@@ -356,3 +356,48 @@ POST /api/settings/telegram/test   # 即時測試（直接用 body 值）
 1. **storage.js readJSON filename**：只接相對名稱（如 `'settings.json'`），傳 absolute path 會組合成錯誤路徑
 2. **502 Bad Gateway**：測試時啟動了多個 server process，exec SIGTERM 把正式 server 也殺掉；重跑 `bash start.sh` 即可
 3. **DOM IIFE 重排直覺錯誤**：要實現 TG→GD→CF，需要按此序 append（而非按「目標順序」反向 append）
+
+---
+
+## Phase 11: Bug Fixes（2026-03-08）
+
+### Bug: Date Prefix 不生效（yt-dlp mtime 陷阱）✅
+
+**現象**：UI 顯示 prefix toggle 已開啟（如 `20260302-filename.mp4`），但 Google Drive 收到的文件冇 prefix。
+
+**Debug 方法**：
+1. 加臨時 `console.log` 確認 server 收到 `datePrefix: "20260302"` ✅
+2. 確認 `outputTemplate` 含 prefix ✅
+3. 但 `Uploaded to Google Drive: 当华尔街...mp4`（冇 prefix）→ 問題在「找文件」那步
+
+**Root Cause**：
+- yt-dlp 預設設文件 **mtime = 影片上傳日期**（本例 = 2026-03-02）
+- 舊代碼：`files.sort((a,b) => b.stat.mtimeMs - a.stat.mtimeMs)[0]`
+- 結果：新下載 `20260302-title.mp4`（mtime = 2026-03-02 = 過去）比舊文件 `title.mp4`（mtime = 今日）更舊 → 排序後排在後面 → 上傳了錯誤文件
+
+**Fix**：
+```javascript
+// 1. yt-dlp args 加 --print after_move:filepath
+args.push('--print', 'after_move:filepath');
+
+// 2. stdout: 捕捉 yt-dlp 輸出的 absolute path
+if (trimmed.startsWith('/') && !trimmed.startsWith('[')) {
+  capturedFilePath = trimmed;
+}
+
+// 3. close: 優先用 capturedFilePath，fallback 用 ctimeMs
+if (capturedFilePath && fs.existsSync(capturedFilePath)) {
+  downloadedFile = capturedFilePath;
+} else {
+  files.sort((a, b) => b.stat.ctimeMs - a.stat.ctimeMs);
+  downloadedFile = files[0]?.path ?? null;
+}
+```
+
+**關鍵教訓**：
+- yt-dlp（及許多 downloader）會修改文件 mtime → **永遠唔好用 mtime 判斷「最新下載文件」**
+- `--print "after_move:filepath"` 係 yt-dlp 標準做法，可靠且跨平台
+- `ctimeMs`（inode change time）比 `mtimeMs` 更難被外部修改，是 fallback 首選
+
+### 待辦
+- [ ] 測試確認 prefix 正常後，移除 `[DEBUG]` console.log（server.js + downloader.js）

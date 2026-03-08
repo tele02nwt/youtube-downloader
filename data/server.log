@@ -1,2 +1,47 @@
-[dotenv@17.3.1] injecting env (2) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.3.1] injecting env (2) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
 YouTube Downloader server running on http://localhost:3847
+[DEBUG] startDownload datePrefix: 20260302 | req.body keys: [
+  'url',
+  'title',
+  'formatId',
+  'audioFormatId',
+  'resolution',
+  'categoryId',
+  'categoryName',
+  'remuxFormat',
+  'datePrefix'
+]
+[DEBUG] datePrefix: 20260302 | filenameTemplate: 20260302-%(title)s.%(ext)s | outputTemplate: /data/youtube-downloads/AI/20260302-%(title)s.%(ext)s
+[DEBUG] yt-dlp captured output path: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] Using captured filepath: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+Uploaded to Google Drive: 20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] startDownload datePrefix: null | req.body keys: [
+  'url',
+  'title',
+  'formatId',
+  'audioFormatId',
+  'resolution',
+  'categoryId',
+  'categoryName',
+  'remuxFormat',
+  'datePrefix'
+]
+[DEBUG] datePrefix: null | filenameTemplate: %(title)s.%(ext)s | outputTemplate: /data/youtube-downloads/AI/%(title)s.%(ext)s
+[DEBUG] yt-dlp captured output path: /data/youtube-downloads/AI/当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] Using captured filepath: /data/youtube-downloads/AI/当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+Uploaded to Google Drive: 当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] startDownload datePrefix: 20260302 | req.body keys: [
+  'url',
+  'title',
+  'formatId',
+  'audioFormatId',
+  'resolution',
+  'categoryId',
+  'categoryName',
+  'remuxFormat',
+  'datePrefix'
+]
+[DEBUG] datePrefix: 20260302 | filenameTemplate: 20260302-%(title)s.%(ext)s | outputTemplate: /data/youtube-downloads/AI/20260302-%(title)s.%(ext)s
+[DEBUG] yt-dlp captured output path: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] Using captured filepath: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+Uploaded to Google Drive: 20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4

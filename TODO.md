@@ -265,3 +265,17 @@
 - [x] `README.md` — 完整安裝說明（需求、安裝步驟、各功能說明、FAQ）
 - [x] `.env.example` — Telegram 設定已移至 UI 的說明
 - [x] `youtube-downloader.tar.gz` — 252KB，排除 node_modules / .env / data / .git 等
+
+---
+
+## Phase 11: Bug Fixes + 穩健性改善（2026-03-08）
+
+### Task 11.1: yt-dlp 輸出文件路徑追蹤修正 ✅
+- [x] **Root cause**: yt-dlp 預設設 mtime = 影片上傳日期 → 舊代碼用 `mtimeMs` 掃目錄拾錯文件
+- [x] 加 `--print "after_move:filepath"` arg → yt-dlp 輸出最終路徑到 stdout
+- [x] stdout handler 捕捉以 `/` 開頭且非 `[...]` 的行 → `capturedFilePath`
+- [x] `close` handler 優先用 `capturedFilePath`；fallback 改用 `ctimeMs` 排序
+- [x] 移除 debug console.log（待下次測試確認後）
+
+### Task 11.2: 清理 debug logs（待辦）
+- [ ] 確認 fix 生效後移除 `[DEBUG]` console.log 語句（server.js + downloader.js）
