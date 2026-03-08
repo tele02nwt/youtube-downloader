@@ -1274,11 +1274,14 @@ select option {
 
 .log-time {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-secondary);
+  font-size: 0.7rem;
+  color: var(--text-dim);
   white-space: nowrap;
   flex-shrink: 0;
-  margin-top: 2px;
+  width: 108px;
+  text-align: right;
+  padding-top: 2px;
+  line-height: 1.4;
 }
 
 /* ═══════════════════════════════════════════════
@@ -2393,15 +2396,13 @@ function renderLogs() {
       }
     }
 
-    return '<div class="log-entry' + (detailsHtml ? '' : '') + '" onclick="this.classList.toggle(\'expanded\')">' +
+    return '<div class="log-entry' + (detailsHtml ? ' expandable' : '') + '" onclick="this.classList.toggle(\'expanded\')">' +
       '<div class="log-level-dot ' + (log.level || 'info') + '"></div>' +
       '<div class="log-body">' +
         '<div class="log-msg">' + escapeHtml(log.message) + '</div>' +
-        '<div class="log-meta">' +
-          '<span>' + timeStr + '</span>' +
-        '</div>' +
         detailsHtml +
       '</div>' +
+      '<div class="log-time">' + timeStr + '</div>' +
       '<span class="log-category-badge ' + catClass + '">' + catLabel + '</span>' +
     '</div>';
   }).join('');
