@@ -1100,7 +1100,7 @@ select option {
     <div class="panel">
       <div class="panel-header">// 分類管理</div>
       <div class="cat-add-row">
-        <input type="text" id="cat-input" placeholder="新增分類名稱..." maxlength="50">
+        <input type="text" id="cat-input" placeholder="新增分類名稱..." maxlength="50" autocomplete="off" data-form-type="other">
         <button class="btn btn-cyan cat-add-btn" id="cat-add-btn" title="新增分類">+</button>
       </div>
       <div class="cat-list" id="cat-list"></div>
@@ -1421,7 +1421,7 @@ window.startEditCat = function(id) {
   const card = document.querySelector('.cat-card[data-id="' + id + '"]');
   const nameEl = card.querySelector('.cat-name');
   const currentName = nameEl.textContent;
-  nameEl.outerHTML = '<input type="text" class="cat-name-input" value="' + escapeHtml(currentName) + '" data-id="' + id + '" onkeydown="if(event.key===\'Enter\')saveEditCat(\'' + id + '\',this.value)" onblur="saveEditCat(\'' + id + '\',this.value)">';
+  nameEl.outerHTML = '<input type="text" class="cat-name-input" value="' + escapeHtml(currentName) + '" data-id="' + id + '" autocomplete="off" data-form-type="other" onkeydown="if(event.key===\'Enter\')saveEditCat(\'' + id + '\',this.value)" onblur="saveEditCat(\'' + id + '\',this.value)">';
   card.querySelector('.cat-name-input').focus();
 };
 
