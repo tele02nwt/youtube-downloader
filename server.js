@@ -270,6 +270,40 @@ app.delete('/api/cookies', (req, res) => {
   res.json({ ok: true });
 });
 
+// --- Setup API (Cloudflare + Google Drive) ---
+const setup = require('./lib/setup');
+
+app.get('/api/setup/cloudflare/status', (req, res) => {
+  res.json(setup.getCloudflaredStatus());
+});
+
+app.post('/api/setup/cloudflare/start', (req, res) => {
+  try {
+    const { mode, port, token } = req.body;
+    res.json(setup.startTunnel(mode || 'quick', { port, token }));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/setup/cloudflare/stop', (req, res) => {
+  try { res.json(setup.stopTunnel()); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/setup/gdrive/status', (req, res) => {
+  res.json(setup.getGdriveStatus());
+});
+
+app.post('/api/setup/gdrive/auth', (req, res) => {
+  try { res.json(setup.startGdriveAuth()); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/setup/gdrive/auth-poll', (req, res) => {
+  res.json(setup.getAuthPoll());
+});
+
 // --- Start server ---
 
 app.listen(PORT, () => {

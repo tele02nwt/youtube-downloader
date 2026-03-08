@@ -1426,6 +1426,66 @@ select option {
   .tab-btn { font-size: 0.65rem; padding: 10px 8px; letter-spacing: 1px; }
   .url-section { flex-direction: column; }
 }
+
+/* ── Setup Panels (Cloudflare + Google Drive) ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.status-badge.ok   { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.status-badge.warn { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.status-badge.err  { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+.status-badge.off  { background: rgba(148,163,184,0.08); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.green  { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+.status-dot.yellow { background: #fbbf24; }
+.status-dot.red    { background: #f87171; }
+.status-dot.grey   { background: #94a3b8; }
+.setup-section { margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.setup-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.setup-section h3 { font-family: var(--font-heading); font-size: 0.88rem; color: var(--cyan); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.setup-log {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  max-height: 130px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.setup-code {
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.cf-mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-deep);
+  transition: border-color 0.2s;
+  margin-bottom: 8px;
+}
+.cf-mode-card:hover { border-color: var(--cyan-dim); }
+.cf-mode-card input[type="radio"] { margin-top: 3px; accent-color: var(--cyan); }
 </style>
 </head>
 <body>
@@ -1712,6 +1772,116 @@ select option {
         </div>
       </div>
     </div>
+
+    <!-- ═══ CLOUDFLARE TUNNEL PANEL ═══ -->
+    <div class="panel">
+      <div class="panel-header">// CLOUDFLARE TUNNEL</div>
+      <div style="padding:16px;">
+
+        <!-- Status row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+          <div>
+            <div style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:6px;">TUNNEL STATUS</div>
+            <div id="cf-status-badge" class="status-badge off"><span class="status-dot grey"></span> 檢查中...</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-cyan" onclick="cfRefreshStatus()">🔄 刷新</button>
+            <button class="btn btn-pink" id="cf-stop-btn" onclick="cfStopTunnel()" style="display:none;">⏹ 停止</button>
+          </div>
+        </div>
+
+        <!-- Mode selector -->
+        <div class="setup-section">
+          <h3>🔧 隧道模式</h3>
+          <label class="cf-mode-card" id="cf-mode-quick-label">
+            <input type="radio" name="cf-mode" value="quick" id="cf-mode-quick" checked onchange="cfModeChange()">
+            <div>
+              <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">⚡ Quick Tunnel（免設定）</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">無需 Cloudflare 帳號，自動生成隨機公開 URL（如 random-name.trycloudflare.com）。適合快速測試，URL 每次重啟都會改變。</div>
+            </div>
+          </label>
+          <label class="cf-mode-card" id="cf-mode-token-label">
+            <input type="radio" name="cf-mode" value="token" id="cf-mode-token" onchange="cfModeChange()">
+            <div>
+              <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">🔑 Token Tunnel（固定域名）</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">需要 Cloudflare 帳號及 Zero Trust Dashboard，支援自訂域名，URL 固定不變。</div>
+            </div>
+          </label>
+
+          <!-- Token input -->
+          <div id="cf-token-section" style="display:none;margin-top:12px;margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">TUNNEL TOKEN</label>
+            <input type="password" id="cf-token-input" placeholder="eyJhIjoixxxxxx..." autocomplete="off" data-form-type="other"
+              style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.82rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="margin-top:6px;font-size:0.75rem;color:var(--text-dim);">從 <a href="https://one.dash.cloudflare.com/" target="_blank" style="color:var(--cyan);">Cloudflare Zero Trust</a> → Networks → Tunnels → 你的 Tunnel → Configure → Install connector 取得</div>
+          </div>
+
+          <!-- Port -->
+          <div style="margin-top:12px;margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">本地端口 LOCAL PORT</label>
+            <input type="number" id="cf-port-input" value="3847" min="1024" max="65535"
+              style="width:120px;padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.88rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+
+          <button class="btn btn-cyan" onclick="cfStartTunnel()">🚀 啟動 Tunnel</button>
+        </div>
+
+        <!-- Log -->
+        <div class="setup-section">
+          <h3>📋 Tunnel 日誌</h3>
+          <div id="cf-log" class="setup-log">— 尚無日誌 —</div>
+        </div>
+
+        <!-- Install help -->
+        <div style="padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
+          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何安裝 cloudflared?</p>
+          <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.9;">
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">macOS:</span>&nbsp;&nbsp;<code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></div>
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">Linux:</span>&nbsp;&nbsp;&nbsp;<code class="setup-code">sudo apt install cloudflared</code></div>
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">其他:</span>&nbsp;&nbsp;&nbsp;<a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">cloudflare.com/downloads</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GOOGLE DRIVE PANEL ═══ -->
+    <div class="panel">
+      <div class="panel-header">// GOOGLE DRIVE</div>
+      <div style="padding:16px;">
+
+        <!-- Status row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+          <div>
+            <div style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:6px;">GDRIVE STATUS</div>
+            <div id="gd-status-badge" class="status-badge off"><span class="status-dot grey"></span> 檢查中...</div>
+          </div>
+          <button class="btn btn-cyan" onclick="gdRefreshStatus()">🔄 刷新</button>
+        </div>
+
+        <!-- Auth section -->
+        <div class="setup-section">
+          <h3>🔐 Google 帳號授權</h3>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:16px;">首次使用需要授予 Google Drive 存取權限。點擊「開始授權」後，<strong style="color:var(--text-primary);">瀏覽器會自動打開 Google 登入頁</strong>（在你的本機電腦上）。完成後返回此頁確認狀態。</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn btn-cyan" id="gd-auth-btn" onclick="gdStartAuth()">🔗 開始授權</button>
+            <button class="btn" onclick="gdRefreshStatus()" style="color:var(--text-secondary);border:1px solid var(--border);">✅ 已完成，刷新狀態</button>
+          </div>
+          <div id="gd-auth-log" class="setup-log" style="display:none;"></div>
+        </div>
+
+        <!-- Install help -->
+        <div style="padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
+          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何安裝 gog CLI?</p>
+          <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.9;">
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">macOS/Linux:</span>&nbsp;&nbsp;<code class="setup-code">brew install steipete/tap/gogcli</code></div>
+            <div><span style="color:var(--cyan);font-family:var(--font-mono);">Source:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/steipete/gogcli" target="_blank" style="color:var(--cyan);">github.com/steipete/gogcli</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1732,6 +1902,8 @@ select option {
         <a href="#guide-manager">📊 下載管理</a>
         <a href="#guide-logs">📋 活動日誌</a>
         <a href="#guide-settings">⚙️ 設定</a>
+        <a href="#guide-cloudflare">☁️ Cloudflare</a>
+        <a href="#guide-gdrive">📂 Google Drive</a>
         <a href="#guide-faq">❓ 常見問題</a>
       </nav>
 
@@ -1920,7 +2092,81 @@ select option {
         </ol>
       </div>
 
-      <!-- Section 8: FAQ -->
+      <!-- Section 8: Cloudflare Tunnel Setup -->
+      <div class="guide-section" id="guide-cloudflare">
+        <div class="guide-section-title">☁️ Cloudflare Tunnel 設定 <button class="goto-btn" onclick="goToTab('settings')">→ 前往設定</button></div>
+        <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:16px;">Cloudflare Tunnel 讓你可透過公開 URL 從外部（或手機）訪問在本機執行的 YouTube Downloader，無需開放防火牆或做端口轉發（Port Forwarding）。</p>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 先安裝 cloudflared</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span><strong>macOS：</strong><code class="setup-code">brew install cloudflare/cloudflare/cloudflared</code></span></li>
+            <li><span class="guide-step-num">2</span><span><strong>Linux：</strong><code class="setup-code">sudo apt install cloudflared</code> 或從 <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" style="color:var(--cyan);">官網</a> 下載</span></li>
+            <li><span class="guide-step-num">3</span><span>安裝完成後回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Cloudflare Tunnel → 點「🔄 刷新」確認狀態顯示「已安裝」</span></li>
+          </ol>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">② 方式 A：Quick Tunnel（推薦新手，免帳號）</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>在設定頁選擇「⚡ Quick Tunnel」模式</span></li>
+            <li><span class="guide-step-num">2</span><span>確認本地端口為 <span class="guide-key">3847</span>（預設值）→ 點擊 <span class="guide-key">🚀 啟動 Tunnel</span></span></li>
+            <li><span class="guide-step-num">3</span><span>狀態變為「運行中」後，查看「Tunnel 日誌」欄位，找到 <span class="guide-key">*.trycloudflare.com</span> 形式的公開 URL</span></li>
+            <li><span class="guide-step-num">4</span><span>用任何裝置或瀏覽器輸入該 URL，即可遠端使用 YouTube Downloader</span></li>
+          </ol>
+          <div class="guide-warn">⚠️ Quick Tunnel 的 URL 每次重啟都會改變，不適合固定分享。如需固定 URL，請用方式 B。</div>
+        </div>
+
+        <div>
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">② 方式 B：Token Tunnel（固定自訂域名）</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>登入 <a href="https://one.dash.cloudflare.com/" target="_blank" style="color:var(--cyan);">Cloudflare Zero Trust</a> → Networks → Tunnels → 點擊「Create a tunnel」→ 選 Cloudflared</span></li>
+            <li><span class="guide-step-num">2</span><span>輸入 Tunnel 名稱（如 <span class="guide-key">yt-downloader</span>）→ 在 Install connector 頁面複製以 <span class="guide-key">eyJ</span> 開頭的 Token</span></li>
+            <li><span class="guide-step-num">3</span><span>在 Public Hostname 設定中：Service 填 <span class="guide-key">http://localhost:3847</span>，Domain 填你的自訂域名（需要先在 Cloudflare 管理 DNS）</span></li>
+            <li><span class="guide-step-num">4</span><span>回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Cloudflare Tunnel → 選「🔑 Token Tunnel」→ 貼上 Token → 啟動</span></li>
+          </ol>
+          <div class="guide-tip">💡 Token Tunnel 支援固定自訂域名（如 <span class="guide-key">yt.yourdomain.com</span>），URL 不會因重啟而改變。</div>
+        </div>
+      </div>
+
+      <!-- Section 9: Google Drive Setup -->
+      <div class="guide-section" id="guide-gdrive">
+        <div class="guide-section-title">📂 Google Drive 設定 <button class="goto-btn" onclick="goToTab('settings')">→ 前往設定</button></div>
+        <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:16px;">Google Drive 整合透過 <strong style="color:var(--text-primary);">gog CLI</strong> 實現，下載完成後自動上傳至你的 Drive 並附上連結。以下是首次設定的完整流程。</p>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 安裝 gog CLI</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>打開終端，執行：<code class="setup-code">brew install steipete/tap/gogcli</code></span></li>
+            <li><span class="guide-step-num">2</span><span>驗證安裝：<code class="setup-code">gog --version</code>，應顯示版本號</span></li>
+            <li><span class="guide-step-num">3</span><span>回到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Google Drive → 點「🔄 刷新」確認狀態不再顯示「未安裝」</span></li>
+          </ol>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">② 授權 Google Drive</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>點擊 <span class="guide-key">🔗 開始授權</span>，伺服器端的 <code class="setup-code">gog auth login</code> 會自動執行</span></li>
+            <li><span class="guide-step-num">2</span><span>你的預設瀏覽器會自動打開 Google OAuth 頁面（本機模式下直接打開；若遠端存取，需在伺服器所在機器上操作）</span></li>
+            <li><span class="guide-step-num">3</span><span>選擇你的 Google 帳號 → 點擊「允許」授予 Google Drive 存取權限</span></li>
+            <li><span class="guide-step-num">4</span><span>瀏覽器顯示授權成功訊息後，回到此頁點擊 <span class="guide-key">✅ 已完成，刷新狀態</span></span></li>
+            <li><span class="guide-step-num">5</span><span>狀態顯示「已連接 Google Drive ✓」即設定完成</span></li>
+          </ol>
+          <div class="guide-tip">💡 授權後的 Token 存儲在本機 <code class="setup-code">~/.config/gog/</code>，重新安裝系統或清除該目錄後需要重新授權。</div>
+          <div class="guide-warn">⚠️ 若授權後狀態仍顯示未授權，可能是 gog 版本較舊，嘗試執行 <code class="setup-code">brew upgrade gogcli</code> 後再重試。</div>
+        </div>
+
+        <div>
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">③ 測試 Google Drive 整合</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>前往 <button class="goto-btn" onclick="goToTab('download')">⬇️ 下載 Tab</button>，下載任意一條 YouTube 影片</span></li>
+            <li><span class="guide-step-num">2</span><span>下載完成後，在管理頁會顯示「📁 Google Drive ↗」連結 — 點擊確認影片已上傳至 Drive</span></li>
+            <li><span class="guide-step-num">3</span><span>你的 Google Drive 中會出現「Youtube Downloader」資料夾，按分類建立子資料夾</span></li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Section 10: FAQ (Standalone use notes added) -->
       <div class="guide-section" id="guide-faq">
         <div class="guide-section-title" style="border-left-color:var(--yellow);">❓ 常見問題</div>
         <ol class="guide-steps">
@@ -2067,6 +2313,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'download') loadCategorySelect();
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab === 'logs') loadLogs();
+    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); }
   });
 });
 
@@ -2842,6 +3089,157 @@ function setFontSize(size) {
   // Update buttons after DOM ready
   setTimeout(function() { setFontSize(saved); }, 0);
 })();
+
+/* ══════════════════════════════════════════════
+   CLOUDFLARE TUNNEL SETUP
+   ══════════════════════════════════════════════ */
+
+function cfModeChange() {
+  var mode = document.querySelector('input[name="cf-mode"]:checked');
+  var tokenSection = document.getElementById('cf-token-section');
+  if (tokenSection) tokenSection.style.display = (mode && mode.value === 'token') ? 'block' : 'none';
+}
+
+async function cfRefreshStatus() {
+  var badge = document.getElementById('cf-status-badge');
+  var logEl = document.getElementById('cf-log');
+  var stopBtn = document.getElementById('cf-stop-btn');
+  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> 檢查中...';
+  try {
+    var res = await fetch('/api/setup/cloudflare/status', { credentials: 'include' });
+    var data = await res.json();
+    if (!data.installed) {
+      badge.className = 'status-badge err';
+      badge.innerHTML = '<span class="status-dot red"></span> cloudflared 未安裝';
+      if (stopBtn) stopBtn.style.display = 'none';
+    } else if (data.running) {
+      badge.className = 'status-badge ok';
+      badge.innerHTML = '<span class="status-dot green"></span> 運行中 (PID ' + data.pid + ')';
+      if (stopBtn) stopBtn.style.display = '';
+    } else {
+      badge.className = 'status-badge off';
+      badge.innerHTML = '<span class="status-dot grey"></span> 已停止（cloudflared 已安裝）';
+      if (stopBtn) stopBtn.style.display = 'none';
+    }
+    if (logEl) logEl.textContent = data.recentLog || '— 尚無日誌 —';
+  } catch (e) {
+    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> 無法取得狀態'; }
+  }
+}
+
+async function cfStartTunnel() {
+  var modeEl = document.querySelector('input[name="cf-mode"]:checked');
+  var mode = modeEl ? modeEl.value : 'quick';
+  var token = (document.getElementById('cf-token-input') || {}).value || '';
+  var portEl = document.getElementById('cf-port-input');
+  var port = portEl ? parseInt(portEl.value) || 3847 : 3847;
+
+  if (mode === 'token' && !token.trim()) {
+    showToast('請輸入 Tunnel Token', 'error'); return;
+  }
+  showToast('正在啟動 Tunnel...', 'info');
+  try {
+    var res = await fetch('/api/setup/cloudflare/start', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: mode, token: token.trim(), port: port })
+    });
+    var data = await res.json();
+    if (!res.ok) { showToast('啟動失敗: ' + (data.error || ''), 'error'); return; }
+    showToast('Tunnel 已啟動！', 'success');
+    setTimeout(cfRefreshStatus, 2000);
+  } catch (e) {
+    showToast('啟動失敗: ' + e.message, 'error');
+  }
+}
+
+async function cfStopTunnel() {
+  if (!confirm('確認停止 Cloudflare Tunnel？')) return;
+  try {
+    await fetch('/api/setup/cloudflare/stop', { method: 'POST', credentials: 'include' });
+    showToast('Tunnel 已停止', 'info');
+    setTimeout(cfRefreshStatus, 500);
+  } catch (e) {
+    showToast('停止失敗: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   GOOGLE DRIVE SETUP
+   ══════════════════════════════════════════════ */
+
+var _gdAuthPollTimer = null;
+
+async function gdRefreshStatus() {
+  var badge = document.getElementById('gd-status-badge');
+  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> 檢查中...';
+  try {
+    var res = await fetch('/api/setup/gdrive/status', { credentials: 'include' });
+    var data = await res.json();
+    if (!data.installed) {
+      badge.className = 'status-badge err';
+      badge.innerHTML = '<span class="status-dot red"></span> gog CLI 未安裝';
+    } else if (data.authenticated) {
+      badge.className = 'status-badge ok';
+      badge.innerHTML = '<span class="status-dot green"></span> 已連接 Google Drive ✓';
+    } else {
+      badge.className = 'status-badge warn';
+      badge.innerHTML = '<span class="status-dot yellow"></span> 未授權（gog 已安裝，需要連接）';
+    }
+  } catch (e) {
+    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> 無法取得狀態'; }
+  }
+}
+
+async function gdStartAuth() {
+  var btn = document.getElementById('gd-auth-btn');
+  var logEl = document.getElementById('gd-auth-log');
+  if (btn) { btn.disabled = true; btn.textContent = '🔄 授權中...'; }
+  if (logEl) { logEl.style.display = 'block'; logEl.textContent = '正在啟動授權程序，請稍候...\n'; }
+
+  try {
+    var res = await fetch('/api/setup/gdrive/auth', { method: 'POST', credentials: 'include' });
+    var data = await res.json();
+    if (!res.ok) {
+      showToast('授權失敗: ' + (data.error || ''), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+      if (logEl) logEl.textContent = '錯誤: ' + (data.error || '未知錯誤');
+      return;
+    }
+    if (logEl) logEl.textContent += '已啟動授權程序 (PID ' + data.pid + ')。\n瀏覽器應已自動打開 Google 登入頁面...\n完成授權後，請點擊「✅ 已完成，刷新狀態」。\n';
+    // Poll for output
+    if (_gdAuthPollTimer) clearInterval(_gdAuthPollTimer);
+    _gdAuthPollTimer = setInterval(gdPollAuth, 1500);
+    // Auto-stop polling after 3 minutes
+    setTimeout(function() {
+      if (_gdAuthPollTimer) { clearInterval(_gdAuthPollTimer); _gdAuthPollTimer = null; }
+      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+    }, 180000);
+  } catch (e) {
+    showToast('授權失敗: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+  }
+}
+
+async function gdPollAuth() {
+  var logEl = document.getElementById('gd-auth-log');
+  var btn = document.getElementById('gd-auth-btn');
+  try {
+    var res = await fetch('/api/setup/gdrive/auth-poll', { credentials: 'include' });
+    var data = await res.json();
+    if (logEl && data.output) logEl.textContent = data.output;
+    if (data.done) {
+      if (_gdAuthPollTimer) { clearInterval(_gdAuthPollTimer); _gdAuthPollTimer = null; }
+      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+      if (data.success) {
+        showToast('Google Drive 授權成功！🎉', 'success');
+        gdRefreshStatus();
+      } else {
+        showToast('授權程序已結束，請確認是否完成授權再刷新狀態', 'warn');
+      }
+    }
+  } catch (e) { /* ignore poll errors */ }
+}
 
 /* ═══════════════════════════════════════════════
    INIT
