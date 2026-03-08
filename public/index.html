@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YT DOWNLOADER // CYBER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   CSS VARIABLES
+   ═══════════════════════════════════════════════ */
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-panel: #0d1117;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2332;
+  --cyan: #00f0ff;
+  --cyan-dim: #00f0ff44;
+  --cyan-glow: 0 0 15px #00f0ff66, 0 0 30px #00f0ff22;
+  --purple: #8b5cf6;
+  --purple-dim: #8b5cf644;
+  --purple-glow: 0 0 15px #8b5cf666;
+  --pink: #ff0066;
+  --pink-dim: #ff006644;
+  --green: #00ff88;
+  --green-dim: #00ff8844;
+  --yellow: #fbbf24;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-dim: #475569;
+  --border: #1e293b;
+  --border-bright: #334155;
+  --font-heading: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --radius: 6px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════ */
+@keyframes glitch {
+  0%, 100% { text-shadow: 2px 0 var(--cyan), -2px 0 var(--pink); }
+  25% { text-shadow: -2px -1px var(--cyan), 2px 1px var(--pink); }
+  50% { text-shadow: 1px 2px var(--cyan), -1px -2px var(--pink); }
+  75% { text-shadow: -1px 1px var(--pink), 1px -1px var(--cyan); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--cyan-dim), 0 0 15px transparent; }
+  50% { box-shadow: var(--cyan-glow); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes neonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════ */
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════ */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 28px 0 20px;
+}
+
+.header h1 {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: var(--cyan);
+  text-shadow: 0 0 20px var(--cyan-dim), 0 0 40px rgba(0,240,255,0.1);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.header h1:hover {
+  animation: glitch 0.3s ease-in-out;
+}
+
+.header .subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ═══════════════════════════════════════════════
+   TAB NAV
+   ═══════════════════════════════════════════════ */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,240,255,0.08), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+}
+
+.tab-btn:hover::before { opacity: 1; }
+
+.tab-btn.active {
+  color: var(--cyan);
+  background: rgba(0,240,255,0.06);
+  border-color: var(--cyan-dim);
+  box-shadow: 0 0 10px rgba(0,240,255,0.1);
+}
+
+.tab-btn.active::before { opacity: 1; }
+
+/* ═══════════════════════════════════════════════
+   TAB CONTENT
+   ═══════════════════════════════════════════════ */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeSlideIn 0.35s ease-out;
+}
+
+/* ═══════════════════════════════════════════════
+   PANEL / CARD STYLES
+   ═══════════════════════════════════════════════ */
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.panel-header {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  transition: all var(--transition);
+  position: relative;
+}
+
+.card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bright);
+}
+
+/* ═══════════════════════════════════════════════
+   INPUTS & BUTTONS
+   ═══════════════════════════════════════════════ */
+input[type="text"], input[type="url"], select {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: all var(--transition);
+}
+
+input:focus, select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 2px var(--cyan-dim);
+}
+
+input::placeholder {
+  color: var(--text-dim);
+  font-weight: 300;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.btn {
+  padding: 10px 24px;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-cyan {
+  color: var(--cyan);
+  background: rgba(0,240,255,0.08);
+  border-color: var(--cyan-dim);
+}
+
+.btn-cyan:hover {
+  background: rgba(0,240,255,0.15);
+  box-shadow: var(--cyan-glow);
+}
+
+.btn-purple {
+  color: var(--purple);
+  background: rgba(139,92,246,0.08);
+  border-color: var(--purple-dim);
+}
+
+.btn-purple:hover {
+  background: rgba(139,92,246,0.15);
+  box-shadow: var(--purple-glow);
+}
+
+.btn-pink {
+  color: var(--pink);
+  background: rgba(255,0,102,0.08);
+  border-color: var(--pink-dim);
+}
+
+.btn-pink:hover {
+  background: rgba(255,0,102,0.15);
+  box-shadow: 0 0 15px var(--pink-dim);
+}
+
+.btn-green {
+  color: var(--bg-deep);
+  background: var(--green);
+  border-color: var(--green);
+  font-weight: 900;
+}
+
+.btn-green:hover {
+  box-shadow: 0 0 20px var(--green-dim), 0 0 40px rgba(0,255,136,0.1);
+}
+
+.btn-lg {
+  padding: 16px 40px;
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+/* ═══════════════════════════════════════════════
+   TAB 1: CATEGORIES
+   ═══════════════════════════════════════════════ */
+.cat-add-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cat-add-row input {
+  flex: 1;
+}
+
+.cat-add-btn {
+  width: 48px;
+  min-width: 48px;
+  font-size: 1.4rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cat-card .cat-icon {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--cyan);
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.cat-card .cat-name {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.cat-card .cat-name-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 1rem;
+}
+
+.cat-card .cat-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.cat-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.cat-action-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all var(--transition);
+}
+
+.cat-action-btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+}
+
+.cat-action-btn.delete:hover {
+  border-color: var(--pink-dim);
+  color: var(--pink);
+  background: rgba(255,0,102,0.06);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-dim);
+}
+
+.empty-state .empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.empty-state p {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════════
+   TAB 2: DOWNLOAD
+   ═══════════════════════════════════════════════ */
+.url-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.url-section input {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+/* Probe loading */
+.probe-loading {
+  display: none;
+  text-align: center;
+  padding: 40px;
+}
+
+.probe-loading.active { display: block; }
+
+.spinner-ring {
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--border);
+  border-top-color: var(--cyan);
+  border-right-color: var(--purple);
+  border-radius: 50%;
+  animation: rotate 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.probe-loading .scan-text {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  animation: neonPulse 1.5s ease-in-out infinite;
+}
+
+/* Probe result */
+.probe-result {
+  display: none;
+}
+
+.probe-result.active { display: block; }
+
+.video-info {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.video-thumb {
+  width: 200px;
+  min-width: 200px;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.video-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.video-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.video-uploader {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--purple);
+}
+
+.video-duration {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* Format selector */
+.format-section {
+  margin-bottom: 18px;
+}
+
+.format-section .panel-header { margin-bottom: 12px; }
+
+.format-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.format-btn {
+  flex: 1;
+  padding: 10px;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.format-btn.active {
+  color: var(--cyan);
+  border-color: var(--cyan-dim);
+  background: rgba(0,240,255,0.06);
+  box-shadow: 0 0 8px rgba(0,240,255,0.1);
+}
+
+.format-btn:hover:not(.active) {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+}
+
+/* Quality list */
+.quality-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.quality-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.quality-option:hover {
+  border-color: var(--border-bright);
+  background: var(--bg-card-hover);
+}
+
+.quality-option.selected {
+  border-color: var(--cyan-dim);
+  background: rgba(0,240,255,0.04);
+}
+
+.quality-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-bright);
+  transition: all var(--transition);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.quality-option.selected .quality-radio {
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-dim);
+}
+
+.quality-option.selected .quality-radio::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 6px; height: 6px;
+  background: var(--cyan);
+  border-radius: 50%;
+}
+
+.quality-res {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.quality-size {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* Category + path */
+.dl-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: end;
+}
+
+.dl-field {
+  flex: 1;
+}
+
+.dl-field label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.output-path {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding: 10px 14px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  word-break: break-all;
+}
+
+/* Start button */
+.start-section {
+  text-align: center;
+  padding-top: 8px;
+}
+
+.btn-start {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.btn-start:disabled {
+  animation: none;
+}
+
+/* Error message */
+.probe-error {
+  display: none;
+  padding: 14px 18px;
+  background: rgba(255,0,102,0.06);
+  border: 1px solid var(--pink-dim);
+  border-radius: var(--radius);
+  color: var(--pink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.probe-error.active { display: block; }
+
+/* ═══════════════════════════════════════════════
+   TAB 3: MANAGER
+   ═══════════════════════════════════════════════ */
+.mgr-section {
+  margin-bottom: 24px;
+}
+
+.mgr-section-title {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mgr-section-title .count {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--cyan);
+  background: rgba(0,240,255,0.08);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.dl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Download card */
+.dl-card {
+  padding: 16px 18px;
+}
+
+.dl-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dl-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dl-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.dl-card-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dl-card-meta span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.status-badge {
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-downloading {
+  color: var(--cyan);
+  background: rgba(0,240,255,0.1);
+  border: 1px solid var(--cyan-dim);
+  animation: neonPulse 1.5s ease-in-out infinite;
+}
+
+.status-merging {
+  color: var(--purple);
+  background: rgba(139,92,246,0.1);
+  border: 1px solid var(--purple-dim);
+  animation: neonPulse 1.5s ease-in-out infinite;
+}
+
+.status-completed {
+  color: var(--green);
+  background: rgba(0,255,136,0.1);
+  border: 1px solid var(--green-dim);
+}
+
+.status-error {
+  color: var(--pink);
+  background: rgba(255,0,102,0.1);
+  border: 1px solid var(--pink-dim);
+}
+
+.status-pending {
+  color: var(--yellow);
+  background: rgba(251,191,36,0.1);
+  border: 1px solid rgba(251,191,36,0.3);
+}
+
+/* Progress bar */
+.progress-wrap {
+  margin-bottom: 6px;
+}
+
+.progress-bar-bg {
+  height: 6px;
+  background: var(--bg-deep);
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 30px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+}
+
+.progress-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.progress-stats span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.progress-stats .pct {
+  color: var(--cyan);
+}
+
+/* Action buttons for cards */
+.dl-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+.dl-card-actions .btn {
+  padding: 6px 14px;
+  font-size: 0.65rem;
+}
+
+/* ═══════════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 28px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: fadeSlideIn 0.25s ease-out;
+}
+
+.modal-box h3 {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--pink);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.modal-box p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 12px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  border-radius: var(--radius);
+  animation: fadeSlideIn 0.3s ease-out;
+  max-width: 360px;
+}
+
+.toast-success {
+  color: var(--green);
+  background: rgba(0,255,136,0.1);
+  border: 1px solid var(--green-dim);
+}
+
+.toast-error {
+  color: var(--pink);
+  background: rgba(255,0,102,0.1);
+  border: 1px solid var(--pink-dim);
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .app-container { padding: 16px 12px 40px; }
+  .header h1 { font-size: 1.3rem; letter-spacing: 4px; }
+  .video-info { flex-direction: column; }
+  .video-thumb { width: 100%; min-width: unset; }
+  .dl-row { flex-direction: column; }
+  .tab-btn { font-size: 0.65rem; padding: 10px 8px; letter-spacing: 1px; }
+  .url-section { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- HEADER -->
+  <header class="header">
+    <h1>YT Downloader</h1>
+    <div class="subtitle">// cyber download system v1.0</div>
+  </header>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="categories">分類</button>
+    <button class="tab-btn" data-tab="download">下載</button>
+    <button class="tab-btn" data-tab="manager">管理</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 1: CATEGORIES
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content active" id="tab-categories">
+    <div class="panel">
+      <div class="panel-header">// 分類管理</div>
+      <div class="cat-add-row">
+        <input type="text" id="cat-input" placeholder="新增分類名稱..." maxlength="50">
+        <button class="btn btn-cyan cat-add-btn" id="cat-add-btn" title="新增分類">+</button>
+      </div>
+      <div class="cat-list" id="cat-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 2: DOWNLOAD
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-download">
+    <div class="panel">
+      <div class="panel-header">// 影片分析</div>
+      <div class="url-section">
+        <input type="url" id="url-input" placeholder="貼上 YouTube 網址...">
+        <button class="btn btn-cyan" id="probe-btn">分析</button>
+      </div>
+
+      <div class="probe-error" id="probe-error"></div>
+
+      <div class="probe-loading" id="probe-loading">
+        <div class="spinner-ring"></div>
+        <div class="scan-text">SCANNING TARGET...</div>
+      </div>
+
+      <div class="probe-result" id="probe-result">
+        <div class="video-info">
+          <img class="video-thumb" id="video-thumb" src="" alt="">
+          <div class="video-meta">
+            <div class="video-title" id="video-title"></div>
+            <div class="video-uploader" id="video-uploader"></div>
+            <div class="video-duration" id="video-duration"></div>
+          </div>
+        </div>
+
+        <div class="format-section">
+          <div class="panel-header">// 格式</div>
+          <div class="format-btns" id="format-btns">
+            <button class="format-btn active" data-format="mp4">MP4</button>
+            <button class="format-btn" data-format="mkv">MKV</button>
+            <button class="format-btn" data-format="mov">MOV</button>
+          </div>
+        </div>
+
+        <div class="format-section">
+          <div class="panel-header">// 畫質</div>
+          <div class="quality-list" id="quality-list"></div>
+        </div>
+
+        <div class="dl-row">
+          <div class="dl-field">
+            <label>分類</label>
+            <select id="dl-category"></select>
+          </div>
+        </div>
+
+        <div class="dl-row">
+          <div class="dl-field">
+            <label>輸出路徑</label>
+            <div class="output-path" id="output-path">~/Google Drive/Youtube Downloader/</div>
+          </div>
+        </div>
+
+        <div class="start-section">
+          <button class="btn btn-green btn-lg btn-start" id="start-btn">開始下載</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 3: MANAGER
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-manager">
+    <div class="mgr-section" id="mgr-active-section">
+      <div class="mgr-section-title">
+        // 進行中 <span class="count" id="active-count">0</span>
+      </div>
+      <div class="dl-list" id="active-list"></div>
+    </div>
+
+    <div class="mgr-section" id="mgr-completed-section">
+      <div class="mgr-section-title">
+        // 已完成 <span class="count" id="completed-count">0</span>
+      </div>
+      <div class="dl-list" id="completed-list"></div>
+    </div>
+
+    <div class="mgr-section" id="mgr-error-section">
+      <div class="mgr-section-title">
+        // 失敗 <span class="count" id="error-count">0</span>
+      </div>
+      <div class="dl-list" id="error-list"></div>
+    </div>
+
+    <div class="empty-state" id="mgr-empty">
+      <div class="empty-icon">&#x2B21;</div>
+      <p>NO DOWNLOAD RECORDS</p>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <h3>確認刪除</h3>
+    <p id="delete-modal-msg">確定要刪除此項目嗎？</p>
+    <div class="modal-actions">
+      <button class="btn btn-cyan" id="delete-cancel">取消</button>
+      <button class="btn btn-pink" id="delete-confirm">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════ */
+const state = {
+  categories: [],
+  probeData: null,
+  selectedFormat: 'mp4',
+  selectedQuality: null,
+  downloads: [],
+  pollTimer: null,
+  deleteCallback: null,
+};
+
+/* ═══════════════════════════════════════════════
+   UTILS
+   ═══════════════════════════════════════════════ */
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/api' + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function showModal(msg, onConfirm) {
+  document.getElementById('delete-modal-msg').textContent = msg;
+  document.getElementById('delete-modal').classList.add('active');
+  state.deleteCallback = onConfirm;
+}
+
+function hideModal() {
+  document.getElementById('delete-modal').classList.remove('active');
+  state.deleteCallback = null;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ═══════════════════════════════════════════════
+   TAB SWITCHING
+   ═══════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+    if (btn.dataset.tab === 'categories') loadCategories();
+    if (btn.dataset.tab === 'download') loadCategorySelect();
+    if (btn.dataset.tab === 'manager') loadDownloads();
+  });
+});
+
+/* ═══════════════════════════════════════════════
+   TAB 1: CATEGORIES
+   ═══════════════════════════════════════════════ */
+async function loadCategories() {
+  try {
+    state.categories = await api('GET', '/categories');
+    renderCategories();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function renderCategories() {
+  const list = document.getElementById('cat-list');
+  if (!state.categories.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x2B21;</div><p>NO CATEGORIES</p></div>';
+    return;
+  }
+  list.innerHTML = state.categories.map(c => {
+    const isDefault = c.isDefault;
+    return '<div class="card cat-card" data-id="' + c.id + '">' +
+      '<span class="cat-icon">' + (isDefault ? '&#x2B22;' : '&#x2B21;') + '</span>' +
+      '<span class="cat-name">' + escapeHtml(c.name) + '</span>' +
+      (isDefault ? '<span class="cat-badge">DEFAULT</span>' : '') +
+      (!isDefault ? '<div class="cat-actions">' +
+        '<button class="cat-action-btn edit" onclick="startEditCat(\'' + c.id + '\')" title="編輯">&#x270E;</button>' +
+        '<button class="cat-action-btn delete" onclick="deleteCat(\'' + c.id + '\', \'' + escapeHtml(c.name).replace(/'/g, "\\'") + '\')" title="刪除">&#x2715;</button>' +
+      '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+document.getElementById('cat-add-btn').addEventListener('click', addCategory);
+document.getElementById('cat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCategory();
+});
+
+async function addCategory() {
+  const input = document.getElementById('cat-input');
+  const name = input.value.trim();
+  if (!name) return;
+  try {
+    await api('POST', '/categories', { name });
+    input.value = '';
+    toast('分類已新增');
+    loadCategories();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+window.startEditCat = function(id) {
+  const card = document.querySelector('.cat-card[data-id="' + id + '"]');
+  const nameEl = card.querySelector('.cat-name');
+  const currentName = nameEl.textContent;
+  nameEl.outerHTML = '<input type="text" class="cat-name-input" value="' + escapeHtml(currentName) + '" data-id="' + id + '" onkeydown="if(event.key===\'Enter\')saveEditCat(\'' + id + '\',this.value)" onblur="saveEditCat(\'' + id + '\',this.value)">';
+  card.querySelector('.cat-name-input').focus();
+};
+
+window.saveEditCat = async function(id, newName) {
+  newName = newName.trim();
+  if (!newName) { loadCategories(); return; }
+  try {
+    await api('PUT', '/categories/' + id, { name: newName });
+    toast('分類已更新');
+    loadCategories();
+  } catch (e) {
+    toast(e.message, 'error');
+    loadCategories();
+  }
+};
+
+window.deleteCat = function(id, name) {
+  showModal('確定要刪除「' + name + '」分類嗎？', async () => {
+    try {
+      await api('DELETE', '/categories/' + id);
+      toast('分類已刪除');
+      loadCategories();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  });
+};
+
+/* ═══════════════════════════════════════════════
+   TAB 2: DOWNLOAD
+   ═══════════════════════════════════════════════ */
+async function loadCategorySelect() {
+  try {
+    state.categories = await api('GET', '/categories');
+    const sel = document.getElementById('dl-category');
+    sel.innerHTML = state.categories.map(c =>
+      '<option value="' + c.id + '" data-name="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>'
+    ).join('');
+    updateOutputPath();
+  } catch (e) { /* silent */ }
+}
+
+document.getElementById('dl-category').addEventListener('change', updateOutputPath);
+
+function updateOutputPath() {
+  const sel = document.getElementById('dl-category');
+  const opt = sel.options[sel.selectedIndex];
+  const catName = opt ? opt.dataset.name : '';
+  document.getElementById('output-path').textContent =
+    '~/Google Drive/Youtube Downloader/' + catName + '/';
+}
+
+// Probe
+document.getElementById('probe-btn').addEventListener('click', probeUrl);
+document.getElementById('url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') probeUrl();
+});
+
+async function probeUrl() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) return;
+
+  const loading = document.getElementById('probe-loading');
+  const result = document.getElementById('probe-result');
+  const error = document.getElementById('probe-error');
+
+  error.classList.remove('active');
+  result.classList.remove('active');
+  loading.classList.add('active');
+  document.getElementById('probe-btn').disabled = true;
+
+  try {
+    const data = await api('POST', '/download/probe', { url });
+    state.probeData = data;
+
+    document.getElementById('video-thumb').src = data.thumbnail || '';
+    document.getElementById('video-title').textContent = data.title || 'Unknown';
+    document.getElementById('video-uploader').textContent = data.uploader || '';
+    document.getElementById('video-duration').textContent = data.durationHuman || '';
+
+    renderQualityOptions(data.qualityOptions || []);
+    await loadCategorySelect();
+
+    loading.classList.remove('active');
+    result.classList.add('active');
+  } catch (e) {
+    loading.classList.remove('active');
+    error.textContent = e.message;
+    error.classList.add('active');
+  } finally {
+    document.getElementById('probe-btn').disabled = false;
+  }
+}
+
+function renderQualityOptions(options) {
+  const list = document.getElementById('quality-list');
+  if (!options.length) {
+    list.innerHTML = '<div class="empty-state"><p>NO QUALITY OPTIONS</p></div>';
+    state.selectedQuality = null;
+    return;
+  }
+  state.selectedQuality = options[0];
+  list.innerHTML = options.map((q, i) =>
+    '<div class="quality-option' + (i === 0 ? ' selected' : '') + '" data-idx="' + i + '">' +
+      '<div class="quality-radio"></div>' +
+      '<span class="quality-res">' + escapeHtml(q.resolution) + '</span>' +
+      '<span class="quality-size">' + escapeHtml(q.estimatedSizeHuman || '?') + '</span>' +
+    '</div>'
+  ).join('');
+
+  list.querySelectorAll('.quality-option').forEach(el => {
+    el.addEventListener('click', () => {
+      list.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      state.selectedQuality = options[parseInt(el.dataset.idx)];
+    });
+  });
+}
+
+// Format buttons
+document.getElementById('format-btns').addEventListener('click', e => {
+  const btn = e.target.closest('.format-btn');
+  if (!btn) return;
+  document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.selectedFormat = btn.dataset.format;
+});
+
+// Start download
+document.getElementById('start-btn').addEventListener('click', startDownload);
+
+async function startDownload() {
+  if (!state.probeData || !state.selectedQuality) return;
+
+  const sel = document.getElementById('dl-category');
+  const opt = sel.options[sel.selectedIndex];
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+
+  try {
+    await api('POST', '/download/start', {
+      url: document.getElementById('url-input').value.trim(),
+      title: state.probeData.title,
+      formatId: state.selectedQuality.formatId,
+      audioFormatId: state.probeData.bestAudioFormatId,
+      resolution: state.selectedQuality.resolution,
+      categoryId: opt.value,
+      categoryName: opt.dataset.name,
+      remuxFormat: state.selectedFormat,
+    });
+    toast('下載已開始');
+
+    // Switch to manager tab
+    document.querySelector('.tab-btn[data-tab="manager"]').click();
+  } catch (e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   TAB 3: MANAGER
+   ═══════════════════════════════════════════════ */
+async function loadDownloads() {
+  try {
+    state.downloads = await api('GET', '/downloads');
+    renderDownloads();
+    managePoll();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function renderDownloads() {
+  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'pending');
+  const completed = state.downloads.filter(d => d.status === 'completed');
+  const errors = state.downloads.filter(d => d.status === 'error');
+
+  document.getElementById('active-count').textContent = active.length;
+  document.getElementById('completed-count').textContent = completed.length;
+  document.getElementById('error-count').textContent = errors.length;
+
+  const hasAny = active.length + completed.length + errors.length > 0;
+  document.getElementById('mgr-empty').style.display = hasAny ? 'none' : 'block';
+  document.getElementById('mgr-active-section').style.display = active.length ? 'block' : 'none';
+  document.getElementById('mgr-completed-section').style.display = completed.length ? 'block' : 'none';
+  document.getElementById('mgr-error-section').style.display = errors.length ? 'block' : 'none';
+
+  document.getElementById('active-list').innerHTML = active.map(renderActiveCard).join('');
+  document.getElementById('completed-list').innerHTML = completed.map(renderCompletedCard).join('');
+  document.getElementById('error-list').innerHTML = errors.map(renderErrorCard).join('');
+}
+
+function statusClass(s) {
+  return { downloading: 'status-downloading', merging: 'status-merging', completed: 'status-completed', error: 'status-error', pending: 'status-pending' }[s] || 'status-pending';
+}
+
+function statusLabel(s) {
+  return { downloading: '下載中', merging: '合併中', completed: '完成', error: '失敗', pending: '等待中' }[s] || s;
+}
+
+function renderActiveCard(d) {
+  var pct = d.progress || 0;
+  return '<div class="card dl-card">' +
+    '<div class="dl-card-top">' +
+      '<div class="dl-card-info">' +
+        '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
+        '<div class="dl-card-meta">' +
+          '<span>' + escapeHtml(d.resolution || '') + '</span>' +
+          '<span>' + escapeHtml((d.remuxFormat || '').toUpperCase()) + '</span>' +
+          (d.categoryName ? '<span>' + escapeHtml(d.categoryName) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<span class="status-badge ' + statusClass(d.status) + '">' + statusLabel(d.status) + '</span>' +
+    '</div>' +
+    '<div class="progress-wrap">' +
+      '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="progress-stats">' +
+        '<span class="pct">' + pct.toFixed(1) + '%</span>' +
+        '<span>' + (d.speed || '') + '</span>' +
+        '<span>' + (d.eta || '') + '</span>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderCompletedCard(d) {
+  var date = d.completedAt ? new Date(d.completedAt).toLocaleDateString('zh-TW') : '';
+  return '<div class="card dl-card">' +
+    '<div class="dl-card-top">' +
+      '<div class="dl-card-info">' +
+        '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
+        '<div class="dl-card-meta">' +
+          '<span>' + escapeHtml(d.resolution || '') + '</span>' +
+          '<span>' + escapeHtml(d.filesize || '') + '</span>' +
+          '<span>' + date + '</span>' +
+          (d.categoryName ? '<span>' + escapeHtml(d.categoryName) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      '<span class="status-badge status-completed">完成</span>' +
+    '</div>' +
+    '<div class="dl-card-actions">' +
+      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">刪除記錄</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderErrorCard(d) {
+  return '<div class="card dl-card">' +
+    '<div class="dl-card-top">' +
+      '<div class="dl-card-info">' +
+        '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
+        '<div class="dl-card-meta">' +
+          '<span style="color:var(--pink)">' + escapeHtml(d.error || 'Unknown error') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<span class="status-badge status-error">失敗</span>' +
+    '</div>' +
+    '<div class="dl-card-actions">' +
+      '<button class="btn btn-purple" onclick="retryDownload(\'' + d.id + '\')">重試</button>' +
+      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">刪除</button>' +
+    '</div>' +
+  '</div>';
+}
+
+window.deleteDownload = function(id) {
+  showModal('確定要刪除此下載記錄嗎？', async () => {
+    try {
+      await api('DELETE', '/downloads/' + id);
+      toast('記錄已刪除');
+      loadDownloads();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  });
+};
+
+window.retryDownload = async function(id) {
+  var d = state.downloads.find(x => x.id === id);
+  if (!d) return;
+  try {
+    await api('POST', '/download/start', {
+      url: d.url,
+      title: d.title,
+      formatId: d.formatId,
+      audioFormatId: d.audioFormatId,
+      resolution: d.resolution,
+      categoryId: d.categoryId,
+      categoryName: d.categoryName,
+      remuxFormat: d.remuxFormat,
+    });
+    try { await api('DELETE', '/downloads/' + id); } catch(_) {}
+    toast('已重新開始下載');
+    loadDownloads();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+};
+
+function managePoll() {
+  var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'pending');
+  if (hasActive && !state.pollTimer) {
+    state.pollTimer = setInterval(async () => {
+      if (document.getElementById('tab-manager').classList.contains('active')) {
+        await loadDownloads();
+      }
+    }, 2000);
+  } else if (!hasActive && state.pollTimer) {
+    clearInterval(state.pollTimer);
+    state.pollTimer = null;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   MODAL EVENTS
+   ═══════════════════════════════════════════════ */
+document.getElementById('delete-cancel').addEventListener('click', hideModal);
+document.getElementById('delete-confirm').addEventListener('click', () => {
+  if (state.deleteCallback) state.deleteCallback();
+  hideModal();
+});
+document.getElementById('delete-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) hideModal();
+});
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+loadCategories();
+</script>
+</body>
+</html>
