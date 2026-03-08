@@ -89,9 +89,21 @@
 - [x] 即時 re-render + API 持久化
 - [x] Cyber 風格視覺反饋（dragging 半透明 + drag-over cyan glow）
 
+**Bug Fix: Google Drive 上傳「失敗」（實際成功但 response 解析錯）**
+- [x] Root cause: `gog drive upload -j` 返回 `{file:{...}}`，code 直接讀 `parsed.id` → undefined
+- [x] 同理 `gog drive mkdir -j` 返回 `{folder:{...}}`
+- [x] 修正：加 `.file || parsed` / `.folder || result` unwrap
+
+**改善: 分類下拉移到 URL 輸入列**
+- [x] `<select id="dl-category">` 從 `probe-result` 移到 `url-section`
+- [x] 頁面載入即 populate（唔使等 tab 切換）
+- [x] 「未分類」輸出路徑唔顯示子目錄名
+
 ## 踩坑記錄
 1. **cloudflared 權限**: Docker 內 `$HOME=/data`，需手動建 `/data/.cloudflared/` 並 chown
 2. **timingSafeEqual 長度**: email vs 'admin' 長度不同 → 先 SHA256 hash 再比較
 3. **Autocomplete 污染**: Login 後 browser 填 username 到分類 input → `autocomplete="off" data-form-type="other"`
 4. **前後端 field name 不一致**: `c.isDefault` vs `c.id === 'default'` — 用已有的 unique id 判斷更可靠
 5. **Express 路由優先級**: 固定路由（`/reorder`）必須定義在參數路由（`/:id`）之前
+6. **gog CLI JSON wrapper**: `upload` → `{file:{...}}`、`mkdir` → `{folder:{...}}`，直接讀 `parsed.id` 會得到 `undefined`
+7. **UI scope 錯誤**: 分類下拉放 `probe-result` 內 → probe 前不可見，應放 `url-section`

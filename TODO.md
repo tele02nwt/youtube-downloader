@@ -15,6 +15,8 @@
 - [x] 驗證：名稱不可重複、不可為空
 - [x] 拖曳排序 reorder API（PUT /categories/reorder）
 - [x] 前端隱藏 default 分類的編輯/刪除按鈕 + error toast
+- [x] Google Drive upload/mkdir JSON response wrapper unwrap 修正
+- [x] 分類下拉移到 URL 輸入列（probe 前可見）+ 未分類路徑修正
 
 ### Task 1.3: yt-dlp Probe 封裝
 - [x] `probe(url)` 函數：呼叫 `yt-dlp -j`，解析 JSON

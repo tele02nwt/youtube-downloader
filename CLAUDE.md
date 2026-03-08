@@ -107,6 +107,8 @@ DELETE /api/cookies              # 清除 cookies
 - 用 `gog drive upload --parent <folderId>` 上傳
 - Folder ID 有 cache，唔會重複查詢
 - 大檔案上傳 timeout 設 10 分鐘
+- ⚠️ `gog -j` JSON response 有 wrapper：`upload` → `{file:{...}}`，`mkdir` → `{folder:{...}}`，`ls` → `{files:[...]}`
+- 必須用 `parsed.file || parsed` / `result.folder || result` unwrap
 
 ### 格式支援
 - MP4: `--remux-video mp4`
@@ -168,3 +170,5 @@ cloudflared tunnel --config /data/.cloudflared/config.yml run yt-downloader
 11. ✅ Default category（id='default'）前端用 `c.id === 'default'` 判斷，不要用 `c.isDefault`
 12. ✅ Express 固定路由（如 `/reorder`）必須在參數路由（`/:id`）之前定義
 13. ✅ 分類拖曳排序用 HTML5 原生 drag-and-drop，不需第三方庫
+14. ✅ `gog` CLI `-j` 輸出有 wrapper（file/folder/files），必須 unwrap 再用
+15. ✅ 分類下拉放在 url-section（probe 前可見），唔好放 probe-result 內
