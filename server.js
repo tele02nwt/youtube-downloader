@@ -270,6 +270,48 @@ app.delete('/api/cookies', (req, res) => {
   res.json({ ok: true });
 });
 
+// --- Settings API (Telegram) ---
+const appSettings = require('./lib/settings');
+
+app.get('/api/settings/telegram', (req, res) => {
+  res.json(appSettings.getTelegramSettings());
+});
+
+app.post('/api/settings/telegram', (req, res) => {
+  try {
+    const { enabled, groupId, topicId } = req.body;
+    const saved = appSettings.saveTelegramSettings({ enabled, groupId, topicId });
+    logger.info('system', `Telegram 設定已更新: group=${saved.groupId}, topic=${saved.topicId}, enabled=${saved.enabled}`);
+    res.json({ ok: true, telegram: saved });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/settings/telegram/test', (req, res) => {
+  try {
+    const { groupId, topicId } = req.body;
+    if (!groupId) return res.status(400).json({ error: '請填寫 Group ID' });
+    const { execFile } = require('child_process');
+    const args = [
+      'message', 'send',
+      '--channel', 'telegram',
+      '--target', groupId.trim(),
+      '--message', '✅ YouTube Downloader — Telegram 通知測試成功！'
+    ];
+    if (topicId && topicId.trim()) args.push('--thread-id', topicId.trim());
+    execFile('openclaw', args, { timeout: 15000 }, (err) => {
+      if (err) {
+        logger.warn('system', `Telegram 測試失敗: ${err.message}`);
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ ok: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- Setup API (Cloudflare + Google Drive) ---
 const setup = require('./lib/setup');
 

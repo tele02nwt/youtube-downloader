@@ -1888,6 +1888,63 @@ select option {
       </div>
     </div>
 
+    <!-- ═══ TELEGRAM 通知 PANEL ═══ -->
+    <div class="panel">
+      <div class="panel-header">// TELEGRAM 通知</div>
+      <div style="padding:16px;">
+
+        <!-- Enable toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">下載完成後自動發送 Telegram 通知</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary);">需要在伺服器上安裝並設定 <strong style="color:var(--text-primary);">OpenClaw CLI</strong>。</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+            <input type="checkbox" id="tg-enabled-toggle" style="opacity:0;width:0;height:0;" onchange="tgToggleChanged()">
+            <span id="tg-toggle-slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:24px;transition:.3s;"></span>
+            <span id="tg-toggle-knob" style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+          </label>
+        </div>
+
+        <!-- Inputs -->
+        <div id="tg-config-section">
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">GROUP ID <span style="color:var(--pink);font-size:0.68rem;">(必填)</span></label>
+            <input type="text" id="tg-group-id" placeholder="-1001234567890" autocomplete="off" data-form-type="other"
+              style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="margin-top:5px;font-size:0.73rem;color:var(--text-dim);">Telegram Group 的數字 ID（通常以 -100 開頭）。可在 Bot 收到的訊息 JSON 中找到 <code style="background:var(--bg-deep);padding:1px 4px;border-radius:3px;">chat.id</code> 欄位。</div>
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">TOPIC ID <span style="color:var(--text-dim);font-size:0.68rem;">(選填，Forum 群組用)</span></label>
+            <input type="text" id="tg-topic-id" placeholder="191" autocomplete="off" data-form-type="other"
+              style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="margin-top:5px;font-size:0.73rem;color:var(--text-dim);">只有 Telegram Forum（話題群組）才需要填寫。右鍵話題頁面 → 複製連結，URL 最後的數字即 Topic ID。</div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-cyan" onclick="saveTelegramSettings()">💾 儲存設定</button>
+            <button class="btn" style="color:var(--text-secondary);border:1px solid var(--border);" onclick="testTelegramSettings()">📨 發送測試訊息</button>
+          </div>
+          <div id="tg-save-msg" style="margin-top:10px;font-size:0.8rem;display:none;"></div>
+        </div>
+
+        <!-- Info box -->
+        <div style="margin-top:20px;padding:12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);">
+          <p style="font-family:var(--font-heading);font-size:0.75rem;color:var(--yellow);margin-bottom:8px;">📖 如何取得 Group ID 及 Topic ID?</p>
+          <ol style="font-size:0.78rem;color:var(--text-secondary);padding-left:18px;line-height:1.9;margin:0;">
+            <li>將 <a href="https://t.me/userinfobot" target="_blank" style="color:var(--cyan);">@userinfobot</a> 加入你的 Telegram 群組</li>
+            <li>在群組發送任意訊息，bot 會回覆群組資訊包含 <strong style="color:var(--text-primary);">Group ID</strong></li>
+            <li>如為 Forum 群組，在對應話題下發送訊息，URL 最後的數字即 <strong style="color:var(--text-primary);">Topic ID</strong></li>
+            <li>確保伺服器已安裝 <strong style="color:var(--text-primary);">OpenClaw CLI</strong> 並已完成 Telegram Bot 設定</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1911,6 +1968,7 @@ select option {
         <a href="#guide-settings">⚙️ 設定</a>
         <a href="#guide-cloudflare">☁️ Cloudflare</a>
         <a href="#guide-gdrive">📂 Google Drive</a>
+        <a href="#guide-telegram">📲 Telegram 通知</a>
         <a href="#guide-faq">❓ 常見問題</a>
       </nav>
 
@@ -2185,6 +2243,10 @@ select option {
             <span class="guide-step-num">4</span>
             <span><strong>登出：</strong>點擊「🚪 登出」按鈕，Session 即時失效並跳轉至登入頁。</span>
           </li>
+          <li>
+            <span class="guide-step-num">5</span>
+            <span><strong>Telegram 通知：</strong>填寫 Group ID 及（可選）Topic ID → 點「💾 儲存設定」→ 開啟啟用開關。詳見 <a href="#guide-telegram" style="color:var(--cyan);">📲 Telegram 通知設定指南</a>。</span>
+          </li>
         </ol>
       </div>
 
@@ -2273,7 +2335,59 @@ select option {
         </div>
       </div>
 
-      <!-- Section 10: FAQ (Standalone use notes added) -->
+      <!-- Section 10: Telegram Notification Setup -->
+      <div class="guide-section" id="guide-telegram">
+        <div class="guide-section-title" style="border-left-color:#2aabee;">📲 Telegram 通知設定 <button class="goto-btn" onclick="goToTab('settings')">→ 前往設定</button></div>
+        <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:16px;">設定後，每次下載完成都會自動在指定 Telegram 群組發送通知，包含影片標題、畫質及 Google Drive 連結。</p>
+
+        <!-- Prerequisites -->
+        <div style="margin-bottom:20px;padding:12px 14px;border:1px solid rgba(42,171,238,0.3);border-radius:var(--radius);background:rgba(42,171,238,0.06);">
+          <div style="font-family:var(--font-heading);font-size:0.78rem;color:#2aabee;margin-bottom:8px;">🔧 前提條件</div>
+          <ul style="font-size:0.8rem;color:var(--text-secondary);line-height:1.8;padding-left:18px;margin:0;">
+            <li>伺服器上已安裝 <strong style="color:var(--text-primary);">OpenClaw CLI</strong>（<code class="setup-code">openclaw</code> 指令可用）</li>
+            <li>OpenClaw 已完成 Telegram Bot 設定及授權</li>
+            <li>Bot 已加入目標 Telegram 群組並具備發言權限</li>
+          </ul>
+        </div>
+
+        <!-- Step 1: Get Group ID -->
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">① 取得 Group ID</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>打開 Telegram，前往你的目標群組</span></li>
+            <li><span class="guide-step-num">2</span><span>將 <a href="https://t.me/userinfobot" target="_blank" style="color:var(--cyan);">@userinfobot</a> 加入群組</span></li>
+            <li><span class="guide-step-num">3</span><span>在群組發送任意訊息，Bot 會自動回覆群組資訊，其中 <strong style="color:var(--text-primary);">id</strong> 欄位即 Group ID（通常以 <span class="guide-key">-100</span> 開頭）</span></li>
+            <li><span class="guide-step-num">4</span><span>複製該數字 ID，前往 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Telegram 通知 → 貼到「GROUP ID」欄位</span></li>
+          </ol>
+        </div>
+
+        <!-- Step 2: Get Topic ID -->
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">② 取得 Topic ID（Forum 群組才需要）</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>如果你的群組是 <strong style="color:var(--text-primary);">Forum 群組</strong>（即有話題/Thread 功能），需要額外填寫 Topic ID</span></li>
+            <li><span class="guide-step-num">2</span><span>在 Telegram 中，右鍵點擊目標話題 → <strong>複製連結</strong></span></li>
+            <li><span class="guide-step-num">3</span><span>連結格式如：<code class="setup-code">https://t.me/c/1234567890/<strong>191</strong></code>，最後的數字即 <strong style="color:var(--text-primary);">Topic ID</strong></span></li>
+            <li><span class="guide-step-num">4</span><span>將 Topic ID 填入「TOPIC ID」欄位（不需要的話留空即可）</span></li>
+          </ol>
+        </div>
+
+        <!-- Step 3: Save and test -->
+        <div style="margin-bottom:20px;">
+          <div style="font-family:var(--font-heading);font-size:0.8rem;color:var(--cyan);margin-bottom:10px;">③ 儲存設定並測試</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>填寫 Group ID（及可選的 Topic ID）後，點擊 <span class="guide-key">💾 儲存設定</span></span></li>
+            <li><span class="guide-step-num">2</span><span>點擊 <span class="guide-key">📨 發送測試訊息</span>，確認 Telegram 群組收到測試通知</span></li>
+            <li><span class="guide-step-num">3</span><span>測試成功後，開啟「下載完成後自動發送 Telegram 通知」開關</span></li>
+            <li><span class="guide-step-num">4</span><span>之後每次下載完成，系統會自動發送通知，無需手動操作 ✅</span></li>
+          </ol>
+          <div class="guide-tip">💡 通知內容包含：影片標題、畫質、完成時間，以及 Google Drive 分享連結（如已啟用 Google Drive）。</div>
+        </div>
+
+        <div class="guide-warn">⚠️ 若測試失敗並顯示「openclaw: command not found」，表示伺服器未安裝 OpenClaw CLI，請聯絡管理員安裝後再試。</div>
+      </div>
+
+      <!-- Section 11: FAQ (Standalone use notes added) -->
       <div class="guide-section" id="guide-faq">
         <div class="guide-section-title" style="border-left-color:var(--yellow);">❓ 常見問題</div>
         <ol class="guide-steps">
@@ -2420,7 +2534,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'download') loadCategorySelect();
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab === 'logs') loadLogs();
-    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); }
+    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); }
   });
 });
 
@@ -3346,6 +3460,101 @@ async function gdPollAuth() {
       }
     }
   } catch (e) { /* ignore poll errors */ }
+}
+
+/* ═══════════════════════════════════════════════
+   TELEGRAM SETTINGS
+   ═══════════════════════════════════════════════ */
+
+function tgApplyToggleUI(enabled) {
+  var slider = document.getElementById('tg-toggle-slider');
+  var knob = document.getElementById('tg-toggle-knob');
+  if (!slider || !knob) return;
+  if (enabled) {
+    slider.style.background = 'var(--cyan)';
+    knob.style.transform = 'translateX(20px)';
+  } else {
+    slider.style.background = '#334155';
+    knob.style.transform = 'translateX(0)';
+  }
+}
+
+function tgToggleChanged() {
+  var cb = document.getElementById('tg-enabled-toggle');
+  tgApplyToggleUI(cb && cb.checked);
+}
+
+async function tgLoadSettings() {
+  try {
+    var res = await fetch('/api/settings/telegram', { credentials: 'include' });
+    var data = await res.json();
+    var cb = document.getElementById('tg-enabled-toggle');
+    var groupInput = document.getElementById('tg-group-id');
+    var topicInput = document.getElementById('tg-topic-id');
+    if (cb) cb.checked = !!data.enabled;
+    if (groupInput) groupInput.value = data.groupId || '';
+    if (topicInput) topicInput.value = data.topicId || '';
+    tgApplyToggleUI(!!data.enabled);
+  } catch (e) { console.error('tgLoadSettings error', e); }
+}
+
+async function saveTelegramSettings() {
+  var cb = document.getElementById('tg-enabled-toggle');
+  var groupInput = document.getElementById('tg-group-id');
+  var topicInput = document.getElementById('tg-topic-id');
+  var msgEl = document.getElementById('tg-save-msg');
+  var enabled = cb && cb.checked;
+  var groupId = groupInput ? groupInput.value.trim() : '';
+  var topicId = topicInput ? topicInput.value.trim() : '';
+  if (enabled && !groupId) {
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '⚠️ 啟用通知時 Group ID 為必填'; }
+    return;
+  }
+  try {
+    var res = await fetch('/api/settings/telegram', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled, groupId, topicId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      showToast('Telegram 設定已儲存 ✓', 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 設定已儲存'; }
+    } else {
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ ' + (data.error || '儲存失敗'); }
+    }
+  } catch (e) {
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 網絡錯誤'; }
+  }
+}
+
+async function testTelegramSettings() {
+  var groupInput = document.getElementById('tg-group-id');
+  var topicInput = document.getElementById('tg-topic-id');
+  var msgEl = document.getElementById('tg-save-msg');
+  var groupId = groupInput ? groupInput.value.trim() : '';
+  var topicId = topicInput ? topicInput.value.trim() : '';
+  if (!groupId) {
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '⚠️ 請先填寫 Group ID'; }
+    return;
+  }
+  if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--text-secondary)'; msgEl.textContent = '📨 發送中...'; }
+  try {
+    var res = await fetch('/api/settings/telegram/test', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ groupId, topicId })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      showToast('測試訊息已發送！請查看 Telegram 🎉', 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 測試訊息已發送'; }
+    } else {
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 發送失敗：' + (data.error || '未知錯誤'); }
+    }
+  } catch (e) {
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 網絡錯誤'; }
+  }
 }
 
 /* ═══════════════════════════════════════════════
