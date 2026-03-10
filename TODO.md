@@ -215,18 +215,6 @@
 
 ---
 
-## 未來可能新增
-- [ ] Playlist 批量下載
-- [ ] 純音頻模式（MP3/AAC）
-- [ ] 排程下載
-- [ ] 下載歷史搜尋/篩選
-- [ ] 手機響應式優化
-- [ ] Cloudflare Access（SSO 保護）
-- [ ] 多用戶支援
-- [ ] Windows 原生 Google Drive 支援（rclone 整合或原生 API）
-- [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
-- [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）
-
 ---
 
 ## Phase 10: Telegram 設定 UI + 分發打包 ✅
@@ -279,3 +267,30 @@
 
 ### Task 11.2: 清理 debug logs（待辦）
 - [ ] 確認 fix 生效後移除 `[DEBUG]` console.log 語句（server.js + downloader.js）
+
+---
+
+## Phase 12: SVG 用家流程圖（2026-03-10）✅
+
+### Task 12.1: 架構頁（workflow.jpg）— 保留現狀 ✅
+- [x] 架構 Tab 展示 `/workflow.jpg`（開發者技術圖），已於 2026-03-08 完成，繼續保留
+
+### Task 12.2: 指南頁 Inline SVG 用家流程圖 ✅
+- [x] 在 `#tab-guide` 的 Quick Nav 後、`#guide-quickstart` 前插入 SVG section
+- [x] 標題：🗺️ 下載流程一覽（`.guide-section-title`）
+- [x] 5 步水平 SVG：📋 貼URL → 🔍 分析 → ⚙️ 選設定 → ⬇️ 下載 → ✅ 完成
+- [x] 完成節點下方兩個虛線分支：📂 Google Drive + 📲 Telegram
+- [x] 暗色主題：cyan 邊框（步驟 1-4）+ 綠色邊框（步驟 5）
+- [x] Responsive：`viewBox + width="100%" + overflow-x:auto + min-width:700px`
+
+## 未來可能新增
+- [ ] Playlist 批量下載
+- [ ] 純音頻模式（MP3/AAC）
+- [ ] 排程下載
+- [ ] 下載歷史搜尋/篩選
+- [ ] 手機響應式優化
+- [ ] Cloudflare Access（SSO 保護）
+- [ ] 多用戶支援
+- [ ] Windows 原生 Google Drive 支援（rclone 整合或原生 API）
+- [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
+- [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）

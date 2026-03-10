@@ -401,3 +401,33 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 
 ### 待辦
 - [ ] 測試確認 prefix 正常後，移除 `[DEBUG]` console.log（server.js + downloader.js）
+
+---
+
+## Phase 12: SVG 用家流程圖（2026-03-10）
+
+### 2026-03-10 — 指南頁 Inline SVG 下載流程圖 ✅
+
+**背景**：
+- 架構頁（`workflow.jpg`）係 2026-03-08 加入，目標讀者係開發者，展示整個系統技術架構
+- 今日新增：給**普通用家**看的操作流程 SVG，插入指南頁最頂（Quick Nav 後、Quick Start 前）
+
+**位置**：`public/index.html` → `#tab-guide` → `#guide-quickstart` 之前
+
+**內容（5 步水平流程）**：
+1. 📋 貼上 URL — 複製 YouTube 連結，貼入輸入框
+2. 🔍 分析影片 — 點擊「分析」，獲取片名和畫質選項
+3. ⚙️ 選擇設定 — 選畫質、格式、分類
+4. ⬇️ 開始下載 — 點擊下載，自動完成
+5. ✅ 完成 — 本地儲存（+ 下方兩個虛線分支：📂 GDrive 自動上傳 + 📲 Telegram 自動通知）
+
+**設計細節**：
+- `viewBox="0 0 900 220"`，`width="100%"`，`min-width:700px`，`overflow-x:auto` 包裝
+- 暗色主題：步驟 1-4 cyan 邊框（`#00f0ff`），步驟 5 綠色邊框（`#4ade80`）
+- GDrive + Telegram 子節點：虛線框（`stroke-dasharray`）+ 淡色文字（可選步驟）
+- 實線箭頭（→）連接必要步驟，虛線連接可選分支
+
+**經驗教訓（Claude Code 委派技巧）**：
+- ❌ 錯誤做法：`exec command:"claude ... 2>&1 &"` — shell 即時退出，只見 PID echo，output 全丟
+- ✅ 正確做法：`exec pty:true background:true command:"claude ..."` — exec tool 管理 session，可 `process log` 追蹤
+- `--dangerously-skip-permissions` 旗標等同 `--full-auto`，適合自動化任務（無需手動 approve）

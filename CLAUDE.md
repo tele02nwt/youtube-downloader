@@ -200,8 +200,8 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 2. **下載**（download）— URL probe + 格式/畫質選擇 + 開始下載
 3. **管理**（manager）— 下載進度追蹤 + Drive 連結
 4. **日誌**（logs）— Activity log，filter + pagination
-5. **架構**（workflow）— Workflow infographic 靜態圖片
-6. **指南**（guide）— User guide，anchor nav + tab jump
+5. **架構**（workflow）— Workflow infographic 靜態圖片（`/workflow.jpg`，給開發者看）
+6. **指南**（guide）— User guide，anchor nav + tab jump；頂部有 **inline SVG 用家流程圖**（🗺️ 下載流程一覽）
 7. **設定**（settings）⚙️ — 帳號與安全 / 顯示偏好 / YouTube Cookies / Telegram 通知 / Google Drive / Cloudflare Tunnel
 
 ### Telegram 通知
@@ -238,6 +238,22 @@ if (!contentType.includes('application/json')) {
   throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
 }
 ```
+
+#### 指南頁 Inline SVG 用家流程圖
+```html
+<!-- 放在指南 tab 的 panel-header 之後，guide-quickstart 之前 -->
+<div class="guide-section" style="padding:16px 0;">
+  <div class="guide-section-title">🗺️ 下載流程一覽</div>
+  <div style="overflow-x:auto;margin-top:12px;">
+    <svg viewBox="0 0 900 220" width="100%" style="min-width:700px;" ...>
+      <!-- 5 步水平流程：貼URL → 分析 → 選設定 → 下載 → 完成 -->
+      <!-- 步驟 1-4：cyan 邊框(#00f0ff)；步驟 5：綠色邊框(#4ade80) -->
+      <!-- 完成節點下方兩個虛線分支：GDrive + Telegram -->
+    </svg>
+  </div>
+</div>
+```
+**設計原則**：暗色主題、圓角矩形 + emoji icon、實線/虛線箭頭區分必選/可選步驟。
 
 ### 檔名日期前綴（Date Prefix）
 - Probe 返回 `uploadDate`（yt-dlp 的 `upload_date`，YYYYMMDD 格式）
@@ -414,3 +430,7 @@ start.bat
 45. ✅ 分發打包排除 node_modules / .env / data / .git / openspec / .claude，僅 252KB
 46. ✅ yt-dlp `--print "after_move:filepath"` 捕捉最終輸出路徑，比掃目錄可靠
 47. ✅ 目錄掃描 fallback 用 `ctimeMs`（inode change time），唔用 `mtimeMs`（yt-dlp 會把 mtime 設成影片上傳日期）
+48. ✅ 指南頁頂部有 inline SVG 用家流程圖（🗺️ 下載流程一覽）—— 給普通用家，唔係技術圖
+49. ✅ 架構頁（workflow.jpg）係給開發者的技術流程圖；指南頁 SVG 係給用家的操作流程 — 兩者並存，定位不同
+50. ✅ Inline SVG 設計模式：`viewBox + width="100%" + min-width + overflow-x:auto wrapper`，確保 responsive + 可縮放
+51. ✅ 用 Claude Code 委派編碼任務時：exec tool 要用 `pty:true + background:true`，**唔好**在 command 末尾加 `&`（會令輸出丟失，只見 PID echo）

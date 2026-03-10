@@ -1978,6 +1978,79 @@ select option {
         <a href="#guide-faq">❓ 常見問題</a>
       </nav>
 
+      <!-- User Workflow SVG -->
+      <div class="guide-section" style="padding:16px 0;">
+        <div class="guide-section-title">🗺️ 下載流程一覽</div>
+        <div style="overflow-x:auto;margin-top:12px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" width="100%" style="min-width:700px;">
+            <defs>
+              <marker id="wf-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6" fill="#00f0ff"/>
+              </marker>
+              <marker id="wf-arrow-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6" fill="#4ade80"/>
+              </marker>
+              <marker id="wf-arrow-gray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6" fill="#64748b"/>
+              </marker>
+            </defs>
+            <!-- Step 1: Paste URL -->
+            <rect x="10" y="50" width="140" height="70" rx="12" fill="#0d1117" stroke="#00f0ff" stroke-width="1.5"/>
+            <text x="80" y="42" text-anchor="middle" font-size="18">📋</text>
+            <text x="80" y="78" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="bold" font-family="system-ui,sans-serif">貼上 URL</text>
+            <text x="80" y="98" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">複製 YouTube 連結</text>
+            <text x="80" y="112" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">貼入輸入框</text>
+            <!-- Arrow 1→2 -->
+            <line x1="150" y1="85" x2="178" y2="85" stroke="#00f0ff" stroke-width="1.5" marker-end="url(#wf-arrow)"/>
+            <!-- Step 2: Probe -->
+            <rect x="186" y="50" width="140" height="70" rx="12" fill="#0d1117" stroke="#00f0ff" stroke-width="1.5"/>
+            <text x="256" y="42" text-anchor="middle" font-size="18">🔍</text>
+            <text x="256" y="78" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="bold" font-family="system-ui,sans-serif">分析影片</text>
+            <text x="256" y="98" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">點擊「分析」</text>
+            <text x="256" y="112" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">獲取片名和畫質</text>
+            <!-- Arrow 2→3 -->
+            <line x1="326" y1="85" x2="354" y2="85" stroke="#00f0ff" stroke-width="1.5" marker-end="url(#wf-arrow)"/>
+            <!-- Step 3: Settings -->
+            <rect x="362" y="50" width="140" height="70" rx="12" fill="#0d1117" stroke="#00f0ff" stroke-width="1.5"/>
+            <text x="432" y="42" text-anchor="middle" font-size="18">⚙️</text>
+            <text x="432" y="78" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="bold" font-family="system-ui,sans-serif">選擇設定</text>
+            <text x="432" y="98" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">畫質、格式、分類</text>
+            <!-- Arrow 3→4 -->
+            <line x1="502" y1="85" x2="530" y2="85" stroke="#00f0ff" stroke-width="1.5" marker-end="url(#wf-arrow)"/>
+            <!-- Step 4: Download -->
+            <rect x="538" y="50" width="140" height="70" rx="12" fill="#0d1117" stroke="#00f0ff" stroke-width="1.5"/>
+            <text x="608" y="42" text-anchor="middle" font-size="18">⬇️</text>
+            <text x="608" y="78" text-anchor="middle" fill="#f1f5f9" font-size="13" font-weight="bold" font-family="system-ui,sans-serif">開始下載</text>
+            <text x="608" y="98" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">點擊下載</text>
+            <text x="608" y="112" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">自動完成</text>
+            <!-- Arrow 4→5 -->
+            <line x1="678" y1="85" x2="706" y2="85" stroke="#4ade80" stroke-width="1.5" marker-end="url(#wf-arrow-green)"/>
+            <!-- Step 5: Done -->
+            <rect x="714" y="50" width="140" height="70" rx="12" fill="#0d1117" stroke="#4ade80" stroke-width="1.5"/>
+            <text x="784" y="42" text-anchor="middle" font-size="18">✅</text>
+            <text x="784" y="78" text-anchor="middle" fill="#4ade80" font-size="13" font-weight="bold" font-family="system-ui,sans-serif">完成</text>
+            <text x="784" y="98" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">本地儲存完畢</text>
+            <!-- Branch lines from Step 5 -->
+            <line x1="784" y1="120" x2="784" y2="140" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Horizontal branch -->
+            <line x1="784" y1="140" x2="720" y2="140" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="784" y1="140" x2="848" y2="140" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Arrow down-left to Drive -->
+            <line x1="720" y1="140" x2="720" y2="155" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#wf-arrow-gray)"/>
+            <!-- Arrow down-right to Telegram -->
+            <line x1="848" y1="140" x2="848" y2="155" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#wf-arrow-gray)"/>
+            <!-- Sub-node: Google Drive -->
+            <rect x="660" y="163" width="120" height="40" rx="8" fill="none" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="720" y="180" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">📂 自動上傳</text>
+            <text x="720" y="194" text-anchor="middle" fill="#64748b" font-size="9" font-family="system-ui,sans-serif">Google Drive</text>
+            <!-- Sub-node: Telegram -->
+            <rect x="788" y="163" width="120" height="40" rx="8" fill="none" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="848" y="180" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif">📲 自動通知</text>
+            <text x="848" y="194" text-anchor="middle" fill="#64748b" font-size="9" font-family="system-ui,sans-serif">Telegram</text>
+          </svg>
+        </div>
+      </div>
+
       <!-- Section 1: Quick Start -->
       <div class="guide-section" id="guide-quickstart">
         <div class="guide-section-title">🚀 快速開始（3 步下載第一條片）</div>
