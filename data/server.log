@@ -45,3 +45,18 @@ Uploaded to Google Drive: 当华尔街为裁员鼓掌：AI 正在重写整个经
 [DEBUG] yt-dlp captured output path: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
 [DEBUG] Using captured filepath: /data/youtube-downloads/AI/20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
 Uploaded to Google Drive: 20260302-当华尔街为裁员鼓掌：AI 正在重写整个经济系统#AI #人工智能 #裁员 #就业 #经济 #通缩 #个人转型.mp4
+[DEBUG] startDownload datePrefix: 20260111 | req.body keys: [
+  'url',
+  'title',
+  'formatId',
+  'audioFormatId',
+  'resolution',
+  'categoryId',
+  'categoryName',
+  'remuxFormat',
+  'datePrefix'
+]
+[DEBUG] datePrefix: 20260111 | filenameTemplate: 20260111-%(title)s.%(ext)s | outputTemplate: /data/youtube-downloads/Vibe Coding/20260111-%(title)s.%(ext)s
+[DEBUG] yt-dlp captured output path: /data/youtube-downloads/Vibe Coding/20260111-🚀告别Vibe Coding！用Superpowers让Claude Code写出工程级代码，一次通过零报错！遵循TDD最佳实践！支持Codex和OpenCode！从需求澄清到代码审查.mp4
+[DEBUG] Using captured filepath: /data/youtube-downloads/Vibe Coding/20260111-🚀告别Vibe Coding！用Superpowers让Claude Code写出工程级代码，一次通过零报错！遵循TDD最佳实践！支持Codex和OpenCode！从需求澄清到代码审查.mp4
+Uploaded to Google Drive: 20260111-🚀告别Vibe Coding！用Superpowers让Claude Code写出工程级代码，一次通过零报错！遵循TDD最佳实践！支持Codex和OpenCode！从需求澄清到代码审查.mp4
