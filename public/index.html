@@ -2323,87 +2323,205 @@ select option {
       <div class="install-platform active" id="install-openclaw">
 
         <div class="guide-section" style="border-left-color:#4ade80;">
-          <div class="guide-section-title" style="color:#4ade80;">🤖 OpenClaw 安裝 — 最簡單，推薦給大多數用戶</div>
-          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">如果你已經有 OpenClaw 聊天機器人（例如 Telegram Bot），你只需要<strong style="color:var(--text-primary);">跟機器人說一句話</strong>，它就會自動幫你裝好一切！完全不需要懂任何技術。</p>
+          <div class="guide-section-title" style="color:#4ade80;">🤖 用 OpenClaw 從 GitHub 安裝 — 最簡單，推薦給大多數用戶</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">OpenClaw 是你的 AI 助手機器人。你只需要<strong style="color:var(--text-primary);">跟它說一句話</strong>，它就會自動從 GitHub 下載程式碼、安裝所有工具、設定好帳號密碼，然後告訴你網址。完全不需要懂任何技術。</p>
 
           <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">📋 你需要有什麼（先決條件）</div>
           <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 20px 20px;line-height:2;">
-            <li>一個已經設定好的 <strong style="color:var(--text-primary);">OpenClaw 機器人</strong>（通常是 Telegram 裡的機器人）</li>
+            <li>一個已經設定好的 <strong style="color:var(--text-primary);">OpenClaw 機器人</strong>（Telegram 裡的 Bot）</li>
             <li>機器人所在的<strong style="color:var(--text-primary);">伺服器已啟動</strong>（VPS 或本機 Linux 電腦）</li>
           </ul>
+        </div>
 
-          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">🚀 安裝步驟</div>
+        <!-- Step 1 -->
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 1：叫 OpenClaw 從 GitHub 安裝</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">打開 Telegram，找到你的 OpenClaw 機器人對話窗口，然後<strong style="color:var(--text-primary);">複製貼上</strong>以下訊息傳送給它：</p>
+          <div class="install-cmd-block">
+            <div>請幫我從 GitHub 安裝 YouTube Downloader：</div>
+            <div>git clone https://github.com/tele02nwt/youtube-downloader.git</div>
+            <div>安裝完成後告訴我網址和登入密碼</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:10px;">OpenClaw 收到後會自動幫你：</p>
+          <ul style="font-size:0.83rem;color:var(--text-secondary);margin:6px 0 0 20px;line-height:2;">
+            <li>從 GitHub 複製程式碼（<code class="setup-code">git clone</code>）</li>
+            <li>安裝所有需要的套件（<code class="setup-code">npm install</code>）</li>
+            <li>建立設定檔、設定登入帳號密碼</li>
+            <li>啟動伺服器（<code class="setup-code">bash start.sh</code>）</li>
+          </ul>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 2：等待自動安裝（約 2-3 分鐘）</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">你不需要做任何操作。OpenClaw 會自動執行以下指令：</p>
+          <div class="install-cmd-block">
+            <div class="cmd-comment"># OpenClaw 自動執行，你不需要輸入</div>
+            <div>cd youtube-downloader && npm install</div>
+            <div style="margin-top:4px;">cp .env.example .env   <span class="cmd-comment"># 建立設定檔</span></div>
+            <div style="margin-top:4px;">bash start.sh          <span class="cmd-comment"># 啟動伺服器</span></div>
+          </div>
+          <div class="guide-tip">💡 喝杯茶等一下就好。你會看到機器人的回覆進度，包括正在安裝哪些工具、設定什麼服務等。</div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 3：取得登入資訊</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">安裝完成後，OpenClaw 會回覆你以下資訊：</p>
+          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 12px 20px;line-height:2.2;">
+            <li><strong style="color:var(--text-primary);">本機網址：</strong><span class="guide-key">http://伺服器IP:3847</span>（同一網絡內的電腦可以直接存取）</li>
+            <li><strong style="color:var(--text-primary);">登入帳號和密碼</strong>（由 OpenClaw 自動產生）</li>
+          </ul>
+          <p style="font-size:0.83rem;color:var(--text-secondary);">用這個網址和密碼登入，就可以開始使用了！</p>
+          <div class="guide-warn">⚠️ 如果你想從<strong>手機</strong>或<strong>外部網絡</strong>存取（例如在公司存取家裡的伺服器），你需要完成下面的<strong>步驟 4</strong> 來設定 Cloudflare Tunnel。</div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="guide-section" style="border-left-color:#fbbf24;">
+          <div class="guide-section-title" style="color:#fbbf24;">步驟 4（重要）：設定 Cloudflare Tunnel 外部存取</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">如果你想從手機或外部網絡存取 YouTube Downloader，<strong style="color:var(--text-primary);">必須設定 Cloudflare Tunnel</strong>。這會給你一個 HTTPS 網址（例如 <span class="guide-key">https://yt.yourdomain.com</span>），在任何地方都能打開。</p>
           <ol class="guide-steps">
             <li>
               <span class="guide-step-num">1</span>
-              <span><strong>打開 Telegram</strong>，找到你的 OpenClaw 機器人對話窗口。如果你不確定機器人叫什麼名字，找那個平時你跟它聊天、下指令的 Bot。</span>
+              <span>在電腦瀏覽器打開 <span class="guide-key">http://伺服器IP:3847</span>，用 OpenClaw 給你的帳號密碼登入</span>
             </li>
             <li>
               <span class="guide-step-num">2</span>
-              <span><strong>傳送以下訊息給機器人：</strong><br>
-                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我安裝 YouTube Downloader，下載完成後通知我</code>
-                <span style="font-size:0.78rem;color:var(--text-dim);display:block;margin-top:4px;">💡 你可以用自然語言說，不需要特定指令格式。</span>
-              </span>
+              <span>點擊頂部導航列的 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 分頁</span>
             </li>
             <li>
               <span class="guide-step-num">3</span>
-              <span><strong>等待機器人自動安裝</strong>（約 3-5 分鐘）。你會看到它的回覆進度，包括正在安裝哪些工具、設定什麼服務等。不需要做任何操作，喝杯茶等一下就好。</span>
+              <span>往下滾動，找到 <strong style="color:var(--text-primary);">「☁️ Cloudflare Tunnel」</strong> 區塊</span>
             </li>
             <li>
               <span class="guide-step-num">4</span>
-              <span><strong>取得登入資訊：</strong>安裝完成後，機器人會發給你：
+              <span>點擊 <strong style="color:var(--cyan);">「啟動 Tunnel」</strong> 按鈕</span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span>等待 10-20 秒讓 Tunnel 連線成功</span>
+            </li>
+            <li>
+              <span class="guide-step-num">6</span>
+              <span>連線成功後，頁面會顯示一個<strong style="color:#4ade80;">綠色的網址</strong>（例如 <span class="guide-key">https://yt.yourdomain.com</span>）— 這就是你的外部存取網址，<strong style="color:var(--text-primary);">記得收藏到書籤！</strong></span>
+            </li>
+            <li>
+              <span class="guide-step-num">7</span>
+              <span>拿出手機，在瀏覽器打開那個網址，測試一下能不能正常登入</span>
+            </li>
+          </ol>
+          <div class="guide-tip">💡 如果你沒有自訂域名，Cloudflare 會自動產生一個隨機網址，像是 <span class="guide-key">https://abc-xyz.trycloudflare.com</span>，同樣可以正常使用。</div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="guide-section" style="border-left-color:var(--cyan);">
+          <div class="guide-section-title" style="color:var(--cyan);">步驟 5（可選）：連結 Google Drive 自動上傳</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">連結後，每次下載完成的影片都會自動上傳到你的 Google Drive，按分類整理。</p>
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span>在 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 分頁，往下找到 <strong style="color:var(--text-primary);">「📂 Google Drive」</strong> 區塊</span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span>點擊 <strong style="color:var(--cyan);">「連結 Google Drive」</strong> 或 <strong style="color:var(--cyan);">「Authorize」</strong> 按鈕</span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span>瀏覽器會打開 Google 登入頁面 — 用你的 Google 帳號登入</span>
+            </li>
+            <li>
+              <span class="guide-step-num">4</span>
+              <span>點擊 <strong style="color:var(--text-primary);">「Allow」（允許）</strong> 授權存取</span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span>回到 App，應該會看到 <strong style="color:#4ade80;">「已連結」（Connected）</strong> 狀態</span>
+            </li>
+            <li>
+              <span class="guide-step-num">6</span>
+              <span>完成！現在每次下載影片都會自動上傳到你的 Google Drive</span>
+            </li>
+          </ol>
+          <div class="guide-tip">💡 影片會按照你的下載分類自動整理到 Google Drive 對應的資料夾裡。</div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="guide-section" style="border-left-color:var(--cyan);">
+          <div class="guide-section-title" style="color:var(--cyan);">步驟 6（可選）：啟用 Telegram 下載通知</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">啟用後，每次影片下載完成都會自動發送通知到你的 Telegram 群組，附上檔名和下載連結。需要伺服器上有安裝 OpenClaw CLI。</p>
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span>在 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 分頁，往下找到 <strong style="color:var(--text-primary);">「📲 Telegram 通知」</strong> 區塊</span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span>將 <strong style="color:var(--text-primary);">「啟用 Telegram 通知」</strong> 開關切換為 <strong style="color:#4ade80;">ON</strong></span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span>填入以下資訊：
                 <ul style="margin:6px 0 0 16px;line-height:1.8;">
-                  <li>一個網址（例如 <span class="guide-key">https://yt.yourdomain.com</span>）</li>
-                  <li>登入帳號和密碼</li>
+                  <li><strong style="color:var(--text-primary);">Group ID：</strong>你的 Telegram 群組 ID（例如 <span class="guide-key">-1001234567890</span>）。不知道？傳送 <code class="setup-code">我的群組 ID 是什麼？</code> 給 OpenClaw 機器人。</li>
+                  <li><strong style="color:var(--text-primary);">Topic ID：</strong>如果你的群組有開啟「主題」功能，填入 Topic ID；沒有的話留空即可。</li>
                 </ul>
               </span>
             </li>
             <li>
+              <span class="guide-step-num">4</span>
+              <span>點擊 <strong style="color:var(--cyan);">「儲存設定」</strong></span>
+            </li>
+            <li>
               <span class="guide-step-num">5</span>
-              <span><strong>開始使用！</strong>在手機或電腦的瀏覽器打開那個網址，輸入帳號密碼登入，就完成了！</span>
+              <span>點擊 <strong style="color:var(--cyan);">「測試通知」</strong> 驗證是否正常 — 你的 Telegram 群組應該會收到一條測試訊息</span>
+            </li>
+            <li>
+              <span class="guide-step-num">6</span>
+              <span>完成！之後每次下載完成都會自動收到 Telegram 通知</span>
             </li>
           </ol>
-
-          <div class="guide-tip">✅ 就這麼簡單！機器人會自動幫你安裝好所有需要的工具，設定好對外存取的網址，甚至配置好自動重啟監控。</div>
         </div>
 
+        <!-- Troubleshooting -->
         <div class="guide-section">
           <div class="guide-section-title">🔧 遇到問題？</div>
           <ol class="guide-steps">
             <li>
               <span class="guide-step-num">?</span>
-              <span><strong>機器人說「找不到技能」：</strong>先傳送這段訊息讓機器人安裝能力：<br>
-                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我安裝 youtube-downloader skill，然後安裝 YouTube Downloader</code>
+              <span><strong>機器人說「找不到技能」：</strong>傳送這段訊息給 OpenClaw：<br>
+                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我安裝 youtube-downloader skill</code>
               </span>
             </li>
             <li>
               <span class="guide-step-num">?</span>
-              <span><strong>安裝中途失敗：</strong>重新傳送一次安裝指令即可。機器人會自動跳過已完成的步驟，只處理未完成的部分。</span>
+              <span><strong>出現 "Cannot find module" 錯誤：</strong>傳送給 OpenClaw：<br>
+                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">cd youtube-downloader && npm install</code>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">?</span>
+              <span><strong>出現 "Port 3847 already in use"：</strong>傳送給 OpenClaw：<br>
+                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我重啟 YouTube Downloader</code>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">?</span>
+              <span><strong>Cloudflare Tunnel 連不上：</strong>檢查網絡連線是否正常。到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 頁的 Cloudflare 區塊，先點「停止」再點「啟動」重試。</span>
             </li>
           </ol>
         </div>
 
+        <!-- What OpenClaw installs -->
         <div class="guide-section" style="border-left-color:#8b5cf6;">
-          <div class="guide-section-title" style="color:#8b5cf6;">📦 機器人自動設定了什麼？</div>
+          <div class="guide-section-title" style="color:#8b5cf6;">📦 OpenClaw 自動安裝了什麼？</div>
           <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:12px;">你不需要理解這些，但如果好奇的話：</p>
           <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 0 20px;line-height:2.2;">
             <li>✅ <strong style="color:var(--text-primary);">Node.js</strong> — 程式運行環境（讓應用程式能執行）</li>
-            <li>✅ <strong style="color:var(--text-primary);">yt-dlp</strong> — 影片下載工具（負責從 YouTube 抓取影片）</li>
-            <li>✅ <strong style="color:var(--text-primary);">ffmpeg</strong> — 影片合併工具（把影片和聲音合在一起）</li>
-            <li>✅ <strong style="color:var(--text-primary);">YouTube Downloader</strong> — 這個應用程式本身</li>
-            <li>✅ <strong style="color:var(--text-primary);">Cloudflare Tunnel</strong> — 安全隧道（讓你從外面存取，不需要設定防火牆）</li>
-            <li>✅ <strong style="color:var(--text-primary);">自動重啟監控</strong> — 如果應用程式崩潰了會自動恢復</li>
-          </ul>
-        </div>
-
-        <!-- Optional Config -->
-        <div class="guide-section" style="border-left-color:var(--cyan);">
-          <div class="guide-section-title" style="color:var(--cyan);">⚙️ 安裝後可選設定</div>
-          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px;">以下功能都可以在安裝完成、登入 Web UI 後，到 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 頁面配置：</p>
-          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 0 20px;line-height:2.4;">
-            <li><strong style="color:var(--text-primary);">☁️ Cloudflare Tunnel</strong> — 讓你從手機或外部網絡存取。OpenClaw 通常已自動設定好，如需修改可在設定頁調整。</li>
-            <li><strong style="color:var(--text-primary);">📂 Google Drive</strong> — 下載完成後自動上傳至你的 Drive。需要在設定頁完成 Google 帳號授權。</li>
-            <li><strong style="color:var(--text-primary);">📲 Telegram 通知</strong> — 下載完成後自動發送通知到 Telegram 群組。需要填入 Group ID 和 Topic ID（需有 OpenClaw CLI）。</li>
+            <li>✅ <strong style="color:var(--text-primary);">yt-dlp</strong> — 影片下載引擎（負責從 YouTube 抓取影片）</li>
+            <li>✅ <strong style="color:var(--text-primary);">ffmpeg</strong> — 影音合併工具（把影片和聲音合在一起）</li>
+            <li>✅ <strong style="color:var(--text-primary);">YouTube Downloader</strong> — 這個應用程式本身（從 GitHub 下載）</li>
+            <li>✅ <strong style="color:var(--text-primary);">自動重啟監控</strong> — 每 10 分鐘健康檢查，崩潰後自動恢復（cron 排程）</li>
           </ul>
         </div>
 
