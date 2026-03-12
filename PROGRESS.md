@@ -489,6 +489,24 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 - [x] **Fix 2**: Stricter prompt forbidding model from generating any output when stdout is empty
 - [x] **Issue**: MiniMax-M2.1 was generating "OK: server=running..." even when script had no stdout
 
+### 2026-03-12 — Phase 14b: Notification Routing Fix
+
+**Problem**: `notify-agi.sh` hook was routing Claude Code completion notifications to the wrong Telegram destination when used for YT Downloader dev work.
+
+**Root cause**: `task-meta.json` missing → hook falls back to its default routing (`-1003817368779:85`, which is the Agent Teams topic), instead of the YT dev channel (`-1003767190070:1701`).
+
+**Mistake made**: Wrongly changed hook default to `-1003767190070:1701` → immediately reverted. Hook default (`-1003817368779:85`) is **sacred and fixed** for Agent Teams.
+
+**Fix**: Write `task-meta.json` before spawning Claude Code for YT dev tasks:
+```bash
+cat > /data/claude-code-results/task-meta.json << EOF
+{"task_name":"YouTube Downloader Development","telegram_group":"-1003767190070","topic_id":"1701"}
+EOF
+```
+The hook reads `task-meta.json` to override its default routing. Never modify the hook default itself.
+
+**Lesson**: Hook default is fixed for Agent Teams. Use `task-meta.json` for per-project routing overrides.
+
 ### 踩坑（Phase 14）
 
 11. **OpenClaw Cron isolated session 路由洩漏**: `--session isolated` + `lightContext:true` 繼承主 session 的 Telegram channel → 用 `--session-key` 給 cron 獨立 session 隔離

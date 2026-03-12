@@ -331,6 +331,12 @@
 
 ---
 
+## Phase 14b: Notification Routing ✅（2026-03-12）
+
+- ✅ Claude Code notification routing documented + task-meta.json pattern established
+
+---
+
 ## 未來可能新增
 - [ ] Playlist 批量下載
 - [ ] 純音頻模式（MP3/AAC）

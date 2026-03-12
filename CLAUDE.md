@@ -363,6 +363,30 @@ start.bat
 - 用 `git subtree push --prefix=youtube-downloader yt-downloader master` 從 workspace monorepo 推送
 - Remote: `yt-downloader`
 
+## 📣 Claude Code Notification Routing
+
+### Routing Table
+| Scenario | Telegram Group | Topic |
+|----------|---------------|-------|
+| Agent Teams / Hook default (**NEVER change!**) | `-1003817368779` | `85` |
+| YT Downloader cron + download complete notifications | `-1003817368779` | `191` |
+| YT Downloader dev notifications (no Agent Teams) | `-1003767190070` | `1701` |
+
+### Per-Project Routing via task-meta.json
+Before spawning Claude Code for YT Downloader dev work, **ALWAYS** write `task-meta.json`:
+```bash
+cat > /data/claude-code-results/task-meta.json << EOF
+{"task_name":"YouTube Downloader Development","telegram_group":"-1003767190070","topic_id":"1701"}
+EOF
+```
+
+The `notify-agi.sh` hook reads `task-meta.json` to override its default routing. **Never modify the hook default itself** — it is fixed at `-1003817368779:85` for Agent Teams.
+
+### Key Rules
+- Hook default (`-1003817368779:85`) is **sacred** — it serves Agent Teams and must never be changed
+- Use `task-meta.json` for per-project routing overrides
+- If `task-meta.json` is missing, hook falls back to default (Agent Teams topic)
+
 ## ⚠️ 注意事項 / 踩坑記錄
 
 ### 環境
