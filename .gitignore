@@ -1,18 +1,25 @@
-# Dependencies
+# Dependencies — never commit
 node_modules/
 
-# Runtime secrets
+# Runtime secrets — never commit
 .env
 
-# YouTube cookies (sensitive - never commit)
+# YouTube cookies (sensitive)
 data/cookies.txt
 
-# Runtime data (PIDs, logs - not needed in repo)
+# Runtime data — volatile, personal, not for repo
+data/activity-log.json
+data/downloads.json
+data/settings.json
+
+# PIDs and logs
 data/server.pid
 data/tunnel.pid
 data/server.log
 data/tunnel.log
 data/healthcheck.log
 
-# Keep data dir structure but ignore volatile files
-# data/*.json are kept (categories, downloads, settings, activity-log)
+# .claude openspec runtime files (internal dev tooling)
+.claude/
+
+# data/categories.json is intentionally kept (non-sensitive, useful template)
