@@ -2654,6 +2654,7 @@ select option {
           <div class="install-cmd-block">
             <div>bash start.sh</div>
           </div>
+          <div class="guide-warn">⚠️ <strong>VPS 用家注意：</strong>如果你用的是雲端 VPS（DigitalOcean、Vultr、Hetzner、AWS 等），需要在控制台的防火牆 / Security Group 開放 TCP port 3847（Inbound）。如不想開放防火牆，可用下方「可選步驟 A」的 Cloudflare Tunnel 代替，不需要直接暴露端口。</div>
           <p style="font-size:0.83rem;color:var(--text-secondary);margin:10px 0;">啟動成功後，打開你電腦的瀏覽器（Chrome、Firefox 等），在網址列輸入：</p>
           <div class="install-cmd-block">
             <div class="cmd-highlight">http://localhost:3847</div>
@@ -2683,22 +2684,38 @@ select option {
             <li><span class="guide-step-num">3</span><span>選擇「⚡ Quick Tunnel」模式（免帳號、最簡單）→ 點擊「🚀 啟動 Tunnel」</span></li>
             <li><span class="guide-step-num">4</span><span>啟動後會產生一個 <span class="guide-key">*.trycloudflare.com</span> 的公開網址，用任何裝置都能存取</span></li>
           </ol>
-          <div class="guide-warn">⚠️ Quick Tunnel 的網址每次重啟都會改變。如果需要固定網址，可以在 Cloudflare Zero Trust Dashboard 建立 Token Tunnel。</div>
+          <div class="guide-warn">⚠️ Quick Tunnel 的網址每次重啟都會改變。如需固定網址，請參考下方 Token Tunnel 設定。</div>
+          <div class="guide-section" style="border-left-color:var(--cyan);margin-top:16px;">
+            <div class="guide-section-title" style="color:var(--cyan);">固定網址 Token Tunnel（適合長期使用）</div>
+            <ol class="guide-steps">
+              <li><span class="guide-step-num">1</span><span>前往 <span class="guide-key">https://one.dash.cloudflare.com</span> 登入（需要免費 Cloudflare 帳號，沒有的話先免費註冊）</span></li>
+              <li><span class="guide-step-num">2</span><span>左側選單 → Networks → Tunnels → 點擊「Create a Tunnel」按鈕</span></li>
+              <li><span class="guide-step-num">3</span><span>選「Cloudflared」→ 輸入 Tunnel 名稱（例如 yt-downloader）→ 點「Save Tunnel」</span></li>
+              <li><span class="guide-step-num">4</span><span>在「Install connector」頁面，複製顯示的 Token（以 <span class="guide-key">eyJ</span> 開頭的長字串）</span></li>
+              <li><span class="guide-step-num">5</span><span>回到 YouTube Downloader Web UI → <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> → Cloudflare Tunnel 面板 → 選「🔑 Token Tunnel」→ 貼上 Token → 點「🚀 啟動 Tunnel」</span></li>
+              <li><span class="guide-step-num">6</span><span>回到 Cloudflare Dashboard → Tunnels → 你的 Tunnel → 點「Configure」→「Public Hostname」→「Add a public hostname」→ 填入網域/子網域，Service 選 HTTP，URL 填 <span class="guide-key">localhost:3847</span> → 儲存</span></li>
+            </ol>
+            <div class="guide-tip">💡 Token Tunnel 設定後網址永遠固定，伺服器重啟後自動重連，適合長期使用。</div>
+          </div>
         </div>
 
         <div class="guide-section" style="border-left-color:var(--cyan);">
           <div class="guide-section-title" style="color:var(--cyan);">可選步驟 B：📂 Google Drive 自動上傳</div>
           <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">讓下載完成的影片自動上傳到你的 Google Drive。需要安裝 <strong style="color:var(--text-primary);">gog CLI</strong>（Google 工具命令列）：</p>
           <div class="install-cmd-block">
-            <div class="cmd-comment"># 安裝 Homebrew（如果步驟中還沒安裝）</div>
-            <div>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
-            <div style="margin-top:6px;" class="cmd-comment"># 安裝 gog CLI</div>
-            <div>brew install steipete/tap/gogcli</div>
+            <div class="cmd-comment"># 下載並安裝 gog CLI（自動偵測 CPU 架構）</div>
+            <div>ARCH=$(uname -m)</div>
+            <div>if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi</div>
+            <div>VERSION="0.12.0"</div>
+            <div>curl -L "https://github.com/steipete/gogcli/releases/download/v${VERSION}/gogcli_${VERSION}_linux_${ARCH_TAG}.tar.gz" -o /tmp/gog.tar.gz</div>
+            <div>tar -xzf /tmp/gog.tar.gz -C /tmp</div>
+            <div>sudo mv /tmp/gog /usr/local/bin/gog</div>
+            <div>gog --version</div>
           </div>
           <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:10px;">安裝後，在 Web UI 的 <button class="goto-btn" onclick="goToTab('settings')">⚙️ 設定</button> 頁面：</p>
           <ol class="guide-steps">
             <li><span class="guide-step-num">1</span><span>找到「Google Drive」面板，點擊「🔗 開始授權」</span></li>
-            <li><span class="guide-step-num">2</span><span>瀏覽器會打開 Google 登入頁面，登入並允許存取 Drive</span></li>
+            <li><span class="guide-step-num">2</span><span>面板中會出現一個授權網址 — 用任何瀏覽器打開（手機也可以）完成 Google 登入</span></li>
             <li><span class="guide-step-num">3</span><span>授權完成後回到設定頁，狀態會顯示「已連接 Google Drive ✓」</span></li>
           </ol>
           <div class="guide-tip">💡 之後每次下載完成，影片會自動上傳到你的 Google Drive，並在管理頁顯示 Drive 連結。</div>
@@ -2723,9 +2740,10 @@ select option {
           <div class="install-cmd-block">
             <div class="cmd-comment"># 打開排程設定</div>
             <div>crontab -e</div>
-            <div style="margin-top:6px;" class="cmd-comment"># 在最後一行加入（把路徑改成你的實際路徑）：</div>
-            <div>@reboot bash /home/你的用戶名/youtube-downloader/start.sh</div>
+            <div style="margin-top:6px;" class="cmd-comment"># 在最後一行加入：</div>
+            <div>@reboot bash ~/youtube-downloader/start.sh</div>
           </div>
+          <p style="font-size:0.78rem;color:var(--text-dim);margin:6px 0 0 0;">~ 代表你的 home 目錄，免去填寫用戶名。如果你把程式安裝在其他位置，請改成完整路徑。</p>
           <div class="guide-tip">💡 如果 <code class="setup-code">crontab -e</code> 問你要用什麼編輯器，選 <strong>nano</strong>（通常是選項 1）。</div>
         </div>
 
