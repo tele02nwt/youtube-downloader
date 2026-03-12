@@ -125,11 +125,27 @@ wsl --install  # 安裝 Ubuntu，然後按 Linux 步驟操作
 
 下載完成後自動上傳到 Google Drive，按分類整理。
 
-1. 安裝 gog CLI：`brew install steipete/tap/gogcli`
-2. 在 ⚙️ 設定頁點「連結 Google Drive」完成 OAuth 授權
-3. 之後下載的檔案會自動上傳
+### 安裝 gog CLI
 
-> ⚠️ gog CLI 僅支援 macOS / Linux，Windows 需使用 WSL2。
+**macOS：**
+```bash
+brew install steipete/tap/gogcli
+```
+
+**Linux / WSL2（推薦：直接用 GitHub release binary，唔好用 Homebrew）：**
+```bash
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi
+VERSION="0.12.0"
+curl -L "https://github.com/steipete/gogcli/releases/download/v${VERSION}/gogcli_${VERSION}_linux_${ARCH_TAG}.tar.gz" -o /tmp/gog.tar.gz
+tar -xzf /tmp/gog.tar.gz -C /tmp && sudo mv /tmp/gog /usr/local/bin/gog
+```
+
+### 啟用 Google Drive 上傳
+1. 在 ⚙️ 設定頁點「連結 Google Drive」完成 OAuth 授權
+2. 之後下載的檔案會自動上傳
+
+> ⚠️ gog CLI 只支援 macOS / Linux。Windows 想用 Drive 上傳請用 WSL2。
 
 ---
 
