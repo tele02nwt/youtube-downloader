@@ -1,7 +1,7 @@
 #!/bin/bash
 # YouTube Downloader — Health Check + Auto-restart
 
-APP_DIR="/data/.openclaw/workspace_project/youtube-downloader"
+APP_DIR="/data/.openclaw/workspace_project/projects/youtube-downloader"
 PID_DIR="$APP_DIR/data"
 PORT=3847
 

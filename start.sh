@@ -2,7 +2,7 @@
 # YouTube Downloader — start server + Cloudflare Tunnel
 set -e
 
-APP_DIR="/data/.openclaw/workspace_project/youtube-downloader"
+APP_DIR="/data/.openclaw/workspace_project/projects/youtube-downloader"
 TUNNEL_CONFIG="/data/.cloudflared/config.yml"
 PID_DIR="$APP_DIR/data"
 mkdir -p "$PID_DIR"

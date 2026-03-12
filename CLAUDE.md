@@ -345,10 +345,10 @@ if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); }
 ## 啟動指令
 ```bash
 # Linux / macOS / WSL2
-bash /data/.openclaw/workspace_project/youtube-downloader/start.sh
+bash /data/.openclaw/workspace_project/projects/youtube-downloader/start.sh
 
 # 手動（任何平台）
-cd /data/.openclaw/workspace_project/youtube-downloader
+cd /data/.openclaw/workspace_project/projects/youtube-downloader
 node server.js  # localhost:3847
 
 # Windows 原生（雙擊）
