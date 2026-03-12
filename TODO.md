@@ -283,6 +283,29 @@
 - [x] 暗色主題：cyan 邊框（步驟 1-4）+ 綠色邊框（步驟 5）
 - [x] Responsive：`viewBox + width="100%" + overflow-x:auto + min-width:700px`
 
+## Phase 13: Process 監控 + Auto-restart ✅（2026-03-12）
+
+### Task 13.1: healthcheck.sh
+- [x] 檢查 server PID 存活（`kill -0`）
+- [x] 檢查 tunnel PID 存活（`kill -0`）
+- [x] HTTP 回應驗證（`curl localhost:3847`，HTTP 000 = dead）
+- [x] 任一掛咗自動執行 `start.sh` 重啟
+- [x] OK 路徑：只寫 log，無 stdout（靜音）
+- [x] 重啟路徑：echo ⚠️ 到 stdout + 寫 log
+
+### Task 13.2: OpenClaw Cron
+- [x] `openclaw cron create --every 10m --session isolated --model minimax-portal/MiniMax-M2.1 --light-context`
+- [x] Telegram 通知路由：`--to "-1003817368779:topic:191" --channel telegram --announce`
+- [x] Cron ID: `5fb3af45-3460-4c46-967c-90267e4a872a`
+
+### Task 13.3: Git 清理
+- [x] 加 `.gitignore`（排除 cookies.txt, *.pid, *.log）
+- [x] `git rm --cached` 移走已追蹤的敏感文件
+- [x] `git filter-repo` 清除 history 中的 cookies.txt 記錄
+- [x] Force-push clean history
+
+---
+
 ## 未來可能新增
 - [ ] Playlist 批量下載
 - [ ] 純音頻模式（MP3/AAC）

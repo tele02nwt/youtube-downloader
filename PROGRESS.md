@@ -431,3 +431,31 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 - ❌ 錯誤做法：`exec command:"claude ... 2>&1 &"` — shell 即時退出，只見 PID echo，output 全丟
 - ✅ 正確做法：`exec pty:true background:true command:"claude ..."` — exec tool 管理 session，可 `process log` 追蹤
 - `--dangerously-skip-permissions` 旗標等同 `--full-auto`，適合自動化任務（無需手動 approve）
+
+---
+
+### 2026-03-12 — Process 監控 + Auto-restart + Git 清理
+
+**Phase 13: Healthcheck Cron** ✅
+
+**問題**：Container restart 後 server 同 tunnel 都掛咗，`yt.ac02nwt.work` 顯示 Cloudflare 1033 Error，需要手動執行 `start.sh` 重啟。
+
+**解決方案：`healthcheck.sh` + OpenClaw Cron**
+- [x] `youtube-downloader/healthcheck.sh` — 三重檢查（server PID + HTTP 200 + tunnel PID），任一掛咗自動跑 `start.sh`
+- [x] OK 路徑靜音（只寫 log），重啟路徑推 Telegram 通知
+- [x] OpenClaw cron 每 10 分鐘執行（ID: `5fb3af45-3460-4c46-967c-90267e4a872a`）
+- [x] Model: `minimax-portal/MiniMax-M2.1`（輕量，`--light-context --session isolated`）
+- [x] Telegram 通知目標：group `-1003817368779`, topic `191`
+
+**OpenClaw Cron Telegram Forum Topic routing 格式（學到嘅新知識）**：
+- 格式：`--to "chatId:topic:topicId"` + `--channel telegram --announce`
+- 例子：`--to "-1003817368779:topic:191"`
+- 內部用 `buildTelegramGroupPeerId(chatId, threadId)` = `"chatId:topic:threadId"`
+- cron announce 靜音：model 無 stdout output → deliver nothing
+
+**Phase 13: Git 清理** ✅
+- 發現 `data/cookies.txt`（含 YouTube session cookies）已被 git track 並提交到 history
+- [x] 加 `.gitignore`（排除 cookies.txt, *.pid, *.log）
+- [x] `git rm --cached` 移走 HEAD 追蹤
+- [x] `git filter-repo` 清除 history 中所有 cookies.txt 記錄（Option 2）
+- [x] Force-push clean history

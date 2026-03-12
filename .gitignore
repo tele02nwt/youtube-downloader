@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Runtime secrets
+.env
+
+# YouTube cookies (sensitive - never commit)
+data/cookies.txt
+
+# Runtime data (PIDs, logs - not needed in repo)
+data/server.pid
+data/tunnel.pid
+data/server.log
+data/tunnel.log
+data/healthcheck.log
+
+# Keep data dir structure but ignore volatile files
+# data/*.json are kept (categories, downloads, settings, activity-log)

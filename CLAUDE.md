@@ -21,6 +21,7 @@ youtube-downloader/
 ├── README.md           # 用戶安裝指南（分發用）
 ├── TODO.md             # 任務清單
 ├── PROGRESS.md         # 進度記錄
+├── healthcheck.sh      # 健康檢查 + auto-restart（由 OpenClaw cron 每 10 分鐘執行）
 ├── start.sh            # 啟動腳本（Linux/macOS/WSL2：server + Cloudflare Tunnel）
 ├── start.bat           # 啟動腳本（Windows 原生：自動裝依賴、開瀏覽器）
 ├── stop.bat            # 停止腳本（Windows 原生）
@@ -49,7 +50,8 @@ youtube-downloader/
     ├── server.log         # Server 日誌
     ├── tunnel.log         # Tunnel 日誌
     ├── server.pid         # Server PID
-    └── tunnel.pid         # Tunnel PID
+    ├── tunnel.pid         # Tunnel PID
+    └── healthcheck.log    # Auto-restart 歷史記錄
 ```
 
 ## 前端設計模式

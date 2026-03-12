@@ -116,6 +116,32 @@ start.bat
 
 伺服器啟動後，瀏覽器前往 → **http://localhost:3847**
 
+### Step 6（可選）— 設定 Auto-restart 監控
+
+若你透過 **OpenClaw** 管理此伺服器，可設置每 10 分鐘自動健康檢查，進程掛掉時自動重啟並發 Telegram 通知：
+
+```bash
+# healthcheck.sh 會自動檢查 server + Cloudflare Tunnel，掛咗就重啟
+bash healthcheck.sh
+```
+
+**配合 OpenClaw Cron（每 10 分鐘）：**
+```bash
+openclaw cron create \
+  --name "YouTube Downloader Healthcheck" \
+  --every "10m" \
+  --session isolated \
+  --model "minimax-portal/MiniMax-M2.1" \
+  --light-context \
+  --message "Execute: bash /path/to/youtube-downloader/healthcheck.sh. Reply with EXACTLY the stdout. If empty, output nothing."
+
+# 設定 Telegram 通知目的地（group + topic）
+openclaw cron edit <cron-id> \
+  --channel telegram \
+  --to "<groupId>:topic:<topicId>" \
+  --announce
+```
+
 ---
 
 ## 功能設定（Web UI）
