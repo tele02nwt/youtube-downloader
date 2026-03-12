@@ -30,7 +30,7 @@ youtube-downloader/
 ├── package.json
 ├── server.js           # Express server 入口
 ├── public/
-│   ├── index.html      # SPA 主頁（分類/下載/管理/日誌/架構/指南/設定 7 個 tab）
+│   ├── index.html      # SPA 主頁（分類/下載/管理/日誌/架構/安裝/指南/設定 8 個 tab）
 │   ├── workflow.jpg    # Workflow infographic（架構 tab）
 │   └── login.html      # 登入頁（含忘記密碼流程）
 ├── lib/
@@ -197,14 +197,15 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 - MKV: `--remux-video mkv`
 - MOV: `--remux-video mov`
 
-### Tabs（目前 7 個）
+### Tabs（目前 8 個）
 1. **分類**（categories）— 分類 CRUD + 拖曳排序
 2. **下載**（download）— URL probe + 格式/畫質選擇 + 開始下載
 3. **管理**（manager）— 下載進度追蹤 + Drive 連結
 4. **日誌**（logs）— Activity log，filter + pagination
 5. **架構**（workflow）— Workflow infographic 靜態圖片（`/workflow.jpg`，給開發者看）
-6. **指南**（guide）— User guide，anchor nav + tab jump；頂部有 **inline SVG 用家流程圖**（🗺️ 下載流程一覽）
-7. **設定**（settings）⚙️ — 帳號與安全 / 顯示偏好 / YouTube Cookies / Telegram 通知 / Google Drive / Cloudflare Tunnel
+6. **安裝**（install）— 3 平台安裝指南（OpenClaw / Linux / Windows），含 sub-tabs + `switchInstallTab()`
+7. **指南**（guide）— Usage guide，anchor nav + tab jump；頂部有 **inline SVG 用家流程圖**（🗺️ 下載流程一覽）
+8. **設定**（settings）⚙️ — 帳號與安全 / 顯示偏好 / YouTube Cookies / Telegram 通知 / Google Drive / Cloudflare Tunnel
 
 ### Telegram 通知
 - Group/Topic 設定**已移至 Web UI 設定頁**（`// TELEGRAM 通知` panel），持久化於 `data/settings.json`
@@ -357,6 +358,11 @@ start.bat
 ## 公開網址
 - https://yt.ac02nwt.work
 
+## GitHub Repo（Standalone 分發）
+- https://github.com/tele02nwt/youtube-downloader
+- 用 `git subtree push --prefix=youtube-downloader yt-downloader master` 從 workspace monorepo 推送
+- Remote: `yt-downloader`
+
 ## ⚠️ 注意事項 / 踩坑記錄
 
 ### 環境
@@ -436,3 +442,7 @@ start.bat
 49. ✅ 架構頁（workflow.jpg）係給開發者的技術流程圖；指南頁 SVG 係給用家的操作流程 — 兩者並存，定位不同
 50. ✅ Inline SVG 設計模式：`viewBox + width="100%" + min-width + overflow-x:auto wrapper`，確保 responsive + 可縮放
 51. ✅ 用 Claude Code 委派編碼任務時：exec tool 要用 `pty:true + background:true`，**唔好**在 command 末尾加 `&`（會令輸出丟失，只見 PID echo）
+52. ✅ OpenClaw Cron `--session isolated` + `lightContext:true` 會繼承主 session Telegram channel → 用 `--session-key` 隔離
+53. ✅ MiniMax-M2.1 不嚴格遵守「無 stdout 時輸出空」→ prompt 需明確 Rules 清單 + "your output must be empty (zero characters)"
+54. ✅ `git subtree push --prefix=subdir remote branch` 可將 monorepo 子目錄發佈為獨立 repo
+55. ✅ Linux server Node.js 安裝用 NodeSource（`curl setup script`）而非 Homebrew — 更可靠，適合 Ubuntu/Debian server

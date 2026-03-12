@@ -306,6 +306,31 @@
 
 ---
 
+## Phase 14: Guide Split + GitHub Repo + Cron Fix ✅（2026-03-12）
+
+### Task 14.1: Guide Split — Install Tab + Usage Tab
+- [x] Split "指南" into "安裝"（install）+ "指南"（usage guide）
+- [x] Created `tab-install` with 3 platform sub-tabs: OpenClaw / Linux / Windows
+- [x] Added `switchInstallTab()` JS function
+- [x] Moved CF/GDrive/Telegram sections to install guide
+
+### Task 14.2: GitHub Standalone Repo
+- [x] Created public repo: https://github.com/tele02nwt/youtube-downloader
+- [x] `git subtree push --prefix=youtube-downloader yt-downloader master`
+- [x] Added git remote `yt-downloader`
+
+### Task 14.3: Install Guide Rewrite (3 Platforms)
+- [x] OpenClaw tab: clone from GitHub + 6 steps + CF/GDrive/Telegram sub-steps + troubleshooting
+- [x] Linux tab: NodeSource for Node.js + apt for ffmpeg/yt-dlp/cloudflared
+- [x] Windows WSL2: 9 steps with NodeSource inside Ubuntu
+- [x] Windows Native: 8 steps with nodejs.org + winget
+
+### Task 14.4: Cron Routing Fix
+- [x] Added `--session-key "ytdl-healthcheck"` to isolate cron session
+- [x] Stricter prompt for MiniMax-M2.1 (explicit "zero characters" rule)
+
+---
+
 ## 未來可能新增
 - [ ] Playlist 批量下載
 - [ ] 純音頻模式（MP3/AAC）
@@ -317,3 +342,4 @@
 - [ ] Windows 原生 Google Drive 支援（rclone 整合或原生 API）
 - [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
 - [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）
+- [ ] README.md 完整中英雙語版本

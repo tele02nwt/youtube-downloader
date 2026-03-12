@@ -459,3 +459,39 @@ if (capturedFilePath && fs.existsSync(capturedFilePath)) {
 - [x] `git rm --cached` 移走 HEAD 追蹤
 - [x] `git filter-repo` 清除 history 中所有 cookies.txt 記錄（Option 2）
 - [x] Force-push clean history
+
+---
+
+### 2026-03-12 — Phase 14: Guide Split + GitHub Repo + Install Rewrite + Cron Routing Fix
+
+**Guide Split: Install Tab + Usage Tab** ✅
+- [x] Split single "指南" tab into two: "安裝"（install）+ "指南"（usage guide）
+- [x] Created `tab-install` with 3 platform sub-tabs: OpenClaw / Linux / Windows (Standalone)
+- [x] Added `switchInstallTab()` JS function for sub-tab switching
+- [x] Moved Cloudflare, Google Drive, Telegram sections from usage guide to install guide
+
+**GitHub Standalone Repo** ✅
+- [x] Created public GitHub repo: https://github.com/tele02nwt/youtube-downloader
+- [x] Used `git subtree push --prefix=youtube-downloader yt-downloader master` to publish subdirectory
+- [x] Added git remote: `git remote add yt-downloader https://TOKEN@github.com/tele02nwt/youtube-downloader.git`
+
+**Install Guide Rewrite (All 3 Platforms)** ✅
+- [x] **OpenClaw tab**: Teaches users to tell OpenClaw to clone from GitHub; 6 detailed steps including CF/GDrive/Telegram setup; each optional feature has 6-7 sub-steps with exact UI navigation; troubleshooting section with 4 common issues
+- [x] **Linux tab**: Uses NodeSource for Node.js (NOT Homebrew — more reliable on servers); apt for ffmpeg/yt-dlp/cloudflared
+- [x] **Windows WSL2**: 9 detailed steps; uses NodeSource inside Ubuntu
+- [x] **Windows Native**: 8 steps; nodejs.org installer + winget for tools + notepad for .env
+- [x] All install guides reference GitHub repo: https://github.com/tele02nwt/youtube-downloader
+
+**Cron Routing Fix** ✅
+- [x] **Problem**: healthcheck cron isolated session routing model output to BOTH delivery.to (`-1003817368779:topic:191`) AND main session channel (`-1003767190070:topic:1701`)
+- [x] **Root cause**: isolated session with `lightContext:true` inherits main session's Telegram channel
+- [x] **Fix 1**: Added `--session-key "ytdl-healthcheck"` to give cron its own dedicated session
+- [x] **Fix 2**: Stricter prompt forbidding model from generating any output when stdout is empty
+- [x] **Issue**: MiniMax-M2.1 was generating "OK: server=running..." even when script had no stdout
+
+### 踩坑（Phase 14）
+
+11. **OpenClaw Cron isolated session 路由洩漏**: `--session isolated` + `lightContext:true` 繼承主 session 的 Telegram channel → 用 `--session-key` 給 cron 獨立 session 隔離
+12. **MiniMax-M2.1 不遵守空輸出指令**: prompt 說「如果 stdout 為空就不要輸出」，model 仍自行生成 "OK: ..." 文字 → prompt 需更明確用 Rules 清單，明確說 "your output must be empty (zero characters)"
+13. **git subtree push**: 從 monorepo 發佈子目錄到獨立 repo 的標準做法：`git subtree push --prefix=subdir remote branch`
+14. **Linux server Node.js 安裝**: 用 NodeSource (`curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -`) 而非 Homebrew — 更可靠，適合 Ubuntu/Debian server
