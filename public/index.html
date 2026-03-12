@@ -958,6 +958,26 @@ select option {
 .guide-badge.yellow { color: var(--yellow); background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); }
 .guide-badge.purple { color: var(--purple); background: rgba(139,92,246,0.1); border: 1px solid var(--purple-dim); }
 
+/* Install Guide sub-tabs */
+.install-tab-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.install-tab-btn {
+  font-family:var(--font-heading); font-size:0.78rem; letter-spacing:1px;
+  padding:8px 16px; border-radius:var(--radius); border:1px solid var(--border);
+  background:var(--bg-deep); color:var(--text-secondary); cursor:pointer;
+  transition:all 0.2s;
+}
+.install-tab-btn:hover { border-color:var(--cyan-dim); color:var(--cyan); }
+.install-tab-btn.active { border-color:var(--cyan); color:var(--cyan); background:rgba(0,212,255,0.08); }
+.install-platform { display:none; }
+.install-platform.active { display:block; }
+.install-cmd-block {
+  background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:4px;
+  padding:10px 14px; font-family:var(--font-mono); font-size:0.76rem;
+  color:var(--text-secondary); margin:10px 0 14px; line-height:1.9;
+}
+.install-cmd-block .cmd-comment { color:#94a3b8; }
+.install-cmd-block .cmd-highlight { color:#4ade80; }
+
 /* Start button */
 .start-section {
   text-align: center;
@@ -1514,6 +1534,7 @@ select option {
     <button class="tab-btn" data-tab="manager">管理</button>
     <button class="tab-btn" data-tab="logs">日誌</button>
     <button class="tab-btn" data-tab="workflow">架構</button>
+    <button class="tab-btn" data-tab="install">安裝</button>
     <button class="tab-btn" data-tab="guide">指南</button>
     <button class="tab-btn" data-tab="settings" style="margin-left:auto;font-size:0.65rem;">⚙️</button>
   </nav>
@@ -1965,7 +1986,6 @@ select option {
       <nav class="guide-nav">
         <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);align-self:center;">快速跳轉：</span>
         <a href="#guide-quickstart">🚀 快速開始</a>
-        <a href="#guide-windows">🪟 Windows 安裝</a>
         <a href="#guide-login">🔐 登入 &amp; 帳號</a>
         <a href="#guide-category">📁 分類管理</a>
         <a href="#guide-download">⬇️ 下載影片</a>
@@ -2069,95 +2089,6 @@ select option {
           </li>
         </ol>
         <div class="guide-tip">✅ 下載完成後會自動上傳至 Google Drive，並發送 Telegram 通知。無需手動操作。</div>
-      </div>
-
-      <!-- Section: Windows Installation -->
-      <div class="guide-section" id="guide-windows">
-        <div class="guide-section-title" style="border-left-color:#4ade80;">🪟 Windows 安裝指南（Standalone 本機版）</div>
-        <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:20px;">本節說明如何在 Windows 電腦上從零開始安裝並執行 YouTube Downloader。建議使用 <strong style="color:var(--text-primary);">Windows 11 / Windows 10（版本 1903+）</strong>。</p>
-
-        <!-- Method A: WSL2 (Recommended) -->
-        <div style="margin-bottom:24px;padding:16px;border:1px solid rgba(74,222,128,0.25);border-radius:var(--radius);background:rgba(74,222,128,0.05);">
-          <div style="font-family:var(--font-heading);font-size:0.85rem;color:#4ade80;margin-bottom:10px;">✅ 方式 A：WSL2（強烈推薦）</div>
-          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">透過 WSL2 在 Windows 內執行 Linux 環境，最接近原生體驗，支援所有功能（包括 Google Drive 上傳）。</p>
-          <ol class="guide-steps">
-            <li>
-              <span class="guide-step-num">1</span>
-              <span><strong>安裝 WSL2：</strong>以管理員身份執行 PowerShell，輸入：<code class="setup-code">wsl --install</code>&nbsp;→ 重啟電腦</span>
-            </li>
-            <li>
-              <span class="guide-step-num">2</span>
-              <span><strong>設定 Ubuntu：</strong>重啟後 Ubuntu 自動開啟，設定用戶名及密碼</span>
-            </li>
-            <li>
-              <span class="guide-step-num">3</span>
-              <span><strong>安裝 Homebrew（WSL 內）：</strong><br><code class="setup-code">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></span>
-            </li>
-            <li>
-              <span class="guide-step-num">4</span>
-              <span><strong>安裝所有依賴：</strong><br><code class="setup-code">brew install node yt-dlp ffmpeg cloudflare/cloudflare/cloudflared steipete/tap/gogcli</code></span>
-            </li>
-            <li>
-              <span class="guide-step-num">5</span>
-              <span><strong>Clone 及啟動：</strong><br><code class="setup-code">git clone &lt;repo&gt; youtube-downloader &amp;&amp; cd youtube-downloader</code><br><code class="setup-code">cp .env.example .env</code>&nbsp;→ 編輯 .env 填入帳號密碼<br><code class="setup-code">npm install &amp;&amp; bash start.sh</code></span>
-            </li>
-            <li>
-              <span class="guide-step-num">6</span>
-              <span><strong>瀏覽器開啟：</strong>Windows 瀏覽器直接輸入 <span class="guide-key">http://localhost:3847</span> 即可存取（WSL2 自動共享端口）</span>
-            </li>
-          </ol>
-          <div class="guide-tip">💡 WSL2 與 Windows 共享 localhost，無需額外配置即可在 Windows 瀏覽器存取。</div>
-        </div>
-
-        <!-- Method B: Native Windows -->
-        <div style="margin-bottom:16px;padding:16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-deep);">
-          <div style="font-family:var(--font-heading);font-size:0.85rem;color:var(--cyan);margin-bottom:10px;">⚙️ 方式 B：原生 Windows（無 WSL2）</div>
-          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">直接在 Windows 安裝所需工具。<strong style="color:var(--yellow);">注意：Google Drive 自動上傳功能在原生 Windows 下不支援</strong>（gog CLI 為 macOS/Linux 限定）。</p>
-
-          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">① 安裝必要工具（以管理員 PowerShell 執行）</div>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.8;">
-            <div style="color:#94a3b8;"># 安裝 winget 管理的工具</div>
-            <div>winget install OpenJS.NodeJS.LTS</div>
-            <div>winget install yt-dlp.yt-dlp</div>
-            <div>winget install Gyan.FFmpeg</div>
-            <div>winget install Cloudflare.cloudflared</div>
-            <div style="color:#94a3b8;margin-top:4px;"># 安裝完成後重新開啟 PowerShell（刷新 PATH）</div>
-          </div>
-
-          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">② 配置 .env 工具路徑</div>
-          <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:8px;">Windows 的工具路徑與 Linux 不同，需要在 <span class="setup-code">.env</span> 中指定：</p>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.8;">
-            <div style="color:#94a3b8;"># .env 新增（路徑視乎安裝位置而定）</div>
-            <div>YT_DLP_PATH=C:\Users\%USERNAME%\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe</div>
-            <div>FFMPEG_PATH=C:\ProgramData\chocolatey\bin\ffmpeg.exe</div>
-          </div>
-
-          <div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:8px;">③ 啟動伺服器</div>
-          <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text-secondary);margin-bottom:4px;line-height:1.8;">
-            <div style="color:#94a3b8;"># 方法 1：雙擊 start.bat（最簡單）</div>
-            <div style="color:#4ade80;">start.bat</div>
-            <div style="color:#94a3b8;margin-top:6px;"># 方法 2：PowerShell / cmd 手動執行</div>
-            <div>cd youtube-downloader</div>
-            <div>npm install</div>
-            <div>node server.js</div>
-          </div>
-          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:12px;">停止伺服器：雙擊 <span class="setup-code">stop.bat</span></div>
-
-          <div style="font-size:0.78rem;color:var(--text-secondary);padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;">
-            <strong style="color:var(--yellow);">⚠️ 原生 Windows 限制：</strong>
-            <ul style="margin:6px 0 0 16px;line-height:1.8;">
-              <li>Google Drive 自動上傳不支援（gog CLI 為 macOS/Linux 限定）</li>
-              <li>Telegram 通知功能需要額外配置 openclaw</li>
-              <li>建議搭配 Cloudflare Quick Tunnel 取得公開存取 URL</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- FFmpeg PATH note for Windows -->
-        <div style="padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius);font-size:0.78rem;color:var(--text-secondary);">
-          <strong style="color:var(--cyan);">💡 Windows ffmpeg PATH 設定：</strong>
-          winget 安裝的 ffmpeg 可能不在 PATH 內。若下載時出現「ffmpeg not found」，需手動將 ffmpeg 安裝目錄加入系統 PATH，或在 <span class="setup-code">.env</span> 中設定 <span class="setup-code">FFMPEG_PATH</span>。
-        </div>
       </div>
 
       <!-- Section 2: Login -->
@@ -2377,7 +2308,7 @@ select option {
           <div style="font-family:var(--font-heading);font-size:0.78rem;color:var(--yellow);margin-bottom:8px;">🪟 Windows 用戶須知</div>
           <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.7;">
             <strong style="color:var(--text-primary);">gog CLI 僅支援 macOS / Linux</strong>，Windows 原生環境無法使用 Google Drive 自動上傳功能。<br>
-            <strong style="color:#4ade80;">推薦方案：</strong>使用 <strong style="color:var(--text-primary);">WSL2</strong> 執行整個應用（參閱 <a href="#guide-windows" style="color:var(--cyan);">Windows 安裝指南</a>），可完整支援所有功能。<br>
+            <strong style="color:#4ade80;">推薦方案：</strong>使用 <strong style="color:var(--text-primary);">WSL2</strong> 執行整個應用（參閱 <a href="#" onclick="goToTab('install');switchInstallTab('windows');return false;" style="color:var(--cyan);">Windows 安裝指南</a>），可完整支援所有功能。<br>
             <strong style="color:var(--cyan);">替代方案：</strong>下載仍可正常運作，但完成後不會自動上傳 Drive，影片存儲在本機的下載目錄。
           </div>
         </div>
@@ -2514,6 +2445,376 @@ select option {
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════
+       TAB: INSTALL GUIDE
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-install">
+    <div class="panel" style="padding:20px 24px;">
+      <div class="panel-header" style="margin-bottom:20px;">// 安裝指南 — INSTALLATION GUIDE</div>
+
+      <!-- Platform sub-tabs -->
+      <div class="install-tab-bar">
+        <button class="install-tab-btn active" data-itab="openclaw" onclick="switchInstallTab('openclaw')">🤖 OpenClaw（推薦）</button>
+        <button class="install-tab-btn" data-itab="linux" onclick="switchInstallTab('linux')">🐧 Linux（Standalone）</button>
+        <button class="install-tab-btn" data-itab="windows" onclick="switchInstallTab('windows')">🪟 Windows（Standalone）</button>
+      </div>
+
+      <!-- ============ PLATFORM A: OpenClaw ============ -->
+      <div class="install-platform active" id="install-openclaw">
+
+        <div class="guide-section" style="border-left-color:#4ade80;">
+          <div class="guide-section-title" style="color:#4ade80;">🤖 OpenClaw 安裝 — 最簡單，推薦給大多數用戶</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">如果你已經有 OpenClaw 聊天機器人（例如 Telegram Bot），你只需要<strong style="color:var(--text-primary);">跟機器人說一句話</strong>，它就會自動幫你裝好一切！完全不需要懂任何技術。</p>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">📋 你需要有什麼（先決條件）</div>
+          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 20px 20px;line-height:2;">
+            <li>一個已經設定好的 <strong style="color:var(--text-primary);">OpenClaw 機器人</strong>（通常是 Telegram 裡的機器人）</li>
+            <li>機器人所在的<strong style="color:var(--text-primary);">伺服器已啟動</strong>（VPS 或本機 Linux 電腦）</li>
+          </ul>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">🚀 安裝步驟</div>
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span><strong>打開 Telegram</strong>，找到你的 OpenClaw 機器人對話窗口。如果你不確定機器人叫什麼名字，找那個平時你跟它聊天、下指令的 Bot。</span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span><strong>傳送以下訊息給機器人：</strong><br>
+                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我安裝 YouTube Downloader，下載完成後通知我</code>
+                <span style="font-size:0.78rem;color:var(--text-dim);display:block;margin-top:4px;">💡 你可以用自然語言說，不需要特定指令格式。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span><strong>等待機器人自動安裝</strong>（約 3-5 分鐘）。你會看到它的回覆進度，包括正在安裝哪些工具、設定什麼服務等。不需要做任何操作，喝杯茶等一下就好。</span>
+            </li>
+            <li>
+              <span class="guide-step-num">4</span>
+              <span><strong>取得登入資訊：</strong>安裝完成後，機器人會發給你：
+                <ul style="margin:6px 0 0 16px;line-height:1.8;">
+                  <li>一個網址（例如 <span class="guide-key">https://yt.yourdomain.com</span>）</li>
+                  <li>登入帳號和密碼</li>
+                </ul>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span><strong>開始使用！</strong>在手機或電腦的瀏覽器打開那個網址，輸入帳號密碼登入，就完成了！</span>
+            </li>
+          </ol>
+
+          <div class="guide-tip">✅ 就這麼簡單！機器人會自動幫你安裝好所有需要的工具，設定好對外存取的網址，甚至配置好自動重啟監控。</div>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">🔧 遇到問題？</div>
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">?</span>
+              <span><strong>機器人說「找不到技能」：</strong>先傳送這段訊息讓機器人安裝能力：<br>
+                <code class="setup-code" style="display:block;margin-top:6px;padding:8px 12px;font-size:0.82rem;">幫我安裝 youtube-downloader skill，然後安裝 YouTube Downloader</code>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">?</span>
+              <span><strong>安裝中途失敗：</strong>重新傳送一次安裝指令即可。機器人會自動跳過已完成的步驟，只處理未完成的部分。</span>
+            </li>
+          </ol>
+        </div>
+
+        <div class="guide-section" style="border-left-color:#8b5cf6;">
+          <div class="guide-section-title" style="color:#8b5cf6;">📦 機器人自動設定了什麼？</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:12px;">你不需要理解這些，但如果好奇的話：</p>
+          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 0 20px;line-height:2.2;">
+            <li>✅ <strong style="color:var(--text-primary);">Node.js</strong> — 程式運行環境（讓應用程式能執行）</li>
+            <li>✅ <strong style="color:var(--text-primary);">yt-dlp</strong> — 影片下載工具（負責從 YouTube 抓取影片）</li>
+            <li>✅ <strong style="color:var(--text-primary);">ffmpeg</strong> — 影片合併工具（把影片和聲音合在一起）</li>
+            <li>✅ <strong style="color:var(--text-primary);">YouTube Downloader</strong> — 這個應用程式本身</li>
+            <li>✅ <strong style="color:var(--text-primary);">Cloudflare Tunnel</strong> — 安全隧道（讓你從外面存取，不需要設定防火牆）</li>
+            <li>✅ <strong style="color:var(--text-primary);">自動重啟監控</strong> — 如果應用程式崩潰了會自動恢復</li>
+          </ul>
+        </div>
+
+      </div><!-- /install-openclaw -->
+
+      <!-- ============ PLATFORM B: Linux ============ -->
+      <div class="install-platform" id="install-linux">
+
+        <div class="guide-section" style="border-left-color:#4ade80;">
+          <div class="guide-section-title" style="color:#4ade80;">🐧 Linux 安裝指南 — Standalone</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">適合有 Linux 伺服器或 VPS 的用戶。即使你從未接觸過命令列也沒關係，下面會一步步帶你完成。</p>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">📋 系統需求</div>
+          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 20px 20px;line-height:2;">
+            <li><strong style="color:var(--text-primary);">作業系統：</strong>Ubuntu 20.04 / 22.04 / 24.04、Debian 11/12、或任何現代 Linux</li>
+            <li><strong style="color:var(--text-primary);">記憶體：</strong>至少 1GB RAM</li>
+            <li><strong style="color:var(--text-primary);">硬碟空間：</strong>至少 5GB 可用空間（存影片需要更多）</li>
+            <li><strong style="color:var(--text-primary);">網絡：</strong>能連接到互聯網</li>
+            <li><strong style="color:var(--text-primary);">終端機存取：</strong>能透過 SSH 或直接登入操作命令列</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">💻 如何打開終端機（Terminal）</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px;">終端機就是一個黑色/白色的文字視窗，你會在裡面輸入指令。以下是打開方法：</p>
+          <ul style="font-size:0.85rem;color:var(--text-secondary);margin:0 0 8px 20px;line-height:2;">
+            <li><strong style="color:#4ade80;">VPS 遠端：</strong>用 SSH 連接。Windows 用戶可以下載 <strong>PuTTY</strong> 軟件，輸入你伺服器的 IP 地址 → 點 Connect → 輸入帳號密碼。macOS 用戶打開 Terminal.app，輸入 <code class="setup-code">ssh 用戶名@伺服器IP</code></li>
+            <li><strong style="color:var(--cyan);">本機 Linux 桌面：</strong>在桌面空白處右鍵 → 開啟終端機；或按 <span class="guide-key">Ctrl+Alt+T</span></li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 1：安裝 Homebrew（工具安裝器）</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">Homebrew 就像一個「App Store」，幫你用一行指令就能安裝各種工具。在終端機裡複製貼上以下指令，然後按 <span class="guide-key">Enter</span>：</p>
+          <div class="install-cmd-block">
+            <div>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</div>
+          </div>
+          <div class="guide-warn">⏳ 這一步需要約 5-10 分鐘，期間會下載很多東西，請耐心等候。不要關閉終端機！</div>
+          <div class="guide-tip" style="margin-top:10px;">💡 安裝完成後，螢幕會顯示兩行 <code class="setup-code">eval</code> 開頭的指令。<strong>請把那兩行複製貼上並按 Enter 執行</strong>，這是把 Homebrew 加入系統路徑（讓系統找到它）。</div>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 2：安裝所有必要工具</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">在終端機裡輸入以下指令，一次安裝全部需要的工具：</p>
+          <div class="install-cmd-block">
+            <div>brew install node yt-dlp ffmpeg cloudflare/cloudflare/cloudflared steipete/tap/gogcli</div>
+          </div>
+          <div class="guide-warn">⏳ 這一步也需要約 5-15 分鐘。Homebrew 會自動下載並編譯這些工具。</div>
+          <p style="font-size:0.82rem;color:var(--text-secondary);margin-top:12px;">這些工具各自負責什麼：</p>
+          <ul style="font-size:0.83rem;color:var(--text-secondary);margin:6px 0 0 20px;line-height:2;">
+            <li><strong style="color:var(--text-primary);">node</strong> — JavaScript 運行環境（讓應用程式能執行）</li>
+            <li><strong style="color:var(--text-primary);">yt-dlp</strong> — 下載 YouTube 影片的工具</li>
+            <li><strong style="color:var(--text-primary);">ffmpeg</strong> — 合併影片和聲音的工具（YouTube 的影片和聲音是分開的）</li>
+            <li><strong style="color:var(--text-primary);">cloudflared</strong> — Cloudflare 隧道工具（讓你從外部存取，可選）</li>
+            <li><strong style="color:var(--text-primary);">gogcli</strong> — Google Drive 上傳工具（可選）</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 3：下載 YouTube Downloader 應用程式</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">逐行輸入以下指令（每輸入一行就按 <span class="guide-key">Enter</span>）：</p>
+          <div class="install-cmd-block">
+            <div class="cmd-comment"># 把程式碼複製到你的電腦</div>
+            <div>git clone https://github.com/nicekid1/youtube-downloader.git</div>
+            <div style="margin-top:6px;" class="cmd-comment"># 進入程式資料夾</div>
+            <div>cd youtube-downloader</div>
+            <div style="margin-top:6px;" class="cmd-comment"># 安裝程式需要的零件（像拼積木一樣把各部分組合好）</div>
+            <div>npm install</div>
+          </div>
+          <div class="guide-tip">💡 <code class="setup-code">git clone</code> = 從網上下載程式碼；<code class="setup-code">npm install</code> = 安裝程式所需的配件。</div>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 4：設定帳號密碼</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">先複製一份設定範本：</p>
+          <div class="install-cmd-block">
+            <div>cp .env.example .env</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin:10px 0;">然後用文字編輯器打開它（<code class="setup-code">nano</code> 是 Linux 內建的簡易編輯器）：</p>
+          <div class="install-cmd-block">
+            <div>nano .env</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin:10px 0;">在檔案裡找到並修改以下幾行：</p>
+          <div class="install-cmd-block">
+            <div class="cmd-comment"># 登入帳號（用你的 email）</div>
+            <div>YT_AUTH_USER=<span class="cmd-highlight">你的email@example.com</span></div>
+            <div style="margin-top:4px;" class="cmd-comment"># 登入密碼（請設定複雜一點）</div>
+            <div>YT_AUTH_PASS=<span class="cmd-highlight">你的密碼</span></div>
+            <div style="margin-top:4px;" class="cmd-comment"># 影片存放位置（改成你想要的路徑）</div>
+            <div>DOWNLOADS_DIR=<span class="cmd-highlight">/home/你的用戶名/downloads/youtube</span></div>
+          </div>
+          <div class="guide-tip">💡 <strong>nano 編輯器操作：</strong>用方向鍵移動游標 → 直接打字修改 → 改完按 <span class="guide-key">Ctrl+X</span> → 按 <span class="guide-key">Y</span> 確認儲存 → 按 <span class="guide-key">Enter</span> 完成。</div>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 5：啟動應用程式</div>
+          <div class="install-cmd-block">
+            <div>bash start.sh</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin:10px 0;">啟動成功後，打開你電腦的瀏覽器（Chrome、Firefox 等），在網址列輸入：</p>
+          <div class="install-cmd-block">
+            <div class="cmd-highlight">http://伺服器IP:3847</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:8px;">如果是在本機操作（不是遠端 VPS），網址就是 <span class="guide-key">http://localhost:3847</span>。</p>
+          <div class="guide-tip">✅ 看到登入畫面就代表安裝成功！用你剛才在 .env 設定的帳號密碼登入即可。</div>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 6（可選）：設定 Cloudflare Tunnel</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">Cloudflare Tunnel 讓你可以從外面（例如用手機）存取你的 YouTube Downloader，不需要自己設定防火牆或端口轉發。</p>
+          <p style="font-size:0.83rem;color:var(--text-secondary);">登入應用程式後，前往 <button class="goto-btn" onclick="goToTab('guide')">📖 使用指南</button> 的「☁️ Cloudflare Tunnel 設定」章節查看詳細教學。</p>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 7（可選）：設定 Google Drive 自動上傳</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">讓下載完成的影片自動上傳到你的 Google Drive：</p>
+          <div class="install-cmd-block">
+            <div>gog auth login</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:8px;">執行後會打開一個網頁讓你登入 Google 帳號並授權。授權完成後回到終端機即可。</p>
+        </div>
+
+        <div class="guide-section">
+          <div class="guide-section-title">步驟 8（建議）：設定開機自動啟動</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:10px;">讓伺服器重啟後自動啟動 YouTube Downloader：</p>
+          <div class="install-cmd-block">
+            <div class="cmd-comment"># 打開排程設定</div>
+            <div>crontab -e</div>
+            <div style="margin-top:6px;" class="cmd-comment"># 在最後一行加入（把路徑改成你的實際路徑）：</div>
+            <div>@reboot bash /home/你的用戶名/youtube-downloader/start.sh</div>
+          </div>
+          <div class="guide-tip">💡 如果 <code class="setup-code">crontab -e</code> 問你要用什麼編輯器，選 <strong>nano</strong>（通常是選項 1）。</div>
+        </div>
+
+      </div><!-- /install-linux -->
+
+      <!-- ============ PLATFORM C: Windows ============ -->
+      <div class="install-platform" id="install-windows">
+
+        <div class="guide-section" style="border-left-color:#4ade80;">
+          <div class="guide-section-title" style="color:#4ade80;">🪟 Windows 安裝指南 — Standalone</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">在 Windows 電腦上從零開始安裝 YouTube Downloader。提供兩種方式，強烈建議使用方式 A。</p>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;">📋 Windows 版本要求</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:12px;">需要 <strong style="color:var(--text-primary);">Windows 10 版本 2004</strong> 或以上。怎麼檢查？按 <span class="guide-key">Win+R</span>，輸入 <code class="setup-code">winver</code>，按 Enter，就能看到你的版本號。</p>
+        </div>
+
+        <!-- Method A: WSL2 -->
+        <div class="guide-section" style="border-left-color:#4ade80;">
+          <div class="guide-section-title" style="color:#4ade80;">✅ 方式 A：WSL2 + Ubuntu（強烈推薦）</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">WSL2 的概念：想像在你的 Windows 電腦裡放一個 Linux 小房間。YouTube Downloader 在這個小房間裡運行，但你可以直接用 Windows 的瀏覽器存取它。這個方式<strong style="color:var(--text-primary);">支援所有功能</strong>，包括 Google Drive 上傳。</p>
+
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span><strong>開啟 WSL2：</strong>
+                <ul style="margin:6px 0 0 0;line-height:2;">
+                  <li>按 <span class="guide-key">Windows 鍵</span>（鍵盤左下角那個方塊圖案），搜尋「<strong>PowerShell</strong>」</li>
+                  <li>在搜尋結果中，<strong style="color:var(--yellow);">右鍵</strong>點擊「Windows PowerShell」→ 選「<strong>以系統管理員身分執行</strong>」</li>
+                  <li>看到藍色視窗後，輸入以下指令，然後按 Enter：<br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">wsl --install</code></li>
+                  <li>等待安裝完成，然後<strong style="color:var(--yellow);">重啟電腦</strong></li>
+                </ul>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span><strong>設定 Ubuntu：</strong>重啟後，Ubuntu 視窗會自動彈出。等待安裝完成後，它會要求你設定一個用戶名和密碼。
+                <br><span style="font-size:0.78rem;color:var(--text-dim);">⚠️ 這個帳號密碼是 Ubuntu 裡的，跟 Windows 帳號無關。密碼輸入時不會顯示（這是正常的），盲打輸入後按 Enter 即可。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span><strong>安裝 Homebrew：</strong>在 Ubuntu 視窗裡輸入：
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code>
+                <br><span style="font-size:0.78rem;color:var(--text-dim);">⏳ 等待 5-10 分鐘。完成後記得執行螢幕顯示的兩行 eval 指令。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">4</span>
+              <span><strong>安裝所有工具：</strong>
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">brew install node yt-dlp ffmpeg cloudflare/cloudflare/cloudflared steipete/tap/gogcli</code>
+                <br><span style="font-size:0.78rem;color:var(--text-dim);">⏳ 等待 5-15 分鐘。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span><strong>下載並設定應用程式：</strong>逐行輸入：
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">git clone https://github.com/nicekid1/youtube-downloader.git</code>
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">cd youtube-downloader</code>
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">cp .env.example .env</code>
+                <br>用 <code class="setup-code">nano .env</code> 編輯設定檔，填入帳號密碼（操作方法見 Linux 安裝的步驟 4）
+                <br><code class="setup-code" style="display:block;margin-top:4px;padding:6px 10px;">npm install &amp;&amp; bash start.sh</code>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">6</span>
+              <span><strong>打開瀏覽器：</strong>在 Windows 的 Chrome / Edge / Firefox 中輸入：
+                <br><span class="guide-key" style="display:inline-block;margin-top:4px;">http://localhost:3847</span>
+                <br><span style="font-size:0.78rem;color:var(--text-dim);">WSL2 會自動把端口共享給 Windows，直接就能存取，不需要額外設定。</span>
+              </span>
+            </li>
+          </ol>
+          <div class="guide-tip">💡 之後每次要啟動，只要打開 Ubuntu 視窗，輸入 <code class="setup-code">cd youtube-downloader &amp;&amp; bash start.sh</code> 即可。</div>
+        </div>
+
+        <!-- Method B: Native Windows -->
+        <div class="guide-section">
+          <div class="guide-section-title" style="color:var(--cyan);">⚙️ 方式 B：原生 Windows（不安裝 WSL2）</div>
+          <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">直接在 Windows 安裝所需工具。<strong style="color:var(--yellow);">注意：Google Drive 自動上傳功能在原生 Windows 下不支援</strong>（gog CLI 為 macOS/Linux 限定）。</p>
+
+          <ol class="guide-steps">
+            <li>
+              <span class="guide-step-num">1</span>
+              <span><strong>安裝必要工具：</strong>以管理員身份開啟 PowerShell（右鍵 → 以系統管理員身分執行），逐行輸入：
+                <div class="install-cmd-block" style="margin-top:8px;">
+                  <div class="cmd-comment"># 安裝 Node.js（程式運行環境）</div>
+                  <div>winget install OpenJS.NodeJS.LTS</div>
+                  <div class="cmd-comment"># 安裝 yt-dlp（影片下載工具）</div>
+                  <div>winget install yt-dlp.yt-dlp</div>
+                  <div class="cmd-comment"># 安裝 ffmpeg（影片合併工具）</div>
+                  <div>winget install Gyan.FFmpeg</div>
+                  <div class="cmd-comment"># 安裝 cloudflared（可選，用於外部存取）</div>
+                  <div>winget install Cloudflare.cloudflared</div>
+                </div>
+                <span style="font-size:0.78rem;color:var(--text-dim);">安裝完成後，請<strong>關閉並重新開啟 PowerShell</strong>（刷新 PATH，讓系統找到新裝的工具）。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">2</span>
+              <span><strong>下載應用程式：</strong>在新的 PowerShell 中輸入：
+                <div class="install-cmd-block" style="margin-top:8px;">
+                  <div>git clone https://github.com/nicekid1/youtube-downloader.git</div>
+                  <div>cd youtube-downloader</div>
+                  <div>npm install</div>
+                </div>
+                <span style="font-size:0.78rem;color:var(--text-dim);">如果 git 未安裝，可以直接從 GitHub 網頁下載 ZIP 檔案解壓。</span>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">3</span>
+              <span><strong>設定帳號密碼：</strong>複製設定範本：<code class="setup-code">copy .env.example .env</code>，然後用記事本打開 <code class="setup-code">.env</code> 檔案，修改 <code class="setup-code">YT_AUTH_USER</code> 和 <code class="setup-code">YT_AUTH_PASS</code>。</span>
+            </li>
+            <li>
+              <span class="guide-step-num">4</span>
+              <span><strong>配置工具路徑：</strong>Windows 的工具路徑與 Linux 不同，需要在 <code class="setup-code">.env</code> 中額外設定：
+                <div class="install-cmd-block" style="margin-top:8px;">
+                  <div class="cmd-comment"># 路徑視乎你的安裝位置而定</div>
+                  <div>YT_DLP_PATH=C:\Users\%USERNAME%\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe</div>
+                  <div>FFMPEG_PATH=C:\ProgramData\chocolatey\bin\ffmpeg.exe</div>
+                </div>
+              </span>
+            </li>
+            <li>
+              <span class="guide-step-num">5</span>
+              <span><strong>啟動伺服器：</strong>最簡單的方法是雙擊 <code class="setup-code">start.bat</code>。或者在 PowerShell 中輸入 <code class="setup-code">node server.js</code>。
+                <br>打開瀏覽器輸入 <span class="guide-key">http://localhost:3847</span> 即可。
+                <br><span style="font-size:0.78rem;color:var(--text-dim);">停止伺服器：雙擊 <code class="setup-code">stop.bat</code></span>
+              </span>
+            </li>
+          </ol>
+
+          <div style="font-size:0.82rem;color:var(--text-secondary);padding:12px 14px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;margin-top:14px;">
+            <strong style="color:var(--yellow);">⚠️ 原生 Windows 限制：</strong>
+            <ul style="margin:8px 0 0 16px;line-height:2;">
+              <li>Google Drive 自動上傳<strong>不支援</strong>（gog CLI 為 macOS/Linux 限定）</li>
+              <li>Telegram 通知功能需要額外配置</li>
+              <li>建議搭配 Cloudflare Quick Tunnel 取得公開存取 URL</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- FFmpeg PATH note -->
+        <div class="guide-section">
+          <div class="guide-section-title" style="color:var(--cyan);">💡 Windows ffmpeg 路徑問題</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);">winget 安裝的 ffmpeg 可能不在系統 PATH 內。如果下載時出現「ffmpeg not found」錯誤，需要手動將 ffmpeg 安裝目錄加入系統 PATH，或在 <code class="setup-code">.env</code> 中設定 <code class="setup-code">FFMPEG_PATH</code> 指向 ffmpeg.exe 的完整路徑。</p>
+        </div>
+
+      </div><!-- /install-windows -->
+
+    </div>
+  </div>
+
 <!-- COOKIE MODAL (for quick upload from banner) -->
 <div class="modal-overlay" id="cookie-modal">
   <div class="modal-box">
@@ -2600,6 +2901,15 @@ function escapeHtml(str) {
 function goToTab(name) {
   const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
   if (btn) btn.click();
+}
+
+function switchInstallTab(platform) {
+  document.querySelectorAll('.install-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.install-platform').forEach(p => p.classList.remove('active'));
+  const activeBtn = document.querySelector('.install-tab-btn[data-itab="' + platform + '"]');
+  const activePanel = document.getElementById('install-' + platform);
+  if (activeBtn) activeBtn.classList.add('active');
+  if (activePanel) activePanel.classList.add('active');
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
