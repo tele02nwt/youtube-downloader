@@ -378,3 +378,21 @@
 - [x] skills/youtube-downloader/SKILL.md
 - [x] MEMORY.md
 - [x] README.md (如有需要)
+
+---
+
+## Phase 16: 安全修復 ✅（2026-03-12）
+
+### Task 16.1: 敏感資料移除
+- [x] `git rm --cached` 移除 `.env`、`node_modules/`、`data/*.json`、`.claude/`
+- [x] 更新 `.gitignore` 覆蓋所有敏感路徑
+- [x] `git filter-repo` 清除 GitHub history 中的密碼
+- [x] Force push 乾淨版本到 GitHub
+- [x] 確認 GitHub 上無 `.env`、無密碼 history
+
+### Task 16.2: 防護機制
+- [x] Pre-commit hook（自動掃描 + 攔截）
+- [x] github-push skill（可重用安全推送 SOP）
+
+### ⚠️ 未完成
+- [ ] **立即更換密碼**（舊密碼 `ac39107985` 曾公開）→ Web UI → ⚙️ 設定 → 帳號與安全

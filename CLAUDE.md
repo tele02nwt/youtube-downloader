@@ -477,3 +477,30 @@ The `notify-agi.sh` hook reads `task-meta.json` to override its default routing.
 60. ✅ Windows winget Gyan.FFmpeg 安裝後路徑係 `%LOCALAPPDATA%\Microsoft\WinGet\Links\ffmpeg.exe`（唔係 Chocolatey 路徑），用 `where.exe ffmpeg` 查實際路徑
 61. ✅ WSL2 Ubuntu 重啟後常見問題：視窗不自動彈出 → 按 Windows 鍵搜尋「Ubuntu」打開；安裝指南必須包含此後備指引
 62. ✅ claude --print 比 claude_code_run.py wrapper 更可靠，wrapper 有時誤判 prompt 含特殊字符而轉成 interactive mode；直接用 `claude --print --permission-mode bypassPermissions --allowedTools "Bash,Read,Edit,Write"` 最穩定
+
+## ⚠️ GitHub 推送安全規則（必記！2026-03-12）
+
+### 每次推送前必須執行
+```bash
+bash /data/.openclaw/workspace_project/skills/github-push/scripts/security-scan.sh
+```
+
+### Pre-commit hook（已安裝）
+- `.git/hooks/pre-commit` — 每次 commit 自動掃描
+- 備份：`.githooks/pre-commit`（重新 clone 後執行 `bash .githooks/install.sh` 恢復）
+
+### 禁止 commit 的檔案
+| 檔案 | 原因 |
+|------|------|
+| `.env` | 含密碼 |
+| `node_modules/` | npm 依賴（用 `npm install` 還原） |
+| `data/activity-log.json` | 含 email 地址 |
+| `data/downloads.json` | 個人下載歷史 |
+| `data/settings.json` | Telegram Group ID |
+| `data/cookies.txt` | YouTube session |
+| `.claude/` | 內部 openspec tooling |
+
+### 已曝露密碼的處理
+1. **立即輪換 credential**（最重要！）
+2. `git filter-repo --path .env --invert-paths --force`
+3. `git push --force`

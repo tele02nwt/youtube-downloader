@@ -546,3 +546,31 @@ The hook reads `task-meta.json` to override its default routing. Never modify th
 16. **claude --print 比 claude_code_run.py 更可靠**: wrapper 有時誤判 interactive mode（prompt 含特殊字符）→ 直接用 `/data/.npm-global/bin/claude --print --permission-mode bypassPermissions` 更穩定
 17. **Windows ffmpeg winget 路徑**: winget Gyan.FFmpeg 安裝後路徑係 `%LOCALAPPDATA%\Microsoft\WinGet\Links\ffmpeg.exe`（唔係 Chocolatey 的 `C:\ProgramData\chocolatey\bin\ffmpeg.exe`）；用 `where.exe ffmpeg` 查實際路徑
 18. **WSL2 Ubuntu 不自動彈出**: 常見問題，需後備指引（Windows 鍵搜尋「Ubuntu」打開），新用家幾乎必定遇到
+
+---
+
+### 2026-03-12 — 安全事故修復 + Pre-commit Hook
+
+**安全事故：敏感資料曝露於 Public GitHub** 🚨
+- `.env`（`us20nwt@gmail.com` / `ac39107985`）被推送到 Public GitHub
+- `node_modules/`（694 個檔案）被誤 track
+- `data/activity-log.json`（含 email）、`data/downloads.json`（個人下載歷史）、`data/settings.json`（Telegram Group ID）均被 track
+- `.claude/` openspec 內部文件被 track
+
+**修復步驟：**
+- [x] `git rm --cached` 移除所有敏感 tracking
+- [x] 更新 `.gitignore`（新增 `data/*.json`、`.claude/`）
+- [x] Clone GitHub repo → `git filter-repo` 清除完整 history（含密碼）
+- [x] Force push 乾淨版本（`git push --force`）到 GitHub
+- [x] 確認：GitHub API 查無 `.env` ✅
+
+**防護措施：**
+- [x] Pre-commit hook（`.githooks/pre-commit`）— 每次 commit 自動掃描
+- [x] Hook 修正：`--diff-filter=ACM` 只攔截新增，唔攔截刪除
+
+### 踩坑（安全篇）
+
+19. **`.gitignore` 對已 tracked 檔案無效**：必須先 `git rm --cached` 才能生效
+20. **Pre-commit hook 攔截「刪除敏感檔案」**：git diff 包含 deleted files → 需 `--diff-filter=ACM`
+21. **git subtree push 無法 --force**：需 clone standalone repo 用 filter-repo 清理，再 force push
+22. **monorepo root .env 也被 track**：要同時修復 subtree 和 monorepo root 兩處
