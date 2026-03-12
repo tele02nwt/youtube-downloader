@@ -2786,6 +2786,7 @@ select option {
                   <li>設定一個<strong>密碼</strong>（這是 Ubuntu 裡的密碼，跟 Windows 帳號無關）</li>
                 </ul>
                 <span style="font-size:0.78rem;color:var(--text-dim);">⚠️ 密碼輸入時螢幕不會顯示任何字元，這是正常的安全措施。盲打輸入你的密碼後按 Enter 即可。</span>
+                <div class="guide-tip" style="margin-top:8px;">💡 如果重啟後 Ubuntu 視窗沒有自動彈出，按 <span class="guide-key">Windows 鍵</span> → 在搜尋欄輸入「Ubuntu」→ 點擊「Ubuntu」圖示打開。</div>
               </span>
             </li>
             <li>
@@ -2805,6 +2806,7 @@ select option {
                   <div>sudo apt install -y ffmpeg python3-pip git</div>
                   <div>pip3 install yt-dlp</div>
                 </div>
+                <div class="guide-warn" style="margin-top:8px;">⚠️ 如果 <code class="setup-code">pip3</code> 提示 "externally-managed-environment" 錯誤，改用：<code class="setup-code">pip3 install --break-system-packages yt-dlp</code></div>
               </span>
             </li>
             <li>
@@ -2854,14 +2856,56 @@ select option {
                 <br><span style="font-size:0.78rem;color:var(--text-dim);">WSL2 會自動把端口共享給 Windows，直接就能存取，不需要額外設定。</span>
               </span>
             </li>
+            <li>
+              <span class="guide-step-num">10</span>
+              <span><strong>可選步驟：安裝 gog CLI（Google Drive 上傳功能）</strong>
+                <p style="font-size:0.83rem;color:var(--text-secondary);margin:6px 0 4px;">在 Ubuntu 視窗裡逐行輸入：</p>
+                <div class="install-cmd-block" style="margin-top:8px;">
+                  <div>ARCH=$(uname -m)</div>
+                  <div>if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi</div>
+                  <div>VERSION="0.12.0"</div>
+                  <div>curl -L "https://github.com/steipete/gogcli/releases/download/v${VERSION}/gogcli_${VERSION}_linux_${ARCH_TAG}.tar.gz" -o /tmp/gog.tar.gz</div>
+                  <div>tar -xzf /tmp/gog.tar.gz -C /tmp</div>
+                  <div>sudo mv /tmp/gog /usr/local/bin/gog</div>
+                  <div>gog --version</div>
+                </div>
+                <span style="font-size:0.83rem;color:var(--text-secondary);display:block;margin-top:8px;">安裝後，打開 YouTube Downloader Web UI → <strong>⚙️ 設定</strong> → Google Drive → 點擊「🔗 開始授權」→ 會顯示一個 URL，用 Windows 瀏覽器開啟該 URL 完成 Google 帳號授權即可。</span>
+              </span>
+            </li>
           </ol>
           <div class="guide-tip">✅ 安裝完成！之後每次要啟動，只要打開 Ubuntu 視窗，輸入 <code class="setup-code">cd youtube-downloader &amp;&amp; bash start.sh</code> 即可。</div>
+        </div>
+
+        <!-- Cloudflare Tunnel for WSL2 -->
+        <div class="guide-section" style="border-left-color:var(--cyan);">
+          <div class="guide-section-title" style="color:var(--cyan);">☁️ 方式 A 可選：Cloudflare Tunnel（從外部存取）</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px;">想用手機或其他裝置存取？Cloudflare Tunnel 讓你免設定防火牆就能從任何地方連線。</p>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:10px;">⚡ Quick Tunnel（最簡單，網址每次不同）</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>在 Web UI 登入後，前往 <strong>⚙️ 設定</strong> → Cloudflare Tunnel 面板</span></li>
+            <li><span class="guide-step-num">2</span><span>選擇「⚡ Quick Tunnel」→ 點擊「🚀 啟動 Tunnel」</span></li>
+            <li><span class="guide-step-num">3</span><span>啟動後會產生一個 <code class="setup-code">*.trycloudflare.com</code> 的公開網址，用任何裝置都能存取</span></li>
+          </ol>
+
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin:16px 0 10px;">🔑 Token Tunnel（固定網址，適合長期使用）</div>
+          <ol class="guide-steps">
+            <li><span class="guide-step-num">1</span><span>前往 <strong style="color:var(--text-primary);">one.dash.cloudflare.com</strong> 登入（免費 Cloudflare 帳號，沒有的話先免費註冊）</span></li>
+            <li><span class="guide-step-num">2</span><span>左側選單 → <strong>Networks</strong> → <strong>Tunnels</strong> → 點擊「Create a Tunnel」</span></li>
+            <li><span class="guide-step-num">3</span><span>選「Cloudflared」→ 輸入 Tunnel 名稱（例如 <code class="setup-code">yt-downloader</code>）→ 點「Save Tunnel」</span></li>
+            <li><span class="guide-step-num">4</span><span>在「Install connector」頁面，複製顯示的 Token（以 <code class="setup-code">eyJ</code> 開頭的長字串）</span></li>
+            <li><span class="guide-step-num">5</span><span>回到 YouTube Downloader Web UI → <strong>⚙️ 設定</strong> → Cloudflare Tunnel 面板 → 選「🔑 Token Tunnel」→ 貼上 Token → 點「🚀 啟動 Tunnel」</span></li>
+            <li><span class="guide-step-num">6</span><span>回到 Cloudflare Dashboard → 你的 Tunnel → 「Configure」→「Public Hostname」→「Add a public hostname」→ 填入網域，Service 選 <code class="setup-code">HTTP</code>，URL 填 <code class="setup-code">localhost:3847</code> → 儲存</span></li>
+          </ol>
+          <div class="guide-tip">💡 Token Tunnel 網址永久固定，重啟後自動重連，適合長期使用。Quick Tunnel 則每次重啟都會換網址。</div>
         </div>
 
         <!-- Method B: Native Windows -->
         <div class="guide-section">
           <div class="guide-section-title" style="color:var(--cyan);">⚙️ 方式 B：原生 Windows（不安裝 WSL2，功能有限）</div>
           <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">直接在 Windows 安裝所需工具。<strong style="color:var(--yellow);">注意：此方式不支援 Google Drive 自動上傳</strong>（gog CLI 為 macOS/Linux 限定），影片只會存在本機。</p>
+
+          <div class="guide-warn" style="margin-bottom:14px;">⚠️ <strong>winget 未必預裝</strong>：Windows 10 的舊版本可能未內建 winget。檢查方法：按 <span class="guide-key">Windows 鍵</span> → 搜尋 PowerShell → 輸入 <code class="setup-code">winget --version</code>。若提示找不到，請先在 Microsoft Store 搜尋「App Installer」並更新安裝，之後 winget 才能使用。</div>
 
           <ol class="guide-steps">
             <li>
@@ -2955,6 +2999,30 @@ select option {
               <li>如需完整功能，建議改用方式 A（WSL2）</li>
             </ul>
           </div>
+
+          <!-- Cloudflare Tunnel for Method B -->
+          <div class="guide-section" style="border-left-color:var(--cyan);margin-top:16px;">
+            <div class="guide-section-title" style="color:var(--cyan);">☁️ 方式 B 可選：Cloudflare Tunnel（從外部存取）</div>
+            <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:14px;">想用手機或其他裝置存取？Cloudflare Tunnel 讓你免設定防火牆就能從任何地方連線。</p>
+
+            <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin-bottom:10px;">⚡ Quick Tunnel（最簡單，網址每次不同）</div>
+            <ol class="guide-steps">
+              <li><span class="guide-step-num">1</span><span>在 Web UI 登入後，前往 <strong>⚙️ 設定</strong> → Cloudflare Tunnel 面板</span></li>
+              <li><span class="guide-step-num">2</span><span>選擇「⚡ Quick Tunnel」→ 點擊「🚀 啟動 Tunnel」</span></li>
+              <li><span class="guide-step-num">3</span><span>啟動後會產生一個 <code class="setup-code">*.trycloudflare.com</code> 的公開網址，用任何裝置都能存取</span></li>
+            </ol>
+
+            <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--cyan);letter-spacing:1px;margin:16px 0 10px;">🔑 Token Tunnel（固定網址，適合長期使用）</div>
+            <ol class="guide-steps">
+              <li><span class="guide-step-num">1</span><span>前往 <strong style="color:var(--text-primary);">one.dash.cloudflare.com</strong> 登入（免費 Cloudflare 帳號，沒有的話先免費註冊）</span></li>
+              <li><span class="guide-step-num">2</span><span>左側選單 → <strong>Networks</strong> → <strong>Tunnels</strong> → 點擊「Create a Tunnel」</span></li>
+              <li><span class="guide-step-num">3</span><span>選「Cloudflared」→ 輸入 Tunnel 名稱（例如 <code class="setup-code">yt-downloader</code>）→ 點「Save Tunnel」</span></li>
+              <li><span class="guide-step-num">4</span><span>在「Install connector」頁面，複製顯示的 Token（以 <code class="setup-code">eyJ</code> 開頭的長字串）</span></li>
+              <li><span class="guide-step-num">5</span><span>回到 YouTube Downloader Web UI → <strong>⚙️ 設定</strong> → Cloudflare Tunnel 面板 → 選「🔑 Token Tunnel」→ 貼上 Token → 點「🚀 啟動 Tunnel」</span></li>
+              <li><span class="guide-step-num">6</span><span>回到 Cloudflare Dashboard → 你的 Tunnel → 「Configure」→「Public Hostname」→「Add a public hostname」→ 填入網域，Service 選 <code class="setup-code">HTTP</code>，URL 填 <code class="setup-code">localhost:3847</code> → 儲存</span></li>
+            </ol>
+            <div class="guide-tip">💡 Token Tunnel 網址永久固定，重啟後自動重連，適合長期使用。Quick Tunnel 則每次重啟都會換網址。</div>
+          </div>
         </div>
 
         <!-- FFmpeg PATH note -->
@@ -2964,8 +3032,9 @@ select option {
           <div class="install-cmd-block" style="margin-top:8px;">
             <div class="cmd-comment"># 路徑視乎你的安裝位置而定</div>
             <div>YT_DLP_PATH=C:\Users\你的用戶名\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe</div>
-            <div>FFMPEG_PATH=C:\ProgramData\chocolatey\bin\ffmpeg.exe</div>
+            <div>FFMPEG_PATH=C:\Users\你的用戶名\AppData\Local\Microsoft\WinGet\Links\ffmpeg.exe</div>
           </div>
+          <div class="guide-tip" style="margin-top:8px;">💡 如果路徑不對，可以打開 PowerShell 輸入 <code class="setup-code">where.exe ffmpeg</code> 和 <code class="setup-code">where.exe yt-dlp</code> 查看實際路徑，再填入 .env 檔案。</div>
         </div>
 
         <!-- Optional configs for Windows -->
@@ -2977,6 +3046,23 @@ select option {
             <li><strong style="color:var(--text-primary);">📂 Google Drive</strong> — 自動上傳影片（僅 WSL2 方式支援）</li>
             <li><strong style="color:var(--text-primary);">📲 Telegram 通知</strong> — 下載完成後自動通知（需要 OpenClaw CLI，僅 WSL2 方式支援）</li>
           </ul>
+        </div>
+
+        <!-- Auto-start for WSL2 -->
+        <div class="guide-section">
+          <div class="guide-section-title" style="color:var(--cyan);">💡 建議：設定開機自動啟動（方式 A WSL2）</div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:12px;">讓電腦重啟後自動啟動 YouTube Downloader，不用每次手動執行。</p>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:8px;">在 Ubuntu 視窗裡輸入：</p>
+          <div class="install-cmd-block" style="margin-top:8px;">
+            <div>crontab -e</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin:10px 0 8px;">如果問你用什麼編輯器，選 nano（輸入對應數字按 Enter）。</p>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-bottom:8px;">在最後一行加入：</p>
+          <div class="install-cmd-block" style="margin-top:8px;">
+            <div>@reboot bash ~/youtube-downloader/start.sh</div>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:8px;">然後 <span class="guide-key">Ctrl+X</span> → <span class="guide-key">Y</span> → <span class="guide-key">Enter</span> 儲存。</p>
+          <div class="guide-tip" style="margin-top:10px;">💡 <code class="setup-code">~</code> 代表你的 home 目錄，不需要改用戶名。之後每次重啟電腦後，只要打開 Ubuntu 視窗（不需要輸入任何指令），伺服器就會自動在背景啟動。</div>
         </div>
 
       </div><!-- /install-windows -->
