@@ -349,3 +349,32 @@
 - [ ] `start.sh` 自動偵測 Windows/WSL，選擇正確啟動方式
 - [ ] `.env` 工具路徑自動偵測（從 `lib/setup.js` findBinary 回填）
 - [ ] README.md 完整中英雙語版本
+
+---
+
+## Phase 15: 安裝指南全面修復 ✅（2026-03-12）
+
+### Task 15.1: Linux 安裝指南修復
+- [x] Google Drive gog CLI 安裝 — 改用 GitHub release binary（非 Homebrew）
+- [x] Cloudflare Token Tunnel 詳細步驟（6 步）
+- [x] VPS 防火牆 TCP 3847 警告
+- [x] `lib/setup.js` gog 錯誤訊息修正
+- [x] crontab auto-start 改用 `~/` 而非 hardcoded 用戶名
+
+### Task 15.2: Windows 安裝指南修復
+- [x] WSL2: 新增 gog CLI 安裝步驟（step 10）
+- [x] WSL2: pip3 externally-managed 警告
+- [x] WSL2: Ubuntu 不自動彈出後備指引
+- [x] WSL2 + Method B: 各自加 Cloudflare Tunnel（Quick + Token）
+- [x] Method B: winget 未預裝警告
+- [x] Windows ffmpeg PATH 修正（winget 正確路徑 + where.exe tip）
+- [x] 新增 WSL2 開機自動啟動章節
+
+### Task 15.3: 文件更新
+- [x] memory/2026-03-12.md
+- [x] PROGRESS.md
+- [x] TODO.md
+- [x] CLAUDE.md (checklist 新增項目)
+- [x] skills/youtube-downloader/SKILL.md
+- [x] MEMORY.md
+- [x] README.md (如有需要)

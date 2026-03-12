@@ -513,3 +513,36 @@ The hook reads `task-meta.json` to override its default routing. Never modify th
 12. **MiniMax-M2.1 不遵守空輸出指令**: prompt 說「如果 stdout 為空就不要輸出」，model 仍自行生成 "OK: ..." 文字 → prompt 需更明確用 Rules 清單，明確說 "your output must be empty (zero characters)"
 13. **git subtree push**: 從 monorepo 發佈子目錄到獨立 repo 的標準做法：`git subtree push --prefix=subdir remote branch`
 14. **Linux server Node.js 安裝**: 用 NodeSource (`curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -`) 而非 Homebrew — 更可靠，適合 Ubuntu/Debian server
+
+---
+
+### 2026-03-12 — Phase 15: 安裝指南全面修復（Linux + Windows）
+
+**Linux 安裝指南修復（5 個 Fix）** ✅
+- [x] **Fix 1**: Google Drive gog CLI 安裝方法 — 由 Homebrew 改為 GitHub Release binary 直接下載（`gogcli_0.12.0_linux_{amd64|arm64}.tar.gz`），自動偵測 CPU 架構（`ARCH=$(uname -m)`）
+- [x] **Fix 2**: Cloudflare Token Tunnel — 補充 6 步詳細指引（Zero Trust Dashboard → Create Tunnel → 取 Token → Web UI → Public Hostname）
+- [x] **Fix 3**: VPS 防火牆警告 — 在步驟 7 前加 TCP 3847 Inbound 警告（提示可用 Cloudflare Tunnel 替代）
+- [x] **Fix 4**: `lib/setup.js` 錯誤訊息 — 移除 `brew install steipete/tap/gogcli`，改為指向安裝指南說明
+- [x] **Fix 5**: crontab auto-start — 改用 `~/youtube-downloader/start.sh`（`~` 代表 home 目錄，免填用戶名）
+
+**Windows 安裝指南修復（8 個 Fix）** ✅
+- [x] **Fix 1**: WSL2 新增 gog CLI 安裝步驟（step 10）— GitHub binary download，同 Linux 方法
+- [x] **Fix 2**: WSL2 加 pip3 externally-managed-environment 錯誤警告
+- [x] **Fix 3**: WSL2 step 2 加「Ubuntu 視窗沒有自動彈出」後備指引（搜尋 Ubuntu 圖示打開）
+- [x] **Fix 4**: WSL2 新增 Cloudflare Tunnel 完整步驟（Quick Tunnel + Token Tunnel）
+- [x] **Fix 5**: Method B 前加 winget 未預裝警告（App Installer + Microsoft Store）
+- [x] **Fix 6**: Method B 新增 Cloudflare Tunnel 完整步驟（同 WSL2）
+- [x] **Fix 7**: ffmpeg PATH 範例由 Chocolatey 改為 winget Gyan.FFmpeg 正確路徑 + `where.exe` 查詢提示
+- [x] **Fix 8**: 新增 WSL2 開機自動啟動章節（`crontab @reboot bash ~/youtube-downloader/start.sh`）
+
+**三平台全面審查** ✅
+- OpenClaw: 6 步流程 + 可選功能 + 疑難排解，結構清晰，無問題
+- Linux: 8 步必要 + 3 個可選步驟（Cloudflare/GDrive/Telegram）+ 自動啟動，修復後完整
+- Windows: WSL2 10 步（含 gog）+ Cloudflare；Method B 8 步（無 GDrive）+ Cloudflare；修復後完整
+
+### 踩坑 / 學到的嘢（Phase 15）
+
+15. **gog CLI Linux 安裝**: GitHub Release 有 pre-built binary（`gogcli_linux_amd64.tar.gz`），無需 Homebrew。ARCH 偵測：`ARCH=$(uname -m); if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi`
+16. **claude --print 比 claude_code_run.py 更可靠**: wrapper 有時誤判 interactive mode（prompt 含特殊字符）→ 直接用 `/data/.npm-global/bin/claude --print --permission-mode bypassPermissions` 更穩定
+17. **Windows ffmpeg winget 路徑**: winget Gyan.FFmpeg 安裝後路徑係 `%LOCALAPPDATA%\Microsoft\WinGet\Links\ffmpeg.exe`（唔係 Chocolatey 的 `C:\ProgramData\chocolatey\bin\ffmpeg.exe`）；用 `where.exe ffmpeg` 查實際路徑
+18. **WSL2 Ubuntu 不自動彈出**: 常見問題，需後備指引（Windows 鍵搜尋「Ubuntu」打開），新用家幾乎必定遇到

@@ -470,3 +470,10 @@ The `notify-agi.sh` hook reads `task-meta.json` to override its default routing.
 53. ✅ MiniMax-M2.1 不嚴格遵守「無 stdout 時輸出空」→ prompt 需明確 Rules 清單 + "your output must be empty (zero characters)"
 54. ✅ `git subtree push --prefix=subdir remote branch` 可將 monorepo 子目錄發佈為獨立 repo
 55. ✅ Linux server Node.js 安裝用 NodeSource（`curl setup script`）而非 Homebrew — 更可靠，適合 Ubuntu/Debian server
+56. ✅ gog CLI Linux 安裝用 GitHub release binary（非 Homebrew）：`gogcli_VERSION_linux_{amd64|arm64}.tar.gz`，ARCH 偵測：`ARCH=$(uname -m); if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi`
+57. ✅ gog auth flow（headless server）：Web UI 呼叫 `spawn gog auth login`，前端 poll 輸出顯示 OAuth URL，用任何瀏覽器（包括手機）開 URL 授權，不需要 server 有 GUI
+58. ✅ Cloudflare Token Tunnel 設定流程：one.dash.cloudflare.com → Networks → Tunnels → Create → Cloudflared → 取 `eyJ...` Token → Web UI 設定頁貼上 → Configure Public Hostname（domain + HTTP localhost:3847）
+59. ✅ VPS 用家必須開放防火牆 TCP port 3847（或改用 Cloudflare Tunnel 繞過，唔需要開端口）
+60. ✅ Windows winget Gyan.FFmpeg 安裝後路徑係 `%LOCALAPPDATA%\Microsoft\WinGet\Links\ffmpeg.exe`（唔係 Chocolatey 路徑），用 `where.exe ffmpeg` 查實際路徑
+61. ✅ WSL2 Ubuntu 重啟後常見問題：視窗不自動彈出 → 按 Windows 鍵搜尋「Ubuntu」打開；安裝指南必須包含此後備指引
+62. ✅ claude --print 比 claude_code_run.py wrapper 更可靠，wrapper 有時誤判 prompt 含特殊字符而轉成 interactive mode；直接用 `claude --print --permission-mode bypassPermissions --allowedTools "Bash,Read,Edit,Write"` 最穩定

@@ -37,13 +37,14 @@ OpenClaw 會自動完成 clone、安裝依賴、設定環境變數、啟動 serv
 
 ```bash
 # 安裝 Node.js (NodeSource)
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 # 安裝系統工具
-sudo apt-get install -y ffmpeg
-sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-sudo chmod a+rx /usr/local/bin/yt-dlp
+sudo apt install -y ffmpeg python3-pip
+pip3 install yt-dlp
+# 如果出現 externally-managed-environment 錯誤：
+# pip3 install --break-system-packages yt-dlp
 
 # Clone & 啟動
 git clone https://github.com/tele02nwt/youtube-downloader.git
