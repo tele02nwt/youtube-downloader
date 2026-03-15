@@ -1722,6 +1722,200 @@ select option {
 }
 
 /* ═══════════════════════════════════════════════
+   TAB 5: STATS
+   ═══════════════════════════════════════════════ */
+.stats-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.stats-card {
+  background:
+    linear-gradient(180deg, rgba(0, 240, 255, 0.05), transparent 60%),
+    var(--bg-card);
+  border-color: rgba(0, 240, 255, 0.12);
+}
+
+.stats-card.purple {
+  background:
+    linear-gradient(180deg, rgba(139, 92, 246, 0.08), transparent 60%),
+    var(--bg-card);
+  border-color: rgba(139, 92, 246, 0.18);
+}
+
+.stats-card-label {
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.stats-card-value {
+  font-family: var(--font-heading);
+  font-size: 1.55rem;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.stats-card-value.cyan { color: var(--cyan); }
+.stats-card-value.purple { color: var(--purple); }
+.stats-card-value.green { color: var(--green); }
+.stats-card-value.pink { color: var(--pink); }
+
+.stats-card-meta {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.stats-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stats-storage-grid,
+.stats-log-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.stats-storage-row,
+.stats-log-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stats-storage-label,
+.stats-log-label {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.stats-storage-value,
+.stats-log-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.stats-chart {
+  display: grid;
+  gap: 12px;
+}
+
+.stats-chart-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 120px) 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.stats-chart-label,
+.stats-activity-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.stats-chart-track {
+  position: relative;
+  overflow: hidden;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+}
+
+.stats-chart-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.18);
+}
+
+.stats-chart-bar.purple {
+  background: linear-gradient(90deg, var(--purple), var(--pink));
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.22);
+}
+
+.stats-chart-value {
+  min-width: 32px;
+  text-align: right;
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.stats-activity-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+  min-height: 190px;
+}
+
+.stats-activity-day {
+  display: grid;
+  gap: 8px;
+  align-items: end;
+}
+
+.stats-activity-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  min-height: 136px;
+}
+
+.stats-activity-bar {
+  width: 16px;
+  min-height: 6px;
+  border-radius: 999px 999px 4px 4px;
+  background: linear-gradient(180deg, var(--cyan), rgba(0, 240, 255, 0.2));
+  border: 1px solid rgba(0, 240, 255, 0.18);
+}
+
+.stats-activity-bar.failed {
+  background: linear-gradient(180deg, var(--purple), rgba(139, 92, 246, 0.2));
+  border-color: rgba(139, 92, 246, 0.18);
+}
+
+.stats-activity-meta {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.stats-empty {
+  padding: 30px 20px;
+  border: 1px dashed rgba(0, 240, 255, 0.18);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */
 @media (max-width: 640px) {
@@ -1732,6 +1926,10 @@ select option {
   .dl-row { flex-direction: column; }
   .tab-btn { font-size: 0.65rem; padding: 10px 8px; letter-spacing: 1px; }
   .url-section { flex-direction: column; }
+  .stats-split { grid-template-columns: 1fr; }
+  .stats-chart-row { grid-template-columns: 80px 1fr 28px; gap: 8px; }
+  .stats-activity-chart { gap: 8px; }
+  .stats-activity-bar { width: 12px; }
 }
 
 /* ── Setup Panels (Cloudflare + Google Drive) ── */
@@ -1840,6 +2038,7 @@ select option {
     <button class="tab-btn" data-tab="manager">管理</button>
     <button class="tab-btn" data-tab="files">📁 文件</button>
     <button class="tab-btn" data-tab="logs">日誌</button>
+    <button class="tab-btn" data-tab="stats">Stats</button>
     <button class="tab-btn" data-tab="health">Health</button>
     <button class="tab-btn" data-tab="workflow">架構</button>
     <button class="tab-btn" data-tab="install">安裝</button>
@@ -2142,6 +2341,18 @@ select option {
     <!-- Load more -->
     <div style="text-align:center;padding:12px;display:none;" id="log-load-more-wrap">
       <button class="btn btn-cyan btn-sm" id="log-load-more" onclick="loadMoreLogs()">載入更多</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB 5: STATS
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-stats">
+    <div class="stats-layout">
+      <div class="panel">
+        <div class="panel-header">// Download Analytics</div>
+        <div id="stats-content" class="stats-empty">Open the Stats tab to load analytics.</div>
+      </div>
     </div>
   </div>
 
@@ -3733,6 +3944,7 @@ const state = {
   pollTimer: null,
   deleteCallback: null,
   healthDiagnostics: null,
+  stats: null,
 };
 
 /* ═══════════════════════════════════════════════
@@ -3846,6 +4058,17 @@ function formatHealthValue(value) {
   return String(value);
 }
 
+function formatPercent(value) {
+  var num = Number(value);
+  return Number.isFinite(num) ? num + '%' : '0%';
+}
+
+function formatCompactDate(value) {
+  var date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+}
+
 /* ═══════════════════════════════════════════════
    TAB SWITCHING
    ═══════════════════════════════════════════════ */
@@ -3876,6 +4099,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab !== 'manager') disconnectSSE();
     if (btn.dataset.tab === 'logs') loadLogs();
+    if (btn.dataset.tab === 'stats') loadStats();
     if (btn.dataset.tab === 'health') runHealthDiagnostics();
     if (btn.dataset.tab === 'files') { loadFilesCategoryFilter(); loadFiles(); }
     if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); loadNotificationSettings(); loadUsers(); }
@@ -5140,6 +5364,156 @@ function clearAllLogs() {
 // Filter change listeners
 document.getElementById('log-filter-category').addEventListener('change', function() { loadLogs(); });
 document.getElementById('log-filter-level').addEventListener('change', function() { loadLogs(); });
+
+/* ═══════════════════════════════════════════════
+   TAB 5: STATS
+   ═══════════════════════════════════════════════ */
+function statsCard(label, value, tone, meta, extraClass) {
+  return '<div class="card stats-card' + (extraClass ? ' ' + extraClass : '') + '">' +
+    '<div class="stats-card-label">' + escapeHtml(label) + '</div>' +
+    '<div class="stats-card-value' + (tone ? ' ' + tone : '') + '">' + escapeHtml(String(value)) + '</div>' +
+    (meta ? '<div class="stats-card-meta">' + escapeHtml(meta) + '</div>' : '') +
+  '</div>';
+}
+
+function renderBarChart(items, tone) {
+  if (!Array.isArray(items) || !items.length) {
+    return '<div class="stats-empty">No data available.</div>';
+  }
+  var max = items.reduce(function(highest, item) {
+    return Math.max(highest, Number(item && item.value) || 0);
+  }, 0) || 1;
+  return '<div class="stats-chart">' + items.map(function(item) {
+    var value = Number(item && item.value) || 0;
+    var width = Math.max((value / max) * 100, value > 0 ? 6 : 0);
+    return '<div class="stats-chart-row">' +
+      '<div class="stats-chart-label">' + escapeHtml(item && item.label ? item.label : 'Unknown') + '</div>' +
+      '<div class="stats-chart-track"><div class="stats-chart-bar' + (tone === 'purple' ? ' purple' : '') + '" style="width:' + width + '%;"></div></div>' +
+      '<div class="stats-chart-value">' + escapeHtml(String(value)) + '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+function renderRecentActivity(items) {
+  if (!Array.isArray(items) || !items.length) {
+    return '<div class="stats-empty">No activity in the last 7 days.</div>';
+  }
+  var max = items.reduce(function(highest, item) {
+    return Math.max(highest, Number(item && item.completed) || 0, Number(item && item.failed) || 0);
+  }, 0) || 1;
+  return '<div class="stats-activity-chart">' + items.map(function(item) {
+    var completed = Number(item && item.completed) || 0;
+    var failed = Number(item && item.failed) || 0;
+    var completedHeight = Math.max((completed / max) * 120, completed > 0 ? 8 : 6);
+    var failedHeight = Math.max((failed / max) * 120, failed > 0 ? 8 : 6);
+    return '<div class="stats-activity-day">' +
+      '<div class="stats-activity-bars">' +
+        '<div class="stats-activity-bar" style="height:' + completedHeight + 'px;" title="Completed: ' + completed + '"></div>' +
+        '<div class="stats-activity-bar failed" style="height:' + failedHeight + 'px;" title="Failed: ' + failed + '"></div>' +
+      '</div>' +
+      '<div class="stats-activity-label">' + escapeHtml(formatCompactDate(item && item.date)) + '</div>' +
+      '<div class="stats-activity-meta">C ' + completed + ' / F ' + failed + '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+function renderStats(data) {
+  var content = document.getElementById('stats-content');
+  if (!content) return;
+  if (!data || !data.overview) {
+    content.className = 'stats-empty';
+    content.textContent = 'Stats are unavailable right now.';
+    return;
+  }
+
+  var overview = data.overview || {};
+  var breakdowns = data.breakdowns || {};
+  var logs = data.logs || {};
+  var generatedAt = data.generatedAt ? 'Updated ' + new Date(data.generatedAt).toLocaleString() : '';
+
+  content.className = '';
+  content.innerHTML =
+    '<div class="stats-layout">' +
+      '<div class="stats-grid">' +
+        statsCard('Total', overview.totalDownloads || 0, 'cyan', generatedAt) +
+        statsCard('Completed', overview.completedDownloads || 0, 'green', 'Finished downloads') +
+        statsCard('Active', overview.activeDownloads || 0, 'cyan', 'Currently running') +
+        statsCard('Failed', overview.failedDownloads || 0, 'pink', 'Needs attention', 'purple') +
+        statsCard('Success Rate', formatPercent(overview.successRate || 0), 'purple', 'Completed vs failed', 'purple') +
+      '</div>' +
+      '<div class="stats-split">' +
+        '<div class="panel">' +
+          '<div class="panel-header">// Storage</div>' +
+          '<div class="stats-storage-grid">' +
+            '<div class="stats-storage-row"><span class="stats-storage-label">Tracked storage</span><span class="stats-storage-value">' + escapeHtml(formatBytes(overview.storageBytes || 0)) + '</span></div>' +
+            '<div class="stats-storage-row"><span class="stats-storage-label">Average completion</span><span class="stats-storage-value">' + escapeHtml(String(overview.averageCompletionMinutes || 0)) + ' min</span></div>' +
+            '<div class="stats-storage-row"><span class="stats-storage-label">Uploaded to Drive</span><span class="stats-storage-value">' + escapeHtml(String(overview.uploadedToDrive || 0)) + '</span></div>' +
+            '<div class="stats-storage-row"><span class="stats-storage-label">Local files</span><span class="stats-storage-value">' + escapeHtml(String(overview.localFiles || 0)) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="panel">' +
+          '<div class="panel-header">// Log Summary</div>' +
+          '<div class="stats-log-summary">' +
+            '<div class="stats-log-row"><span class="stats-log-label">Total entries</span><span class="stats-log-value">' + escapeHtml(String(logs.total || 0)) + '</span></div>' +
+            '<div class="stats-log-row"><span class="stats-log-label">Today</span><span class="stats-log-value">' + escapeHtml(String(logs.today || 0)) + '</span></div>' +
+            '<div class="stats-log-row"><span class="stats-log-label">Errors</span><span class="stats-log-value">' + escapeHtml(String((logs.byLevel && logs.byLevel.error) || 0)) + '</span></div>' +
+            '<div class="stats-log-row"><span class="stats-log-label">Top category</span><span class="stats-log-value">' + escapeHtml(getTopLogCategory(logs.byCategory)) + '</span></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stats-split">' +
+        '<div class="panel"><div class="panel-header">// Category Breakdown</div>' + renderBarChart(breakdowns.byCategory, 'cyan') + '</div>' +
+        '<div class="panel"><div class="panel-header">// Format Breakdown</div>' + renderBarChart(breakdowns.byFormat, 'purple') + '</div>' +
+      '</div>' +
+      '<div class="panel">' +
+        '<div class="panel-header">// Recent Activity (7 Days)</div>' +
+        renderRecentActivity(breakdowns.recentActivity) +
+      '</div>' +
+    '</div>';
+}
+
+function getTopLogCategory(byCategory) {
+  if (!byCategory || typeof byCategory !== 'object') return 'N/A';
+  var topLabel = 'N/A';
+  var topValue = -1;
+  Object.keys(byCategory).forEach(function(key) {
+    var value = Number(byCategory[key]) || 0;
+    if (value > topValue) {
+      topValue = value;
+      topLabel = key + ' (' + value + ')';
+    }
+  });
+  return topLabel;
+}
+
+async function loadStats() {
+  var content = document.getElementById('stats-content');
+  if (content) {
+    content.className = 'stats-empty';
+    content.textContent = 'Loading stats...';
+  }
+  try {
+    var res = await fetch('/api/stats', { credentials: 'include' });
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return;
+    }
+    var contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
+    }
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || '載入統計失敗');
+    state.stats = data;
+    renderStats(data);
+  } catch (e) {
+    if (content) {
+      content.className = 'stats-empty';
+      content.textContent = '載入統計失敗: ' + e.message;
+    }
+    toast('載入統計失敗: ' + e.message, 'error');
+  }
+}
 
 /* ═══════════════════════════════════════════════
    FONT SIZE
