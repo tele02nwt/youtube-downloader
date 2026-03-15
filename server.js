@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { execFileSync, execFile: execFileCb } = require('child_process');
 const categories = require('./lib/categories');
+const templates = require('./lib/templates');
 const downloader = require('./lib/downloader');
 const auth = require('./lib/auth');
 const logger = require('./lib/logger');
@@ -181,6 +182,45 @@ app.delete('/api/categories/:id', (req, res) => {
     const cat = categories.remove(req.params.id, req.session);
     logger.info('category', `刪除分類: ${cat.name || req.params.id}`, { userId: req.session?.userId || null, categoryId: cat.id });
     res.json(cat);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// --- Templates API ---
+
+app.get('/api/templates', (req, res) => {
+  try {
+    res.json(templates.list(req.session));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.post('/api/templates', (req, res) => {
+  try {
+    const template = templates.create(req.body, req.session);
+    logger.info('template', `新增模板: ${template.name}`, { userId: req.session?.userId || null, templateId: template.id });
+    res.status(201).json(template);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.put('/api/templates/:id', (req, res) => {
+  try {
+    const template = templates.update(req.params.id, req.body, req.session);
+    res.json(template);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/templates/:id', (req, res) => {
+  try {
+    const template = templates.remove(req.params.id, req.session);
+    logger.info('template', `刪除模板: ${template.name}`, { userId: req.session?.userId || null, templateId: template.id });
+    res.json(template);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
