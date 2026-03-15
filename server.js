@@ -18,6 +18,14 @@ process.on('uncaughtException', (err) => {
   console.error('[CRITICAL] Uncaught Exception:', err);
 });
 
+function formatFileSize(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0, val = bytes;
+  while (val >= 1024 && i < units.length - 1) { val /= 1024; i++; }
+  return val.toFixed(1) + ' ' + units[i];
+}
+
 const app = express();
 const PORT = 3847;
 const COOKIES_PATH = path.join(__dirname, 'data', 'cookies.txt');
@@ -179,13 +187,13 @@ app.post('/api/download/probe', async (req, res) => {
 
 app.post('/api/download/start', (req, res) => {
   try {
-    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles } = req.body;
+    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles, scheduledAt } = req.body;
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
-    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| req.body keys:', Object.keys(req.body));
+    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| scheduledAt:', scheduledAt, '| req.body keys:', Object.keys(req.body));
     const record = downloader.startDownload({
-      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles
+      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles, scheduledAt
     });
     res.status(201).json(record);
   } catch (err) {
@@ -222,8 +230,14 @@ app.post('/api/downloads/:id/retry', (req, res) => {
 
 app.get('/api/downloads', (req, res) => {
   try {
-    const { status } = req.query;
-    res.json(downloader.listDownloads(status));
+    const { status, q, from, to, category, audioOnly } = req.query;
+    // If only status is provided (and nothing else), pass as string for backward compat
+    const hasAdvancedFilters = q || from || to || category || audioOnly;
+    if (hasAdvancedFilters) {
+      res.json(downloader.listDownloads({ status, q, from, to, category, audioOnly }));
+    } else {
+      res.json(downloader.listDownloads(status || undefined));
+    }
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -257,12 +271,185 @@ app.get('/api/downloads/stream', (req, res) => {
   });
 });
 
+// --- Download History Export (P3) ---
+app.get('/api/downloads/export', (req, res) => {
+  try {
+    const { status, q, from, to, category, audioOnly } = req.query;
+    const hasFilters = status || q || from || to || category || audioOnly;
+    const downloads = hasFilters
+      ? downloader.listDownloads({ status, q, from, to, category, audioOnly })
+      : downloader.listDownloads();
+
+    // CSV escape helper: wrap in quotes, escape internal quotes
+    function csvEscape(val) {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    const headers = ['ID', 'Title', 'URL', 'Status', 'Format', 'Category', 'Size', 'StartedAt', 'CompletedAt', 'AudioOnly', 'GDriveLink'];
+    const rows = downloads.map(d => [
+      csvEscape(d.id),
+      csvEscape(d.title),
+      csvEscape(d.url),
+      csvEscape(d.status),
+      csvEscape(d.audioOnly ? (d.audioFormat || 'mp3') : (d.remuxFormat || 'mp4')),
+      csvEscape(d.categoryName || '未分類'),
+      csvEscape(d.filesize || ''),
+      csvEscape(d.createdAt || ''),
+      csvEscape(d.completedAt || ''),
+      csvEscape(d.audioOnly ? 'true' : 'false'),
+      csvEscape(d.gdriveLink || '')
+    ].join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const dateStr = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="downloads-${dateStr}.csv"`);
+    // Add BOM for Excel UTF-8 compatibility
+    res.send('\uFEFF' + csv);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// --- Cancel scheduled download (P3) ---
+app.post('/api/downloads/:id/cancel-schedule', (req, res) => {
+  try {
+    downloader.cancelSchedule(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/downloads/:id', (req, res) => {
   try {
     const removed = downloader.deleteDownload(req.params.id);
     res.json(removed);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// --- Files API (P3: Local File Browser & Player) ---
+
+app.get('/api/files', (req, res) => {
+  try {
+    const basePath = '/data/youtube-downloads';
+    if (!fs.existsSync(basePath)) return res.json({ files: [] });
+
+    const files = [];
+    const cats = categories.list();
+    const downloads = downloader.getDownloads();
+
+    function scanDir(dir, categoryName) {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir);
+      for (const name of entries) {
+        const fullPath = path.join(dir, name);
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          const cat = cats.find(c => c.name === name);
+          if (cat) scanDir(fullPath, name);
+          continue;
+        }
+        const ext = path.extname(name).toLowerCase();
+        const mimeMap = {
+          '.mp4': 'video/mp4', '.mkv': 'video/x-matroska', '.mov': 'video/quicktime',
+          '.webm': 'video/webm', '.avi': 'video/x-msvideo',
+          '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.opus': 'audio/opus',
+          '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.flac': 'audio/flac',
+          '.srt': 'text/srt', '.vtt': 'text/vtt'
+        };
+        const mimeType = mimeMap[ext] || 'application/octet-stream';
+        const dl = downloads.find(d => d.localPath === fullPath);
+        files.push({
+          name, path: fullPath, size: stat.size,
+          sizeHuman: formatFileSize(stat.size),
+          mtime: stat.mtimeMs, category: categoryName || '未分類',
+          mimeType, downloadId: dl ? dl.id : null
+        });
+      }
+    }
+
+    scanDir(basePath, '未分類');
+    files.sort((a, b) => b.mtime - a.mtime);
+
+    const catFilter = req.query.category;
+    const filtered = catFilter ? files.filter(f => f.category === catFilter) : files;
+
+    res.json({ files: filtered });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/files/serve/:encodedPath', (req, res) => {
+  try {
+    const filePath = decodeURIComponent(req.params.encodedPath);
+    const basePath = '/data/youtube-downloads';
+    const resolved = path.resolve(filePath);
+    if (!resolved.startsWith(basePath)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    const stat = fs.statSync(resolved);
+    const ext = path.extname(resolved).toLowerCase();
+    const mimeMap = {
+      '.mp4': 'video/mp4', '.mkv': 'video/x-matroska', '.mov': 'video/quicktime',
+      '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4',
+      '.opus': 'audio/opus', '.wav': 'audio/wav', '.ogg': 'audio/ogg',
+      '.flac': 'audio/flac', '.srt': 'text/plain', '.vtt': 'text/vtt'
+    };
+    const contentType = mimeMap[ext] || 'application/octet-stream';
+
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+      const chunkSize = end - start + 1;
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunkSize,
+        'Content-Type': contentType,
+      });
+      fs.createReadStream(resolved, { start, end }).pipe(res);
+    } else {
+      res.writeHead(200, {
+        'Content-Length': stat.size,
+        'Content-Type': contentType,
+      });
+      fs.createReadStream(resolved).pipe(res);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/files/:encodedPath', (req, res) => {
+  try {
+    const filePath = decodeURIComponent(req.params.encodedPath);
+    const basePath = '/data/youtube-downloads';
+    const resolved = path.resolve(filePath);
+    if (!resolved.startsWith(basePath)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    fs.unlinkSync(resolved);
+    logger.info('system', `文件已刪除: ${path.basename(resolved)}`);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

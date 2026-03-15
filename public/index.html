@@ -1532,6 +1532,7 @@ select option {
     <button class="tab-btn active" data-tab="categories">分類</button>
     <button class="tab-btn" data-tab="download">下載</button>
     <button class="tab-btn" data-tab="manager">管理</button>
+    <button class="tab-btn" data-tab="files">📁 文件</button>
     <button class="tab-btn" data-tab="logs">日誌</button>
     <button class="tab-btn" data-tab="workflow">架構</button>
     <button class="tab-btn" data-tab="install">安裝</button>
@@ -1657,6 +1658,19 @@ select option {
           </div>
         </div>
 
+        <div class="format-section" id="schedule-section">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="schedule-toggle" onchange="toggleSchedule()" autocomplete="off" data-form-type="other">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="schedule-toggle" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--text-primary);cursor:pointer;">排程下載</label>
+          </div>
+          <div id="schedule-datetime-row" style="display:none;">
+            <input type="datetime-local" id="schedule-datetime" autocomplete="off" data-form-type="other" style="padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;width:100%;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+        </div>
+
         <div class="start-section">
           <button class="btn btn-green btn-lg btn-start" id="start-btn">開始下載</button>
         </div>
@@ -1727,6 +1741,37 @@ select option {
     <div class="empty-state" id="mgr-empty">
       <div class="empty-icon">&#x2B21;</div>
       <p>NO DOWNLOAD RECORDS</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB: FILES
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-files">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div class="panel-header" style="margin:0;">// 本地文件</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="files-category-filter" onchange="loadFiles()" style="padding:8px 12px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.8rem;border-radius:var(--radius);outline:none;">
+          <option value="">全部分類</option>
+        </select>
+        <span id="files-count" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></span>
+      </div>
+    </div>
+    <div id="files-list" class="dl-list"></div>
+    <div class="empty-state" id="files-empty" style="display:none;">
+      <div class="empty-icon">&#x2B21;</div>
+      <p>NO FILES FOUND</p>
+    </div>
+
+    <!-- Inline player modal -->
+    <div id="player-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)closePlayer()">
+      <div style="max-width:900px;width:100%;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);">
+          <div id="player-title" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;"></div>
+          <button onclick="closePlayer()" style="background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer;padding:4px 8px;">&#x2715;</button>
+        </div>
+        <div id="player-container" style="padding:16px;"></div>
+      </div>
     </div>
   </div>
 
@@ -3291,6 +3336,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab !== 'manager') disconnectSSE();
     if (btn.dataset.tab === 'logs') loadLogs();
+    if (btn.dataset.tab === 'files') { loadFilesCategoryFilter(); loadFiles(); }
     if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); }
   });
 });
@@ -3579,6 +3625,41 @@ function toggleAudioOnly() {
   document.getElementById('video-quality-section').style.display = state.audioOnly ? 'none' : 'block';
   document.getElementById('format-btns').parentElement.style.display = state.audioOnly ? 'none' : 'block';
   document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+  // Reset schedule button text if schedule is off
+  var schedTog = document.getElementById('schedule-toggle');
+  if (schedTog && !schedTog.checked) {
+    document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+  }
+}
+
+// --- P3: Schedule toggle ---
+function toggleSchedule() {
+  var checked = document.getElementById('schedule-toggle').checked;
+  var row = document.getElementById('schedule-datetime-row');
+  var btn = document.getElementById('start-btn');
+  row.style.display = checked ? 'block' : 'none';
+
+  if (checked) {
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(2, 0, 0, 0);
+    var dtInput = document.getElementById('schedule-datetime');
+    dtInput.value = tomorrow.toISOString().slice(0, 16);
+    updateScheduleButtonText();
+    dtInput.addEventListener('change', updateScheduleButtonText);
+  } else {
+    btn.textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+  }
+}
+
+function updateScheduleButtonText() {
+  var btn = document.getElementById('start-btn');
+  var dtInput = document.getElementById('schedule-datetime');
+  if (dtInput && dtInput.value) {
+    var dt = new Date(dtInput.value);
+    var formatted = dt.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+    btn.textContent = '排程 (' + formatted + ')';
+  }
 }
 
 // Start download
@@ -3627,8 +3708,17 @@ async function startDownload() {
     var selectedSubs = getSelectedSubtitles();
     if (selectedSubs.length > 0) body.subtitles = selectedSubs;
 
+    // Schedule support (P3)
+    var scheduleToggle = document.getElementById('schedule-toggle');
+    if (scheduleToggle && scheduleToggle.checked) {
+      var dtInput = document.getElementById('schedule-datetime');
+      if (dtInput && dtInput.value) {
+        body.scheduledAt = new Date(dtInput.value).toISOString();
+      }
+    }
+
     await api('POST', '/download/start', body);
-    toast('下載已開始');
+    toast(body.scheduledAt ? '排程下載已建立' : '下載已開始');
 
     // Switch to manager tab
     document.querySelector('.tab-btn[data-tab="manager"]').click();
@@ -3664,7 +3754,7 @@ async function loadDownloads() {
 }
 
 function renderDownloads() {
-  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending' || d.status === 'queued');
+  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending' || d.status === 'queued' || d.status === 'scheduled');
   const completed = state.downloads.filter(d => d.status === 'completed');
   const errors = state.downloads.filter(d => d.status === 'error');
 
@@ -3684,15 +3774,25 @@ function renderDownloads() {
 }
 
 function statusClass(s) {
-  return { downloading: 'status-downloading', merging: 'status-merging', uploading: 'status-uploading', completed: 'status-completed', error: 'status-error', pending: 'status-pending', queued: 'status-pending' }[s] || 'status-pending';
+  return { downloading: 'status-downloading', merging: 'status-merging', uploading: 'status-uploading', completed: 'status-completed', error: 'status-error', pending: 'status-pending', queued: 'status-pending', scheduled: 'status-pending' }[s] || 'status-pending';
 }
 
 function statusLabel(s) {
-  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中', queued: '排隊中' }[s] || s;
+  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中', queued: '排隊中', scheduled: '排程中' }[s] || s;
 }
 
 function renderActiveCard(d) {
   var pct = d.progress || 0;
+  var scheduleHtml = '';
+  if (d.status === 'scheduled' && d.scheduledAt) {
+    var remaining = new Date(d.scheduledAt).getTime() - Date.now();
+    var hours = Math.floor(Math.max(0, remaining) / 3600000);
+    var mins = Math.floor((Math.max(0, remaining) % 3600000) / 60000);
+    scheduleHtml = '<div style="padding:4px 16px 8px;display:flex;align-items:center;justify-content:space-between;">' +
+      '<span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--yellow);">排程中 · 剩餘 ' + hours + 'h ' + mins + 'm</span>' +
+      '<button class="btn btn-pink" style="font-size:0.75rem;padding:4px 12px;" onclick="cancelSchedule(\'' + d.id + '\')">取消排程</button>' +
+    '</div>';
+  }
   return '<div class="card dl-card">' +
     '<div class="dl-card-top">' +
       '<div class="dl-card-info">' +
@@ -3705,14 +3805,15 @@ function renderActiveCard(d) {
       '</div>' +
       '<span class="status-badge ' + statusClass(d.status) + '">' + statusLabel(d.status) + '</span>' +
     '</div>' +
-    '<div class="progress-wrap">' +
+    scheduleHtml +
+    (d.status !== 'scheduled' ? '<div class="progress-wrap">' +
       '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
       '<div class="progress-stats">' +
         '<span class="pct">' + pct.toFixed(1) + '%</span>' +
         '<span>' + (d.speed || '') + '</span>' +
         '<span>' + (d.eta || '') + '</span>' +
       '</div>' +
-    '</div>' +
+    '</div>' : '') +
   '</div>';
 }
 
@@ -3755,6 +3856,17 @@ function renderErrorCard(d) {
     '</div>' +
   '</div>';
 }
+
+// --- P3: Cancel scheduled download ---
+window.cancelSchedule = async function(id) {
+  try {
+    await api('POST', '/downloads/' + id + '/cancel-schedule');
+    toast('排程已取消');
+    loadDownloads();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+};
 
 window.deleteDownload = function(id) {
   showModal('確定要刪除此下載記錄嗎？', async () => {
@@ -3970,6 +4082,105 @@ window.startPlaylistDownload = async function() {
   setTimeout(function() {
     document.querySelector('.tab-btn[data-tab="manager"]').click();
   }, 1000);
+};
+
+/* ═══════════════════════════════════════════════
+   TAB: FILES (P3)
+   ═══════════════════════════════════════════════ */
+async function loadFiles() {
+  try {
+    var catFilter = document.getElementById('files-category-filter').value;
+    var params = catFilter ? '?category=' + encodeURIComponent(catFilter) : '';
+    var data = await api('GET', '/files' + params);
+    var files = data.files || [];
+
+    var countEl = document.getElementById('files-count');
+    countEl.textContent = files.length + ' 個文件';
+
+    var list = document.getElementById('files-list');
+    var empty = document.getElementById('files-empty');
+
+    if (files.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    list.innerHTML = files.map(function(f) {
+      var isVideo = f.mimeType.startsWith('video/');
+      var isAudio = f.mimeType.startsWith('audio/');
+      var icon = isVideo ? '🎬' : isAudio ? '🎵' : '📄';
+      var date = new Date(f.mtime).toLocaleDateString('zh-TW');
+      var encodedPath = encodeURIComponent(f.path);
+
+      return '<div class="card dl-card">' +
+        '<div class="dl-card-top">' +
+          '<div class="dl-card-info">' +
+            '<div class="dl-card-title">' + icon + ' ' + escapeHtml(f.name) + '</div>' +
+            '<div class="dl-card-meta">' +
+              '<span>' + escapeHtml(f.sizeHuman) + '</span>' +
+              '<span>' + date + '</span>' +
+              '<span style="color:var(--purple)">' + escapeHtml(f.category) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dl-card-actions">' +
+          (isVideo || isAudio ? '<button class="btn btn-cyan" onclick="openPlayer(\'' + encodedPath.replace(/'/g, "\\'") + '\',\'' + escapeHtml(f.name).replace(/'/g, "\\'") + '\',\'' + (isVideo ? 'video' : 'audio') + '\')">▶ 播放</button>' : '') +
+          '<a href="/api/files/serve/' + encodedPath + '" download="' + escapeHtml(f.name) + '" class="btn" style="color:var(--text-secondary);border:1px solid var(--border);text-decoration:none;">📥 下載</a>' +
+          '<button class="btn btn-pink" onclick="deleteFile(\'' + encodedPath.replace(/'/g, "\\'") + '\')">刪除</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    toast('載入文件失敗: ' + e.message, 'error');
+  }
+}
+
+async function loadFilesCategoryFilter() {
+  try {
+    var cats = await api('GET', '/categories');
+    var sel = document.getElementById('files-category-filter');
+    var prev = sel.value;
+    sel.innerHTML = '<option value="">全部分類</option>' + cats.map(function(c) {
+      return '<option value="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>';
+    }).join('');
+    if (prev) sel.value = prev;
+  } catch(e) {}
+}
+
+function openPlayer(encodedPath, name, type) {
+  var modal = document.getElementById('player-modal');
+  var container = document.getElementById('player-container');
+  var titleEl = document.getElementById('player-title');
+  titleEl.textContent = decodeURIComponent(name);
+
+  var src = '/api/files/serve/' + encodedPath;
+  if (type === 'video') {
+    container.innerHTML = '<video controls autoplay style="width:100%;max-height:500px;background:#000;" src="' + src + '"></video>';
+  } else {
+    container.innerHTML = '<audio controls autoplay style="width:100%;" src="' + src + '"></audio>';
+  }
+  modal.style.display = 'flex';
+}
+
+function closePlayer() {
+  var modal = document.getElementById('player-modal');
+  var container = document.getElementById('player-container');
+  container.innerHTML = '';
+  modal.style.display = 'none';
+}
+
+window.deleteFile = function(encodedPath) {
+  showModal('確定要刪除此文件嗎？此操作不可恢復。', async function() {
+    try {
+      await api('DELETE', '/files/' + encodedPath);
+      toast('文件已刪除');
+      loadFiles();
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  });
 };
 
 /* ═══════════════════════════════════════════════
