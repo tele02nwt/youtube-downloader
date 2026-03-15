@@ -437,3 +437,54 @@
 ### P4 Features — Commit 6448dd5
 - [x] **Multi-Channel Notifications**: New `lib/notifier.js` — Telegram + Discord webhook + Generic webhook (HMAC-SHA256), test button per channel
 - [x] **Multi-User Support**: New `lib/users.js` — admin/user roles, per-user downloads, auto-migrates env credentials as admin, user management UI
+
+---
+
+## Phase 18: Code Refactor Sprint ✅（2026-03-15 下午）
+
+### Code Review + Brainstorm（10 Ideas）
+- [x] Split server.js → route modules
+- [x] Split index.html → JS modules  
+- [x] Tenant isolation → 完善多用戶數據隔離
+- [x] Argon2 password → 升級密碼 hashing
+- [x] SQLite → 取代 JSON 存儲（未做）
+- [x] Job recovery → 重啟後恢復排程 job（未做）
+- [x] Rate limiting → auth 路由限速
+- [x] Health diagnostics → 診斷頁面（早上已完成）
+- [x] Thumbnail preview → 下載列表顯示縮圖（早上已完成）
+- [x] Automated tests → 自動化測試
+
+### 完成 Features — Commits: 14cd334, abd235f, c4a19da, 6f177a7
+
+#### #1 Split server.js into route modules
+- [x] Create `routes/` folder with 10 route files
+- [x] Each exports `register(app)` function
+- [x] `createApp()` loops through routeModules
+
+#### #2 Split index.html into smaller JS modules  
+- [x] `public/js/state.js` — app state
+- [x] `public/js/api.js` — fetch wrappers
+- [x] `public/js/ui.js` — toast, modal, theme functions
+- [x] `public/js/tabs.js` — tab switching logic
+
+#### #4 Argon2 password hashing
+- [x] Add `lib/passwords.js` with argon2
+- [x] Falls back to SHA-256 for existing hashes
+- [x] Auto-rehash on login
+
+#### #7 Rate limiting for auth routes
+- [x] In-memory rate limiter (5 attempts / 15 min)
+- [x] Applied to `/api/auth/login`, `/api/auth/update-credentials`, `/api/auth/forgot-password`, `/api/auth/verify-code`
+
+#### #9 Multi-language UI (zh-TW/en)
+- [x] Add `public/js/i18n.js` runtime
+- [x] Add `public/i18n/zh-TW.json` dictionary
+- [x] Add `public/i18n/en.json` dictionary
+- [x] Add language toggle in header
+- [x] localStorage persistence
+
+#### #10 Automated tests
+- [x] `tests/run-tests.js` — test runner
+- [x] `tests/auth.test.js` — password module tests
+- [x] `tests/app-routes.test.js` — route registration tests
+- [x] `tests/public-index-modules.test.js` — frontend module split tests

@@ -640,3 +640,33 @@ The hook reads `task-meta.json` to override its default routing. Never modify th
 25. **In-memory state pattern**: Keep active state in Map, periodic flush every 5s via setInterval, flush immediately on terminal states. Always merge memory over disk on read.
 26. **SSE pattern for Node.js**: Use EventEmitter in data layer, server listens and broadcasts. Keep client set capped (max 10), send keepalive every 30s, clean up on req.close().
 27. **Multi-user migration**: `migrateFromEnv()` on startup automatically promotes existing env-var credentials to admin user in users.json. Backward compat via fallback to env-var auth if users.json absent.
+
+---
+
+### 2026-03-15 下午 — Phase 18: Code Refactor Sprint
+
+**Phase 18: Code Refactor Sprint** ✅ (WALL-E + Codex)
+
+- [x] #1 Split server.js → 10 route modules
+- [x] #2 Split index.html → 4 JS modules (state/api/ui/tabs)
+- [x] #4 Argon2 password hashing (with SHA-256 fallback)
+- [x] #7 Auth rate limiting (5 attempts/15min in-memory)
+- [x] #9 Multi-language UI (zh-TW/en with header toggle)
+- [x] #10 Automated tests (run-tests + 4 test files)
+
+**Commits:** 14cd334, abd235f, c4a19da, 6f177a7
+
+**新增檔案：**
+- `routes/` — 10 個獨立的 route modules
+- `public/js/` — state.js, api.js, ui.js, tabs.js, i18n.js
+- `public/i18n/` — zh-TW.json, en.json
+- `lib/passwords.js` — Argon2 密碼模組
+- `tests/` — run-tests.js, auth.test.js, app-routes.test.js, public-index-modules.test.js
+
+### 踩坑 / 學到的嘢（Phase 18）
+
+28. **Route modules pattern**: Each route file exports `register(app)` function, server.js loops through `routeModules.forEach(m => m.register(app))`, context passed via `app.locals.routeContext`.
+29. **In-memory rate limiter**: Simple Map with key=IP, value={count, resetAt}. Reset after windowMs, return 429 if exceeds max.
+30. **i18n runtime**: Use DOM TreeWalker to translate all text nodes, querySelectorAll for [placeholder], [title], [aria-label]. Load JSON dictionaries on demand, fallback to zh-TW.
+31. **Frontend module split**: Keep original inline script structure as aliases (`const state = window.state`), extract definitions to separate files that attach to window.
+32. **Test isolation**: Each test file backup/restore JSON data files, use unique test user IDs to avoid conflicts.

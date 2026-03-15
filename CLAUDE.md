@@ -587,3 +587,49 @@ POST   /api/probe/playlist         # probe playlist URL, returns up to 50 entrie
 83. ✅ Multi-user migration：server startup 時 call `migrateFromEnv()`，自動將 env-var credentials 升級為 admin user（idempotent）
 84. ✅ `requireAdmin` middleware：`if (!req.session?.role === 'admin') return res.status(403)`
 85. ✅ Claude Code `--print` 輸出有時過早結束（只返回 summary）→ 加 `--output-format text` + `tee file` + `cat file` 確保完整輸出
+
+---
+
+## Phase 18: Code Refactor Sprint（2026-03-15 下午）
+
+### 新增模組
+- `routes/` — 10 個獨立的 route modules（auth, categories, templates, downloads, stats, health, logs, users, files, settings）
+- `lib/passwords.js` — Argon2 密碼模組（with SHA-256 fallback）
+- `public/js/i18n.js` — 多語言 runtime
+- `public/i18n/` — zh-TW.json, en.json
+
+### 新增 API 端點（Phase 18）
+```
+# Templates (new)
+GET    /api/templates              # list user templates
+POST   /api/templates              # create template
+PUT    /api/templates/:id          # update template
+DELETE /api/templates/:id          # delete template
+
+# Stats (new)
+GET    /api/stats                  # download statistics
+
+# Health (new)
+GET    /api/health/diagnostics    # detailed system diagnostics
+```
+
+### 前端新增
+- `public/js/state.js` — app state
+- `public/js/api.js` — fetch wrappers
+- `public/js/ui.js` — toast, modal, theme functions
+- `public/js/tabs.js` — tab switching
+- `public/js/i18n.js` — i18n runtime
+- Header: Language toggle button (EN/繁中)
+
+### 測試
+- `tests/run-tests.js` — test runner
+- `tests/auth.test.js` — password module tests
+- `tests/app-routes.test.js` — route registration tests
+- `tests/public-index-modules.test.js` — frontend module split tests
+
+### Checklist 新增項目（Phase 18）
+86. ✅ Route modules pattern：每個 route file exports `register(app)`，server.js `routeModules.forEach(m => m.register(app))`
+87. ✅ In-memory rate limiter：Map<key, {count, resetAt}>，每次 request check + increment，超過 max 返回 429
+88. ✅ i18n runtime：DOM TreeWalker 翻譯所有 text nodes，`querySelectorAll('[placeholder],[title],[aria-label]')` 翻譯 attributes
+89. ✅ Frontend module split：extract definitions to files that attach to window，inline script 留 alias
+90. ✅ Test isolation：每個 test file backup/restore JSON data，用 unique test user IDs 避免衝突
