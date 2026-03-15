@@ -427,7 +427,7 @@ html[data-theme="light"] .theme-icon-moon {
 
 .health-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 14px;
 }
 
@@ -2041,8 +2041,8 @@ select option {
     <button class="tab-btn" data-tab="manager">📥 管理</button>
     <button class="tab-btn" data-tab="files">📁 文件</button>
     <button class="tab-btn" data-tab="logs">📋 日誌</button>
-    <button class="tab-btn" data-tab="stats">📊 Stats</button>
-    <button class="tab-btn" data-tab="health">💚 Health</button>
+    <button class="tab-btn" data-tab="stats">📊 統計</button>
+    <button class="tab-btn" data-tab="health">💚 健康</button>
     <button class="tab-btn" data-tab="workflow">🔧 架構</button>
     <button class="tab-btn" data-tab="install">⚡ 安裝</button>
     <button class="tab-btn" data-tab="guide">📖 指南</button>
@@ -2335,7 +2335,7 @@ select option {
   <div class="tab-content" id="tab-stats">
     <div class="stats-layout">
       <div class="panel">
-        <div class="panel-header">// Download Analytics</div>
+        <div class="panel-header">// 下載統計</div>
         <div id="stats-content" class="stats-empty">Open the Stats tab to load analytics.</div>
       </div>
     </div>
@@ -2343,7 +2343,7 @@ select option {
 
   <div class="tab-content" id="tab-health">
     <div class="panel">
-      <div class="panel-header">// Health Diagnostics</div>
+      <div class="panel-header">// 健康診斷</div>
       <div class="health-toolbar">
         <div class="health-summary">
           <span id="health-overall-dot" class="status-dot fail"></span>
@@ -6053,19 +6053,6 @@ async function deleteUser(id, username) {
 /* ═══════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════ */
-loadCategories();
-loadCategorySelect();
-checkCookieStatus();
-loadAccountInfo();
-loadSpeedLimit();
-loadUserInfo();
-loadNotificationSettings();
-</script>
-</body>
-</html>
->
-</html>
-�═════════════════════ */
 loadCategories();
 loadCategorySelect();
 checkCookieStatus();
