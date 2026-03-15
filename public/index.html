@@ -193,7 +193,7 @@ body::after {
 .app-container {
   position: relative;
   z-index: 1;
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 24px 20px 60px;
 }
@@ -2019,7 +2019,7 @@ select option {
           <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
           <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
         </button>
-        <button class="theme-toggle" id="language-toggle" type="button" title="Language" aria-label="Language" onclick="setLanguage(getCurrentLanguage()==='zh-TW'?'en':'zh-TW')">EN</button>
+        <button class="theme-toggle" id="language-toggle" type="button" title="Language" aria-label="Language">EN</button>
       </div>
     </div>
   </header>
@@ -2036,23 +2036,20 @@ select option {
 
   <!-- TAB NAV -->
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="categories">分類</button>
-    <button class="tab-btn" data-tab="download">下載</button>
-    <button class="tab-btn" data-tab="manager">管理</button>
+    <button class="tab-btn active" data-tab="categories">🏷️ 分類</button>
+    <button class="tab-btn" data-tab="download">⬇️ 下載</button>
+    <button class="tab-btn" data-tab="manager">📥 管理</button>
     <button class="tab-btn" data-tab="files">📁 文件</button>
-    <button class="tab-btn" data-tab="logs">日誌</button>
-    <button class="tab-btn" data-tab="stats">Stats</button>
-    <button class="tab-btn" data-tab="health">Health</button>
-    <button class="tab-btn" data-tab="workflow">架構</button>
-    <button class="tab-btn" data-tab="install">安裝</button>
-    <button class="tab-btn" data-tab="guide">指南</button>
+    <button class="tab-btn" data-tab="logs">📋 日誌</button>
+    <button class="tab-btn" data-tab="stats">📊 Stats</button>
+    <button class="tab-btn" data-tab="health">💚 Health</button>
+    <button class="tab-btn" data-tab="workflow">🔧 架構</button>
+    <button class="tab-btn" data-tab="install">⚡ 安裝</button>
+    <button class="tab-btn" data-tab="guide">📖 指南</button>
     <span id="user-badge" style="margin-left:auto;font-size:0.7rem;color:var(--text-dim);display:flex;align-items:center;gap:6px;"></span>
     <button class="tab-btn" data-tab="settings" style="font-size:0.65rem;">⚙️</button>
   </nav>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 1: CATEGORIES
-       ═══════════════════════════════════════════ -->
   <div class="tab-content active" id="tab-categories">
     <div class="panel">
       <div class="panel-header">// 分類管理</div>
@@ -2064,9 +2061,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 2: DOWNLOAD
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-download">
     <div class="panel">
       <div class="panel-header">// 影片分析</div>
@@ -2222,9 +2216,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 3: MANAGER
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-manager">
     <div id="queue-status-bar" style="display:none;padding:10px 16px;margin-bottom:12px;background:rgba(0,240,255,0.06);border:1px solid rgba(0,240,255,0.15);border-radius:var(--radius);font-family:var(--font-mono);font-size:0.8rem;color:var(--cyan);"></div>
     <div class="mgr-section" id="mgr-active-section">
@@ -2254,9 +2245,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB: FILES
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-files">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
       <div class="panel-header" style="margin:0;">// 本地文件</div>
@@ -2285,9 +2273,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 4: LOGS
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-logs">
     <!-- Stats bar -->
     <div class="panel" style="padding:16px 24px;">
@@ -2347,9 +2332,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 5: STATS
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-stats">
     <div class="stats-layout">
       <div class="panel">
@@ -2359,9 +2341,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB: HEALTH
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-health">
     <div class="panel">
       <div class="panel-header">// Health Diagnostics</div>
@@ -2376,9 +2355,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB 5: SETTINGS
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-settings">
 
     <!-- ═══ 1. 帳號與安全 ═══ -->
@@ -2811,9 +2787,6 @@ select option {
   </div>
 </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB: GUIDE
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-guide">
     <div class="panel" style="padding:20px 24px;">
       <div class="panel-header" style="margin-bottom:20px;">// 使用指南 — USER GUIDE</div>
@@ -3128,9 +3101,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB: WORKFLOW
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-workflow">
     <div class="panel" style="padding:20px;">
       <div class="panel-header">// 系統架構流程圖</div>
@@ -3141,9 +3111,6 @@ select option {
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       TAB: INSTALL GUIDE
-       ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-install">
     <div class="panel" style="padding:20px 24px;">
       <div class="panel-header" style="margin-bottom:20px;">// 安裝指南 — INSTALLATION GUIDE</div>
