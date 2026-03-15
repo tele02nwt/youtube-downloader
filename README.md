@@ -2,7 +2,7 @@
 
 > A self-hosted YouTube downloader web app with a Cyber/Futuristic UI
 
-一個自架 YouTube 影片下載器 Web App，提供 Cyber 風格介面，支援影片下載、分類管理、Google Drive 自動上傳、Telegram 通知。
+一個自架 YouTube 影片下載器 Web App，提供 Cyber 風格介面，支援影片下載、分類管理、Google Drive 自動上傳、多頻道通知。
 
 > 📸 Screenshot coming soon
 
@@ -10,15 +10,36 @@
 
 ## ✨ Features / 功能
 
+### 核心功能
 - 📥 **影片下載** — 支援 YouTube 及其他 yt-dlp 支援的平台，自動選擇最佳畫質
+- 🎵 **純音頻下載** — MP3 / M4A / OPUS / WAV 格式選擇
+- 📋 **播放清單支援** — 自動偵測 Playlist URL，批量選擇下載
+- 📝 **字幕下載** — 嵌入字幕或獨立 .srt 文件，支援自動生成字幕
 - 📅 **日期前綴** — 檔名自動加上影片上傳日期（如 `20260302-title.mp4`）
-- ☁️ **Google Drive** — 下載完成自動上傳，按分類整理（可選）
-- 📲 **Telegram 通知** — 下載完成即時推送（可選，需 OpenClaw）
+- ⏰ **排程下載** — 指定時間下載，支援倒計時顯示
+
+### 管理功能
+- ⏳ **下載佇列** — 最多 3 個並發下載，其餘自動排隊
+- 🔄 **失敗重試** — 一鍵重試失敗的下載
+- 📡 **即時進度** — SSE 串流推送（非 polling），即時更新
+- 🚦 **速度限制** — 全局或每次下載獨立設定（1/2/5/10 MB/s）
 - 📁 **分類管理** — 支援拖曳排序
-- 📋 **Activity Log** — 完整記錄下載、上傳、登入等操作
-- 🔐 **登入保護** — 帳號密碼認證 + 忘記密碼（Email 驗證碼）
-- 🌐 **Cloudflare Tunnel** — 一鍵公開存取（可選）
+- 🔍 **歷史搜尋** — 按標題/狀態/日期/分類篩選，支援 CSV 匯出
+
+### 文件管理
+- 📂 **文件瀏覽器** — 內建文件 Tab，按分類瀏覽下載文件
+- ▶️ **內嵌播放器** — HTML5 播放器直接在瀏覽器播放影片/音頻（支援 seek）
+
+### 整合功能
+- ☁️ **Google Drive** — 下載完成自動上傳，按分類整理，非同步上傳（不阻塞 server）
+- 🔔 **多頻道通知** — Telegram / Discord Webhook / Generic Webhook（含 HMAC-SHA256 簽名）
+- 🌐 **Cloudflare Tunnel** — 一鍵公開存取
 - 🍪 **YouTube Cookies** — 繞過年齡限制 / 會員內容
+- 🔄 **Auto-Update yt-dlp** — Settings UI 一鍵更新
+
+### 安全與用戶管理
+- 🔐 **登入保護** — 帳號密碼認證 + 忘記密碼（Email 驗證碼）
+- 👥 **多用戶支援** — Admin/User 角色，每個用戶獨立下載記錄
 - ⚙️ **全 Web UI 設定** — 無需手動改 config
 
 ---
@@ -96,6 +117,7 @@ wsl --install  # 安裝 Ubuntu，然後按 Linux 步驟操作
 | `YT_DLP_PATH` | | yt-dlp 路徑覆蓋 / Custom yt-dlp path |
 | `FFMPEG_PATH` | | ffmpeg 路徑覆蓋 / Custom ffmpeg path |
 | `YT_DOWNLOAD_DIR` | | 下載目錄 / Download directory (default: `/data/youtube-downloads`) |
+| `ALLOWED_ORIGIN` | | CORS 允許來源（default: `https://yt.ac02nwt.work`） |
 
 ---
 
@@ -104,9 +126,14 @@ wsl --install  # 安裝 Ubuntu，然後按 Linux 步驟操作
 啟動後瀏覽器前往 **http://localhost:3847**，用 `.env` 中的帳密登入。
 
 1. **📥 下載** — 貼上 YouTube URL → 分析 → 選畫質/格式 → 下載
+   - 切換 Audio Only 模式下載 MP3/M4A
+   - 貼入 Playlist URL 可批量選擇下載
+   - 可設排程時間延遲下載
 2. **📁 分類** — 新增/編輯/刪除分類，支援拖曳排序
-3. **📊 管理** — 即時查看下載進度、上傳狀態、Drive 連結
-4. **📋 日誌** — 完整操作記錄，支援篩選
+3. **📊 管理** — 即時查看下載進度、佇列狀態、Drive 連結；失敗可一鍵重試
+4. **📂 文件** — 瀏覽下載文件，直接在瀏覽器播放影片/音頻
+5. **📋 日誌** — 完整操作記錄，支援篩選，可匯出 CSV
+6. **⚙️ 設定** — 帳號管理、通知設定（Telegram/Discord/Webhook）、用戶管理
 
 ---
 
@@ -123,7 +150,7 @@ wsl --install  # 安裝 Ubuntu，然後按 Linux 步驟操作
 
 ## ☁️ Google Drive（可選 / Optional）
 
-下載完成後自動上傳到 Google Drive，按分類整理。
+下載完成後**非同步**上傳到 Google Drive（不阻塞 server），按分類整理。最多 2 個並發上傳。
 
 ### 安裝 gog CLI
 
@@ -132,7 +159,7 @@ wsl --install  # 安裝 Ubuntu，然後按 Linux 步驟操作
 brew install steipete/tap/gogcli
 ```
 
-**Linux / WSL2（推薦：直接用 GitHub release binary，唔好用 Homebrew）：**
+**Linux / WSL2（推薦：直接用 GitHub release binary）：**
 ```bash
 ARCH=$(uname -m)
 if [ "$ARCH" = "x86_64" ]; then ARCH_TAG="amd64"; else ARCH_TAG="arm64"; fi
@@ -149,14 +176,25 @@ tar -xzf /tmp/gog.tar.gz -C /tmp && sudo mv /tmp/gog /usr/local/bin/gog
 
 ---
 
-## 📲 Telegram Notifications（可選 / Optional）
+## 🔔 通知設定（可選 / Optional）
 
-下載完成即時推送通知到 Telegram 群組。
+在 ⚙️ 設定頁「通知設定」面板，支援三種頻道：
 
-1. 在 ⚙️ 設定頁填入 Group ID 和 Topic ID
-2. 開啟開關，點「測試」確認
+| 頻道 | 設定 |
+|------|------|
+| **Telegram** | 需本機安裝 [OpenClaw](https://openclaw.ai)，填入 Group ID + Topic ID |
+| **Discord** | 填入 Discord Webhook URL，點測試確認 |
+| **Generic Webhook** | 填入任意 HTTPS URL，可選 HMAC-SHA256 簽名 |
 
-> ⚠️ 需本機已安裝並設定 [OpenClaw](https://openclaw.ai)。
+每個頻道可獨立開關，並有測試按鈕。
+
+---
+
+## 👥 多用戶管理（可選 / Optional）
+
+Admin 用戶可在 ⚙️ 設定頁「用戶管理」新增/刪除用戶。每個用戶有獨立的下載記錄。
+
+現有 `.env` 帳號在首次啟動時自動升級為 Admin。
 
 ---
 
@@ -171,17 +209,19 @@ youtube-downloader/
 ├── .env.example       # 環境變數範本
 ├── start.sh           # 啟動腳本（Linux/macOS/WSL2）
 ├── start.bat          # 啟動腳本（Windows）
-├── healthcheck.sh     # 健康檢查 + auto-restart
+├── healthcheck.sh     # 健康檢查 + auto-restart（HTTP 200 check）
 ├── lib/
-│   ├── auth.js        # Session 登入驗證
-│   ├── downloader.js  # yt-dlp 封裝（下載/進度/Drive 上傳）
+│   ├── auth.js        # Session 登入驗證 + 多用戶支援
+│   ├── downloader.js  # yt-dlp 封裝（非同步，in-memory state，SSE）
 │   ├── categories.js  # 分類 CRUD + 排序
 │   ├── logger.js      # Activity Log
+│   ├── notifier.js    # 多頻道通知引擎
 │   ├── settings.js    # 持久化設定
 │   ├── setup.js       # Cloudflare / Google Drive 設定
-│   └── storage.js     # JSON 讀寫
+│   ├── storage.js     # JSON 讀寫（帶 try/catch）
+│   └── users.js       # 用戶管理（admin/user roles）
 ├── public/
-│   ├── index.html     # SPA 主介面（8 Tabs）
+│   ├── index.html     # SPA 主介面（9 Tabs）
 │   └── login.html     # 登入頁面
 └── data/              # 執行期資料（自動建立）
 ```

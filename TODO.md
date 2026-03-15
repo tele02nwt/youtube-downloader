@@ -396,3 +396,44 @@
 
 ### ⚠️ 未完成
 - [ ] **立即更換密碼**（舊密碼 `ac39107985` 曾公開）→ Web UI → ⚙️ 設定 → 帳號與安全
+
+---
+
+## Phase 17: Security Hardening + Major Feature Sprint ✅（2026-03-15）
+
+### Bug Fixes (10 fixes) — Commit 75eeeef
+- [x] **Fix 1** (CRITICAL): `auth.js:179` Command injection — `execSync` string interpolation → `execFileSync` with array args
+- [x] **Fix 2** (HIGH): `auth.js:233` Plaintext password returned via `verifyCode()` → return `{ success: true }` only
+- [x] **Fix 3** (HIGH): `downloader.js` Missing `child.on("error")` handlers → added to all spawn() calls
+- [x] **Fix 4** (HIGH): `server.js` Unrestricted CORS → restricted to `ALLOWED_ORIGIN` / production URL
+- [x] **Fix 5** (HIGH): `auth.js` `_writeEnv()` overwrites entire .env → now preserves existing vars
+- [x] **Fix 6** (MEDIUM): `storage.js` JSON.parse without try/catch → wrapped with defaultValue fallback
+- [x] **Fix 7** (MEDIUM): Global `unhandledRejection` + `uncaughtException` handlers added to server.js
+- [x] **Fix 8** (MEDIUM): Graceful shutdown (SIGTERM/SIGINT) kills active download child processes
+- [x] **Fix 9** (MEDIUM): `healthcheck.sh` now checks HTTP 200 (not just connection `000`)
+- [x] **Fix 10** (MEDIUM): `setup.js` fd leak — `fs.closeSync(logFd)` after tunnel spawn
+
+### P0 Features — Commit a617280
+- [x] **Async GDrive Upload Queue**: `execFileSync` → Promise-based `execFile`, max 2 concurrent uploads, upload queue
+- [x] **In-Memory Download State**: `_activeDownloads` Map + 5s periodic flush, terminal states flush immediately, merge on read
+
+### P1 Features — Commit 8dd8803
+- [x] **Download Retry**: `retryDownload()` + `POST /api/downloads/:id/retry`, 🔄 button on failed downloads
+- [x] **Concurrent Download Limiter**: Max 3 concurrent via `_acquireSlot()`/`_releaseSlot()`, queue status bar in Manager tab
+- [x] **Audio-Only Mode**: Toggle in probe results, MP3/M4A/OPUS/WAV selector, `-x --audio-format --audio-quality 0`
+- [x] **Auto-Update yt-dlp**: Settings tab "YT-DLP 下載引擎" panel, async update with live log output
+
+### P2 Features — Commit 68a23d2
+- [x] **SSE Progress Streaming**: EventEmitter in downloader, `/api/downloads/stream` SSE endpoint, EventSource in frontend, fallback to 3s polling
+- [x] **Bandwidth Throttling**: Global speed limit setting + per-download override, `--limit-rate` passed to yt-dlp
+- [x] **Subtitle Download**: Probe returns up to 15 subtitle languages, embed or separate .srt, `--write-subs`/`--embed-subs`
+- [x] **Playlist Support**: Auto-detect `list=`/`/playlist` URL, `POST /api/probe/playlist`, batch checkbox UI, feeds concurrency limiter
+
+### P3 Features — Commit ce3bcdd
+- [x] **History Search & Export**: `GET /api/downloads` with `?q=`/`?status=`/`?from=`/`?to=`/`?category=`/`?audioOnly=` filters, CSV export with UTF-8 BOM
+- [x] **Local File Browser & Player**: New 📁 文件 tab, HTTP Range support for video seek, inline HTML5 player modal, path traversal protection
+- [x] **Download Scheduler**: `scheduledAt` param, 30s scheduler tick, restores on restart, countdown in Manager tab
+
+### P4 Features — Commit 6448dd5
+- [x] **Multi-Channel Notifications**: New `lib/notifier.js` — Telegram + Discord webhook + Generic webhook (HMAC-SHA256), test button per channel
+- [x] **Multi-User Support**: New `lib/users.js` — admin/user roles, per-user downloads, auto-migrates env credentials as admin, user management UI

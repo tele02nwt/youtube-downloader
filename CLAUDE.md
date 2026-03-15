@@ -504,3 +504,86 @@ bash /data/.openclaw/workspace_project/skills/github-push/scripts/security-scan.
 1. **立即輪換 credential**（最重要！）
 2. `git filter-repo --path .env --invert-paths --force`
 3. `git push --force`
+
+## Phase 17: Security Hardening + Major Feature Sprint（2026-03-15）
+
+### 新增模組
+- `lib/notifier.js` — Multi-channel notification engine (Telegram + Discord + Generic webhook)
+- `lib/users.js` — Multi-user management (admin/user roles, per-user data isolation)
+
+### 新增 API 端點（Phase 17）
+```
+# Downloads (enhanced)
+GET    /api/downloads              # now supports ?q=, ?status=, ?from=, ?to=, ?category=, ?audioOnly=
+GET    /api/downloads/stream       # SSE endpoint for real-time progress
+GET    /api/downloads/export       # CSV export (?format=csv)
+GET    /api/downloads/queue        # queue status {active, queued, maxConcurrent}
+POST   /api/downloads/:id/retry    # retry a failed download
+POST   /api/downloads/:id/cancel-schedule  # cancel a scheduled download
+
+# Files (new)
+GET    /api/files                  # list downloaded files with metadata
+GET    /api/files/serve/:path      # serve file with Range support (video streaming)
+DELETE /api/files/:path            # delete file from disk
+
+# Settings (enhanced)
+GET    /api/settings/notifications         # get notification channel configs (secrets masked)
+POST   /api/settings/notifications         # save notification configs
+POST   /api/settings/notifications/test    # test all enabled channels
+GET    /api/settings/speed-limit           # get global speed limit
+POST   /api/settings/speed-limit           # save speed limit
+GET    /api/setup/ytdlp/version            # get yt-dlp version
+POST   /api/setup/ytdlp/update             # trigger yt-dlp update (async)
+GET    /api/setup/ytdlp/update-status      # poll update progress
+
+# Users (new, admin only)
+GET    /api/users                  # list users
+POST   /api/users                  # create user
+PUT    /api/users/:id              # update user (password/role)
+DELETE /api/users/:id              # delete user
+
+# Probe (enhanced)
+POST   /api/probe/playlist         # probe playlist URL, returns up to 50 entries
+```
+
+### 架構變更
+- **downloader.js**: All `gogExec()` (sync) → `gogExecAsync()` (Promise), `execFileSync` → `execFile`
+- **downloader.js**: `_activeDownloads` Map + 5s periodic flush replaces per-tick JSON writes
+- **downloader.js**: `_acquireSlot()`/`_releaseSlot()` concurrency queue (max 3)
+- **downloader.js**: EventEmitter emits `update` events → server.js broadcasts via SSE
+- **server.js**: `_sseClients` Map (max 10), `broadcastDownloads()` on emitter update
+- **server.js**: `requireAdmin` middleware for user management routes
+- **server.js**: Global `unhandledRejection` + `uncaughtException` handlers
+- **server.js**: Graceful SIGTERM/SIGINT handler kills child processes + flushes state
+- **storage.js**: JSON.parse wrapped in try/catch with defaultValue fallback
+- **auth.js**: `verifyCode()` no longer returns plaintext password (returns `{success:true}`)
+- **auth.js**: Command injection fixed — `execFileSync` with array args
+- **auth.js**: `_writeEnv()` preserves existing .env vars
+- **auth.js**: `login()` checks `users.json` first, falls back to env-var auth
+- **setup.js**: fd leak fixed — `fs.closeSync(logFd)` after spawn
+- **healthcheck.sh**: HTTP 200 check (was: only `000` connection-refused check)
+
+### Checklist 新增項目（Phase 17）
+63. ✅ 修復 command injection 必用 `execFile`/`execFileSync` with array args，唔用 string interpolation in `execSync`
+64. ✅ `verifyCode()` 唔好返回明文密碼，改用密碼重置 flow 或 `{success:true}`
+65. ✅ CORS 必須限制 origin（`ALLOWED_ORIGIN` env var 或 hardcode production URL），唔用 `cors()` 無限制
+66. ✅ `_writeEnv()` 寫 .env 前先讀現有 lines，只更新/新增目標 keys，其他 lines 保留
+67. ✅ Global `unhandledRejection` + `uncaughtException` handlers 必須喺 server.js 最頂加（唔 exit，只 log）
+68. ✅ Graceful shutdown：SIGTERM/SIGINT → kill all child processes → flushToDisk() → close server → exit(0) after 5s
+69. ✅ healthcheck.sh 用 `curl -w "%{http_code}"` 並 check `!= "200"`，唔係只 check 連接
+70. ✅ GDrive upload 必須 async（`execFile` Promise-wrapped），唔用 `execFileSync`，否則 server 凍結
+71. ✅ In-memory download state pattern：Map + 5s setInterval flush + 即時 flush on terminal state
+72. ✅ SSE broadcast pattern：downloader EventEmitter → server listener → `_sseClients.forEach(res.write)` — cap at 10 clients
+73. ✅ SSE client 必須設 keepalive（`setInterval` 30s `": keepalive\n\n"`）否則 Cloudflare/nginx 會 timeout 斷線
+74. ✅ Audio-only download：`-x --audio-format ${format} --audio-quality 0`，跳過 video merge，唔需要 `-f` format selector
+75. ✅ Playlist probe：`yt-dlp --flat-playlist -J`（注意大寫 J），返回 `entries[]` with id/title/duration/url
+76. ✅ CSV export 加 UTF-8 BOM (`\uFEFF`) 讓 Excel 正確顯示中文
+77. ✅ File serve with Range：check `req.headers.range`，有 range → 206 Partial Content，無 → `res.sendFile()`
+78. ✅ File path validation 雙重保護：字符白名單 `[a-zA-Z0-9._\-/]` + `path.resolve().startsWith(allowedDir)`
+79. ✅ Download scheduler：`_scheduledDownloads` Map + `setInterval(30s)` tick，server restart 時從 disk reload `status==="scheduled"` records
+80. ✅ notifier.js 必須 fire-and-forget（唔 await，唔 throw），notification 失敗唔應 crash main flow
+81. ✅ Discord webhook embed format：`{ embeds: [{ title, description, color: 3066993, timestamp }] }`
+82. ✅ Generic webhook HMAC-SHA256 簽名：`crypto.createHmac('sha256', secret).update(JSON.stringify(body)).digest('hex')`，放 `X-Signature` header
+83. ✅ Multi-user migration：server startup 時 call `migrateFromEnv()`，自動將 env-var credentials 升級為 admin user（idempotent）
+84. ✅ `requireAdmin` middleware：`if (!req.session?.role === 'admin') return res.status(403)`
+85. ✅ Claude Code `--print` 輸出有時過早結束（只返回 summary）→ 加 `--output-format text` + `tee file` + `cat file` 確保完整輸出

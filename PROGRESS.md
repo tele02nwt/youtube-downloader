@@ -574,3 +574,69 @@ The hook reads `task-meta.json` to override its default routing. Never modify th
 20. **Pre-commit hook 攔截「刪除敏感檔案」**：git diff 包含 deleted files → 需 `--diff-filter=ACM`
 21. **git subtree push 無法 --force**：需 clone standalone repo 用 filter-repo 清理，再 force push
 22. **monorepo root .env 也被 track**：要同時修復 subtree 和 monorepo root 兩處
+
+---
+
+### 2026-03-15 — Phase 17: Security Hardening + Major Feature Sprint
+
+**Context:** Full code review via Claude Code identified critical security bugs + stability issues. Fixed all bugs then implemented P0→P4 features in sequence.
+
+**Code Review 發現的主要問題：**
+1. Command injection in `auth.js:179` (`execSync` + string interpolation) — CRITICAL
+2. Plaintext password returned via API — HIGH
+3. GDrive upload blocks entire event loop (`execFileSync` 600s timeout) — HIGH
+4. `downloads.json` race condition (no locking under concurrent writes) — HIGH
+5. Disk thrash: full JSON write on every progress tick (~1/sec per download) — MEDIUM
+6. Missing `child.on("error")` → any yt-dlp spawn error = server crash — HIGH
+7. Unrestricted CORS — HIGH
+8. No global `unhandledRejection` handler — MEDIUM
+9. `healthcheck.sh` only checked connection (000), not HTTP status — MEDIUM
+
+**10 Bug Fixes Applied (commit 75eeeef):**
+- CRITICAL: Command injection fix (execFileSync array args)
+- HIGH: Plaintext password removed from verifyCode response
+- HIGH: child.on("error") added to all spawns
+- HIGH: CORS restricted to production origin
+- HIGH: .env write now preserves existing vars
+- MEDIUM: JSON.parse try/catch in storage.js
+- MEDIUM: Global unhandledRejection/uncaughtException handlers
+- MEDIUM: Graceful shutdown handler (SIGTERM/SIGINT)
+- MEDIUM: healthcheck.sh HTTP 200 check
+- MEDIUM: fd leak fix in setup.js
+
+**P0 Features (commit a617280):**
+- Async GDrive upload queue (max 2 concurrent, no more server freeze)
+- In-memory download state + 5s periodic flush (eliminates disk thrash + race condition)
+
+**P1 Features (commit 8dd8803):**
+- Download retry button for failed downloads
+- Concurrent download limiter (max 3) with queue display
+- Audio-only download mode (MP3/M4A/OPUS/WAV)
+- Auto-update yt-dlp via Settings UI
+
+**P2 Features (commit 68a23d2):**
+- SSE progress streaming (replaces 2s polling)
+- Bandwidth throttling (global + per-download)
+- Subtitle download (embed or separate)
+- Playlist support (batch download with checkbox UI)
+
+**P3 Features (commit ce3bcdd):**
+- History search & CSV export
+- Local file browser + HTML5 player (with Range support)
+- Download scheduler (defer to specific time)
+
+**P4 Features (commit 6448dd5):**
+- Multi-channel notifications (Telegram + Discord + Generic webhook)
+- Multi-user support (admin/user roles, per-user download history)
+
+### 踩坑 / 學到的嘢（Phase 17）
+
+23. **Claude Code review output truncation**: `--print` mode sometimes returns early summary instead of full output. Fix: use `--output-format text` and redirect to file with `tee`, then `cat` the file for full content.
+24. **Stability root causes (ranked by impact)**:
+    - GDrive `execFileSync` blocking event loop = #1 crash cause (fixed: async upload queue)
+    - No `unhandledRejection` handler = silent crashes (fixed: global handler)
+    - JSON file race condition under concurrent downloads (fixed: in-memory state)
+    - healthcheck only checked process alive, not HTTP health (fixed: HTTP 200 check)
+25. **In-memory state pattern**: Keep active state in Map, periodic flush every 5s via setInterval, flush immediately on terminal states. Always merge memory over disk on read.
+26. **SSE pattern for Node.js**: Use EventEmitter in data layer, server listens and broadcasts. Keep client set capped (max 10), send keepalive every 30s, clean up on req.close().
+27. **Multi-user migration**: `migrateFromEnv()` on startup automatically promotes existing env-var credentials to admin user in users.json. Backward compat via fallback to env-var auth if users.json absent.
