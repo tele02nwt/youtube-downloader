@@ -22,6 +22,21 @@ const app = express();
 const PORT = 3847;
 const COOKIES_PATH = path.join(__dirname, 'data', 'cookies.txt');
 
+// SSE clients for download progress streaming (P2)
+const _sseClients = new Map();
+const MAX_SSE_CLIENTS = 10;
+
+function broadcastDownloads() {
+  if (_sseClients.size === 0) return;
+  const data = JSON.stringify(downloader.getDownloads());
+  for (const [id, res] of _sseClients) {
+    try { res.write(`data: ${data}\n\n`); } catch (e) { _sseClients.delete(id); }
+  }
+}
+
+// Listen to downloader events for SSE broadcasting
+downloader.downloadEvents.on('update', broadcastDownloads);
+
 // Middleware
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'https://yt.ac02nwt.work', credentials: true }));
 app.use(cookieParser());
@@ -164,13 +179,13 @@ app.post('/api/download/probe', async (req, res) => {
 
 app.post('/api/download/start', (req, res) => {
   try {
-    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat } = req.body;
+    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles } = req.body;
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
     console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| req.body keys:', Object.keys(req.body));
     const record = downloader.startDownload({
-      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat
+      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles
     });
     res.status(201).json(record);
   } catch (err) {
@@ -212,6 +227,34 @@ app.get('/api/downloads', (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
+});
+
+// --- SSE Download Stream (P2) ---
+app.get('/api/downloads/stream', (req, res) => {
+  if (_sseClients.size >= MAX_SSE_CLIENTS) {
+    return res.status(503).json({ error: 'Too many SSE connections' });
+  }
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const clientId = Date.now() + Math.random();
+  _sseClients.set(clientId, res);
+
+  // Send current state immediately
+  const downloads = downloader.getDownloads();
+  res.write(`data: ${JSON.stringify(downloads)}\n\n`);
+
+  // Keepalive every 30s
+  const keepalive = setInterval(() => {
+    try { res.write(': keepalive\n\n'); } catch (e) { /* ignore */ }
+  }, 30000);
+
+  req.on('close', () => {
+    _sseClients.delete(clientId);
+    clearInterval(keepalive);
+  });
 });
 
 app.delete('/api/downloads/:id', (req, res) => {
@@ -329,6 +372,58 @@ app.post('/api/settings/telegram/test', (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       res.json({ ok: true });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Speed Limit Settings (P2) ---
+app.get('/api/settings/speed-limit', (req, res) => {
+  res.json({ speedLimit: appSettings.getDownloadSpeedLimit() });
+});
+
+app.post('/api/settings/speed-limit', (req, res) => {
+  try {
+    const { speedLimit } = req.body;
+    const saved = appSettings.saveDownloadSpeedLimit(speedLimit);
+    logger.info('system', `下載速度限制已更新: ${saved || '無限制'}`);
+    res.json({ ok: true, speedLimit: saved });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Playlist Probe (P2) ---
+app.post('/api/probe/playlist', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL is required' });
+    const { execFile: ef } = require('child_process');
+    const YT_DLP_BIN = '/home/linuxbrew/.linuxbrew/bin/yt-dlp';
+    const COOKIES_FILE = path.join(__dirname, 'data', 'cookies.txt');
+    const args = ['--flat-playlist', '-J', '--no-warnings'];
+    if (fs.existsSync(COOKIES_FILE)) args.unshift('--cookies', COOKIES_FILE);
+    args.push(url);
+    ef(YT_DLP_BIN, args, { timeout: 60000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+      if (err) return res.status(500).json({ error: err.message });
+      try {
+        const data = JSON.parse(stdout);
+        const entries = (data.entries || []).slice(0, 50).map(e => ({
+          id: e.id,
+          title: e.title || 'Unknown',
+          duration: e.duration || null,
+          url: e.url || (e.id ? 'https://www.youtube.com/watch?v=' + e.id : null)
+        }));
+        res.json({
+          isPlaylist: true,
+          title: data.title || 'Playlist',
+          count: (data.entries || []).length,
+          entries
+        });
+      } catch (e) {
+        res.status(500).json({ error: 'Failed to parse playlist: ' + e.message });
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

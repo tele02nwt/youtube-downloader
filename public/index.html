@@ -1611,6 +1611,31 @@ select option {
           </div>
         </div>
 
+        <!-- Subtitle section (P2) -->
+        <div class="format-section" id="subtitle-section" style="display:none;">
+          <div class="panel-header">// 字幕</div>
+          <div id="subtitle-list" style="max-height:180px;overflow-y:auto;"></div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="subtitle-embed-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="subtitle-embed-toggle" style="font-size:0.83rem;color:var(--text-secondary);cursor:pointer;">嵌入字幕（合併到影片檔案）</label>
+          </div>
+        </div>
+
+        <!-- Per-download speed limit (P2) -->
+        <div class="format-section" id="dl-speed-section">
+          <div class="panel-header">// 速度限制</div>
+          <select id="dl-speed-limit" style="padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;cursor:pointer;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="">使用全局設定</option>
+            <option value="1M">1 MB/s</option>
+            <option value="2M">2 MB/s</option>
+            <option value="5M">5 MB/s</option>
+            <option value="10M">10 MB/s</option>
+          </select>
+        </div>
+
         <div class="format-section" id="video-quality-section">
           <div class="panel-header">// 畫質 <span style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);font-weight:400;">（串流大小估算）</span></div>
           <div class="quality-list" id="quality-list"></div>
@@ -1635,6 +1660,40 @@ select option {
         <div class="start-section">
           <button class="btn btn-green btn-lg btn-start" id="start-btn">開始下載</button>
         </div>
+      </div>
+
+      <!-- Playlist view (P2) -->
+      <div id="playlist-result" style="display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-family:var(--font-heading);font-size:1rem;color:var(--cyan);" id="playlist-title"></div>
+            <div style="font-size:0.83rem;color:var(--text-secondary);" id="playlist-count"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-cyan" onclick="playlistSelectAll(true)">全選</button>
+            <button class="btn" style="color:var(--text-secondary);border:1px solid var(--border);" onclick="playlistSelectAll(false)">全消</button>
+          </div>
+        </div>
+        <div id="playlist-entries" style="max-height:400px;overflow-y:auto;margin-bottom:16px;"></div>
+
+        <!-- Playlist download settings -->
+        <div class="format-section">
+          <div class="panel-header">// 格式</div>
+          <div class="format-btns" id="playlist-format-btns">
+            <button class="format-btn active" data-format="mp4">MP4</button>
+            <button class="format-btn" data-format="mkv">MKV</button>
+            <button class="format-btn" data-format="mov">MOV</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <select id="playlist-category" style="padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;min-width:160px;"></select>
+        </div>
+
+        <div class="start-section">
+          <button class="btn btn-green btn-lg" id="playlist-dl-btn" onclick="startPlaylistDownload()">⬇️ 下載選定 (0)</button>
+        </div>
+        <div id="playlist-progress-msg" style="display:none;margin-top:10px;font-size:0.85rem;color:var(--text-secondary);"></div>
       </div>
     </div>
   </div>
@@ -1817,6 +1876,23 @@ select option {
             <li>返回此頁面上傳該檔案</li>
           </ol>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ 下載速度限制 (P2) ═══ -->
+    <div class="panel" id="panel-speed-limit">
+      <div class="panel-header">// 下載速度限制</div>
+      <div style="padding:16px;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">設定全局下載速度上限，防止佔滿網路頻寬。個別下載可在下載頁面覆蓋此設定。</p>
+        <select id="global-speed-limit" style="padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;min-width:200px;cursor:pointer;" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          <option value="">無限制</option>
+          <option value="1M">1 MB/s</option>
+          <option value="2M">2 MB/s</option>
+          <option value="5M">5 MB/s</option>
+          <option value="10M">10 MB/s</option>
+        </select>
+        <button class="btn btn-cyan" style="margin-left:8px;" onclick="saveSpeedLimit()">💾 儲存</button>
+        <div id="speed-limit-msg" style="margin-top:10px;font-size:0.8rem;display:none;"></div>
       </div>
     </div>
 
@@ -3213,8 +3289,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'categories') loadCategories();
     if (btn.dataset.tab === 'download') loadCategorySelect();
     if (btn.dataset.tab === 'manager') loadDownloads();
+    if (btn.dataset.tab !== 'manager') disconnectSSE();
     if (btn.dataset.tab === 'logs') loadLogs();
-    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); }
+    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); }
   });
 });
 
@@ -3350,10 +3427,10 @@ function initCatDragDrop() {
 /* ═══════════════════════════════════════════════
    TAB 2: DOWNLOAD
    ═══════════════════════════════════════════════ */
-async function loadCategorySelect() {
+async function loadCategorySelect(targetId) {
   try {
     state.categories = await api('GET', '/categories');
-    const sel = document.getElementById('dl-category');
+    const sel = document.getElementById(targetId || 'dl-category');
     const prevValue = sel.value; // remember current selection
     sel.innerHTML = state.categories.map(c =>
       '<option value="' + c.id + '" data-name="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>'
@@ -3362,7 +3439,7 @@ async function loadCategorySelect() {
     if (prevValue && sel.querySelector('option[value="' + prevValue + '"]')) {
       sel.value = prevValue;
     }
-    updateOutputPath();
+    if (!targetId || targetId === 'dl-category') updateOutputPath();
   } catch (e) { /* silent */ }
 }
 
@@ -3390,13 +3467,26 @@ async function probeUrl() {
   const loading = document.getElementById('probe-loading');
   const result = document.getElementById('probe-result');
   const error = document.getElementById('probe-error');
+  const playlistResult = document.getElementById('playlist-result');
 
   error.classList.remove('active');
   result.classList.remove('active');
+  playlistResult.style.display = 'none';
   loading.classList.add('active');
   document.getElementById('probe-btn').disabled = true;
 
   try {
+    // Detect playlist URL (P2)
+    if (url.includes('list=') || url.includes('/playlist')) {
+      var plData = await api('POST', '/probe/playlist', { url });
+      if (plData.isPlaylist) {
+        loading.classList.remove('active');
+        renderPlaylistResult(plData);
+        document.getElementById('probe-btn').disabled = false;
+        return;
+      }
+    }
+
     const data = await api('POST', '/download/probe', { url });
     state.probeData = data;
 
@@ -3406,7 +3496,12 @@ async function probeUrl() {
     document.getElementById('video-duration').textContent = data.durationHuman || '';
 
     renderQualityOptions(data.qualityOptions || []);
+    renderSubtitleOptions(data.subtitles || []);
     await loadCategorySelect();
+
+    // Reset per-download speed limit
+    var dlSpeedSel = document.getElementById('dl-speed-limit');
+    if (dlSpeedSel) dlSpeedSel.value = '';
 
     // Show date prefix toggle if upload date available
     var datePrefixRow = document.getElementById('date-prefix-row');
@@ -3523,6 +3618,14 @@ async function startDownload() {
       body.resolution = state.selectedQuality.resolution;
       body.remuxFormat = state.selectedFormat;
     }
+
+    // Per-download speed limit (P2)
+    var dlSpeedSel = document.getElementById('dl-speed-limit');
+    if (dlSpeedSel && dlSpeedSel.value) body.speedLimit = dlSpeedSel.value;
+
+    // Selected subtitles (P2)
+    var selectedSubs = getSelectedSubtitles();
+    if (selectedSubs.length > 0) body.subtitles = selectedSubs;
 
     await api('POST', '/download/start', body);
     toast('下載已開始');
@@ -3675,19 +3778,199 @@ window.retryDownload = async function(id) {
   }
 };
 
-function managePoll() {
+// SSE-based progress streaming (P2) with polling fallback
+state.sseSource = null;
+state.sseFallback = false;
+
+function connectSSE() {
+  if (state.sseSource) return;
+  if (typeof EventSource === 'undefined') { state.sseFallback = true; managePollFallback(); return; }
+  try {
+    var es = new EventSource('/api/downloads/stream');
+    state.sseSource = es;
+    es.onmessage = function(ev) {
+      try {
+        state.downloads = JSON.parse(ev.data);
+        renderDownloads();
+        // Update queue status too
+        api('GET', '/downloads/queue').then(function(qs) {
+          var bar = document.getElementById('queue-status-bar');
+          if (qs.active > 0 || qs.queued > 0) {
+            bar.style.display = 'block';
+            bar.textContent = '⚡ ' + qs.active + '/' + qs.maxConcurrent + ' active' + (qs.queued > 0 ? '  |  ⏳ ' + qs.queued + ' waiting' : '');
+          } else {
+            bar.style.display = 'none';
+          }
+        }).catch(function(){});
+      } catch(e) {}
+    };
+    es.onerror = function() {
+      es.close();
+      state.sseSource = null;
+      // Reconnect after 3s
+      setTimeout(function() {
+        if (document.getElementById('tab-manager').classList.contains('active')) connectSSE();
+      }, 3000);
+    };
+  } catch(e) {
+    state.sseFallback = true;
+    managePollFallback();
+  }
+}
+
+function disconnectSSE() {
+  if (state.sseSource) { state.sseSource.close(); state.sseSource = null; }
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
+}
+
+function managePollFallback() {
   var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending' || d.status === 'queued');
   if (hasActive && !state.pollTimer) {
     state.pollTimer = setInterval(async () => {
       if (document.getElementById('tab-manager').classList.contains('active')) {
-        await loadDownloads();
+        try {
+          state.downloads = await api('GET', '/downloads');
+          renderDownloads();
+        } catch(e) {}
       }
-    }, 2000);
+    }, 3000);
   } else if (!hasActive && state.pollTimer) {
     clearInterval(state.pollTimer);
     state.pollTimer = null;
   }
 }
+
+function managePoll() {
+  if (state.sseFallback) { managePollFallback(); return; }
+  connectSSE();
+}
+
+/* ═══════════════════════════════════════════════
+   P2: SUBTITLE OPTIONS
+   ═══════════════════════════════════════════════ */
+function renderSubtitleOptions(subs) {
+  var section = document.getElementById('subtitle-section');
+  var list = document.getElementById('subtitle-list');
+  if (!subs || subs.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  list.innerHTML = subs.map(function(s) {
+    return '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;">' +
+      '<input type="checkbox" class="sub-checkbox" data-lang="' + escapeHtml(s.lang) + '" data-auto="' + (s.isAuto ? '1' : '0') + '" style="accent-color:var(--cyan);width:16px;height:16px;">' +
+      '<span style="color:var(--text-primary);font-size:0.85rem;">' + escapeHtml(s.name || s.lang) + '</span>' +
+      (s.isAuto ? '<span style="font-size:0.7rem;color:var(--text-dim);background:var(--bg-deep);padding:2px 6px;border-radius:3px;">自動產生</span>' : '') +
+    '</label>';
+  }).join('');
+}
+
+function getSelectedSubtitles() {
+  var checks = document.querySelectorAll('.sub-checkbox:checked');
+  if (checks.length === 0) return [];
+  var embed = document.getElementById('subtitle-embed-toggle').checked;
+  var result = [];
+  checks.forEach(function(cb) {
+    result.push({ lang: cb.dataset.lang, isAuto: cb.dataset.auto === '1', embed: embed });
+  });
+  return result;
+}
+
+/* ═══════════════════════════════════════════════
+   P2: PLAYLIST SUPPORT
+   ═══════════════════════════════════════════════ */
+state.playlistData = null;
+state.playlistFormat = 'mp4';
+
+function renderPlaylistResult(data) {
+  state.playlistData = data;
+  document.getElementById('playlist-title').textContent = '📋 ' + (data.title || 'Playlist');
+  document.getElementById('playlist-count').textContent = data.count + ' 部影片' + (data.count > 50 ? '（顯示前 50）' : '');
+
+  var entries = document.getElementById('playlist-entries');
+  entries.innerHTML = data.entries.map(function(e, i) {
+    var dur = e.duration ? formatDurationShort(e.duration) : '';
+    return '<label class="card" style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:4px;cursor:pointer;">' +
+      '<input type="checkbox" class="pl-checkbox" data-idx="' + i + '" checked onchange="updatePlaylistCount()" style="accent-color:var(--cyan);width:16px;height:16px;flex-shrink:0;">' +
+      '<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.75rem;width:28px;text-align:right;flex-shrink:0;">' + (i+1) + '</span>' +
+      '<span style="flex:1;color:var(--text-primary);font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(e.title) + '</span>' +
+      (dur ? '<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.78rem;flex-shrink:0;">' + dur + '</span>' : '') +
+    '</label>';
+  }).join('');
+
+  // Load category select for playlist
+  loadCategorySelect('playlist-category');
+  updatePlaylistCount();
+
+  document.getElementById('playlist-result').style.display = 'block';
+}
+
+function formatDurationShort(sec) {
+  var m = Math.floor(sec / 60);
+  var s = Math.floor(sec % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+window.playlistSelectAll = function(checked) {
+  document.querySelectorAll('.pl-checkbox').forEach(function(cb) { cb.checked = checked; });
+  updatePlaylistCount();
+};
+
+window.updatePlaylistCount = function() {
+  var count = document.querySelectorAll('.pl-checkbox:checked').length;
+  document.getElementById('playlist-dl-btn').textContent = '⬇️ 下載選定 (' + count + ')';
+};
+
+// Playlist format buttons
+document.getElementById('playlist-format-btns').addEventListener('click', function(e) {
+  var btn = e.target.closest('.format-btn');
+  if (!btn) return;
+  document.querySelectorAll('#playlist-format-btns .format-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  state.playlistFormat = btn.dataset.format;
+});
+
+window.startPlaylistDownload = async function() {
+  var checks = document.querySelectorAll('.pl-checkbox:checked');
+  if (checks.length === 0) { toast('請選擇至少一部影片', 'error'); return; }
+
+  var sel = document.getElementById('playlist-category');
+  var opt = sel.options[sel.selectedIndex];
+  var categoryId = opt ? opt.value : 'default';
+  var categoryName = opt ? opt.dataset.name : '未分類';
+  var format = state.playlistFormat || 'mp4';
+  var msgEl = document.getElementById('playlist-progress-msg');
+  msgEl.style.display = 'block';
+
+  var total = checks.length;
+  var queued = 0;
+
+  for (var i = 0; i < checks.length; i++) {
+    var idx = parseInt(checks[i].dataset.idx);
+    var entry = state.playlistData.entries[idx];
+    if (!entry || !entry.url) continue;
+    msgEl.textContent = '已加入佇列: ' + queued + '/' + total;
+    try {
+      await api('POST', '/download/start', {
+        url: entry.url,
+        title: entry.title,
+        categoryId: categoryId,
+        categoryName: categoryName,
+        remuxFormat: format
+      });
+      queued++;
+      msgEl.textContent = '已加入佇列: ' + queued + '/' + total;
+    } catch(e) {
+      console.error('Playlist download error:', e);
+    }
+  }
+
+  msgEl.textContent = '✅ 已加入佇列: ' + queued + '/' + total;
+  toast('已加入 ' + queued + ' 部影片到下載佇列');
+  setTimeout(function() {
+    document.querySelector('.tab-btn[data-tab="manager"]').click();
+  }, 1000);
+};
 
 /* ═══════════════════════════════════════════════
    MODAL EVENTS
@@ -4337,12 +4620,44 @@ async function testTelegramSettings() {
 }
 
 /* ═══════════════════════════════════════════════
+   P2: SPEED LIMIT SETTINGS
+   ═══════════════════════════════════════════════ */
+async function loadSpeedLimit() {
+  try {
+    var res = await fetch('/api/settings/speed-limit', { credentials: 'include' });
+    var data = await res.json();
+    var sel = document.getElementById('global-speed-limit');
+    if (sel) sel.value = data.speedLimit || '';
+  } catch(e) {}
+}
+
+window.saveSpeedLimit = async function() {
+  var sel = document.getElementById('global-speed-limit');
+  var msgEl = document.getElementById('speed-limit-msg');
+  try {
+    var res = await fetch('/api/settings/speed-limit', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ speedLimit: sel.value })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      showToast('速度限制已儲存 ✓', 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 已儲存'; setTimeout(function(){ msgEl.style.display = 'none'; }, 2000); }
+    }
+  } catch(e) {
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 儲存失敗'; }
+  }
+};
+
+/* ═══════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════ */
 loadCategories();
 loadCategorySelect();
 checkCookieStatus();
 loadAccountInfo();
+loadSpeedLimit();
 </script>
 </body>
 </html>
