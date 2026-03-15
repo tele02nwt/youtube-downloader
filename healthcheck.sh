@@ -25,10 +25,10 @@ if [ -f "$PID_DIR/tunnel.pid" ]; then
   fi
 fi
 
-# Double-check server via HTTP
+# Double-check server via HTTP (fail on connection refused OR non-200)
 if $server_alive; then
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://localhost:$PORT/" 2>/dev/null)
-  if [ "$HTTP_CODE" = "000" ]; then
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://localhost:$PORT/api/health" 2>/dev/null)
+  if [[ "$HTTP_CODE" != "200" ]]; then
     server_alive=false
   fi
 fi
