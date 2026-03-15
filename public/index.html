@@ -6,6 +6,21 @@
 <title>YT DOWNLOADER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script>
+(function() {
+  var theme = 'dark';
+  try {
+    var savedTheme = localStorage.getItem('yt-theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      theme = savedTheme;
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      theme = 'light';
+    }
+  } catch (_) {}
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.style.colorScheme = theme;
+})();
+</script>
 <style>
 /* ═══════════════════════════════════════════════
    CSS VARIABLES
@@ -31,12 +46,59 @@
   --text-dim: #94a3b8;
   --border: #1e293b;
   --border-bright: #334155;
+  --grid-line: rgba(0, 240, 255, 0.03);
+  --scanline-line: rgba(0, 0, 0, 0.08);
+  --header-glow: 0 0 20px #00f0ff44, 0 0 40px rgba(0, 240, 255, 0.1);
+  --cyan-soft-bg: rgba(0, 240, 255, 0.06);
+  --cyan-strong-bg: rgba(0, 240, 255, 0.15);
+  --purple-soft-bg: rgba(139, 92, 246, 0.08);
+  --purple-strong-bg: rgba(139, 92, 246, 0.15);
+  --pink-soft-bg: rgba(255, 0, 102, 0.08);
+  --pink-strong-bg: rgba(255, 0, 102, 0.15);
+  --theme-toggle-bg: rgba(13, 17, 23, 0.78);
+  --theme-toggle-hover: rgba(26, 35, 50, 0.9);
   --font-heading: 'Orbitron', sans-serif;
   --font-body: 'Rajdhani', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;
   --radius: 6px;
   --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --font-scale: 1;
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  --bg-deep: #eef4ff;
+  --bg-panel: #ffffff;
+  --bg-card: #f7faff;
+  --bg-card-hover: #edf4ff;
+  --cyan: #0ea5e9;
+  --cyan-dim: rgba(14, 165, 233, 0.24);
+  --cyan-glow: 0 0 12px rgba(14, 165, 233, 0.24), 0 0 24px rgba(14, 165, 233, 0.12);
+  --purple: #7c3aed;
+  --purple-dim: rgba(124, 58, 237, 0.24);
+  --purple-glow: 0 0 12px rgba(124, 58, 237, 0.18);
+  --pink: #e11d48;
+  --pink-dim: rgba(225, 29, 72, 0.2);
+  --green: #10b981;
+  --green-dim: rgba(16, 185, 129, 0.24);
+  --yellow: #d97706;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-dim: #64748b;
+  --border: #d7e3f4;
+  --border-bright: #b7cae6;
+  --grid-line: rgba(14, 165, 233, 0.06);
+  --scanline-line: rgba(255, 255, 255, 0);
+  --header-glow: 0 0 20px rgba(14, 165, 233, 0.16);
+  --cyan-soft-bg: rgba(14, 165, 233, 0.08);
+  --cyan-strong-bg: rgba(14, 165, 233, 0.16);
+  --purple-soft-bg: rgba(124, 58, 237, 0.08);
+  --purple-strong-bg: rgba(124, 58, 237, 0.14);
+  --pink-soft-bg: rgba(225, 29, 72, 0.08);
+  --pink-strong-bg: rgba(225, 29, 72, 0.14);
+  --theme-toggle-bg: rgba(255, 255, 255, 0.92);
+  --theme-toggle-hover: #f2f7ff;
+  color-scheme: light;
 }
 
 /* Font size presets — set on html so rem units scale globally */
@@ -67,8 +129,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -83,8 +145,8 @@ body::after {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0,0,0,0.08) 2px,
-    rgba(0,0,0,0.08) 4px
+    var(--scanline-line) 2px,
+    var(--scanline-line) 4px
   );
   pointer-events: none;
   z-index: 9999;
@@ -140,9 +202,21 @@ body::after {
    HEADER
    ═══════════════════════════════════════════════ */
 .header {
-  text-align: center;
   margin-bottom: 32px;
   padding: 28px 0 20px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-copy {
+  flex: 1;
+  text-align: center;
+  padding-left: 52px;
 }
 
 .header h1 {
@@ -151,7 +225,7 @@ body::after {
   font-weight: 900;
   letter-spacing: 6px;
   color: var(--cyan);
-  text-shadow: 0 0 20px var(--cyan-dim), 0 0 40px rgba(0,240,255,0.1);
+  text-shadow: var(--header-glow);
   text-transform: uppercase;
   margin-bottom: 4px;
 }
@@ -166,6 +240,62 @@ body::after {
   color: var(--text-dim);
   letter-spacing: 3px;
   text-transform: uppercase;
+}
+
+.theme-toggle {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--theme-toggle-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.theme-toggle:hover {
+  background: var(--theme-toggle-hover);
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim);
+}
+
+.theme-icon {
+  position: absolute;
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.theme-icon-sun {
+  opacity: 0;
+  transform: scale(0.7) rotate(-20deg);
+}
+
+.theme-icon-moon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+html[data-theme="light"] .theme-icon-sun {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+html[data-theme="light"] .theme-icon-moon {
+  opacity: 0;
+  transform: scale(0.7) rotate(20deg);
 }
 
 /* ═══════════════════════════════════════════════
@@ -217,9 +347,9 @@ body::after {
 
 .tab-btn.active {
   color: var(--cyan);
-  background: rgba(0,240,255,0.06);
+  background: var(--cyan-soft-bg);
   border-color: var(--cyan-dim);
-  box-shadow: 0 0 10px rgba(0,240,255,0.1);
+  box-shadow: 0 0 10px var(--cyan-dim);
 }
 
 .tab-btn.active::before { opacity: 1; }
@@ -472,34 +602,34 @@ select option {
 
 .btn-cyan {
   color: var(--cyan);
-  background: rgba(0,240,255,0.08);
+  background: var(--cyan-soft-bg);
   border-color: var(--cyan-dim);
 }
 
 .btn-cyan:hover {
-  background: rgba(0,240,255,0.15);
+  background: var(--cyan-strong-bg);
   box-shadow: var(--cyan-glow);
 }
 
 .btn-purple {
   color: var(--purple);
-  background: rgba(139,92,246,0.08);
+  background: var(--purple-soft-bg);
   border-color: var(--purple-dim);
 }
 
 .btn-purple:hover {
-  background: rgba(139,92,246,0.15);
+  background: var(--purple-strong-bg);
   box-shadow: var(--purple-glow);
 }
 
 .btn-pink {
   color: var(--pink);
-  background: rgba(255,0,102,0.08);
+  background: var(--pink-soft-bg);
   border-color: var(--pink-dim);
 }
 
 .btn-pink:hover {
-  background: rgba(255,0,102,0.15);
+  background: var(--pink-strong-bg);
   box-shadow: 0 0 15px var(--pink-dim);
 }
 
@@ -792,8 +922,8 @@ select option {
 .format-btn.active {
   color: var(--cyan);
   border-color: var(--cyan-dim);
-  background: rgba(0,240,255,0.06);
-  box-shadow: 0 0 8px rgba(0,240,255,0.1);
+  background: var(--cyan-soft-bg);
+  box-shadow: 0 0 8px var(--cyan-dim);
 }
 
 .format-btn:hover:not(.active) {
@@ -836,7 +966,7 @@ select option {
 
 .quality-option.selected {
   border-color: var(--cyan-dim);
-  background: rgba(0,240,255,0.04);
+  background: var(--cyan-soft-bg);
 }
 
 .quality-radio {
@@ -1663,6 +1793,17 @@ select option {
 }
 .cf-mode-card:hover { border-color: var(--cyan-dim); }
 .cf-mode-card input[type="radio"] { margin-top: 3px; accent-color: var(--cyan); }
+
+@media (max-width: 640px) {
+  .header-bar {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+
+  .header-copy {
+    padding-left: 0;
+  }
+}
 </style>
 </head>
 <body>
@@ -1670,8 +1811,16 @@ select option {
 <div class="app-container">
   <!-- HEADER -->
   <header class="header">
-    <h1>YT Downloader</h1>
-    <div class="subtitle">// Powered by Wilson NG</div>
+    <div class="header-bar">
+      <div class="header-copy">
+        <h1>YT Downloader</h1>
+        <div class="subtitle">// Powered by Wilson NG</div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Toggle theme">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
+    </div>
   </header>
 
   <!-- COOKIE BANNER -->
@@ -3617,6 +3766,29 @@ function hideModal() {
   state.deleteCallback = null;
 }
 
+function updateThemeToggle(theme) {
+  var toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+  var nextTheme = theme === 'light' ? 'dark' : 'light';
+  toggle.setAttribute('aria-label', 'Switch to ' + nextTheme + ' theme');
+  toggle.setAttribute('title', theme === 'light' ? 'Light theme active' : 'Dark theme active');
+}
+
+function setTheme(theme) {
+  var normalized = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', normalized);
+  document.documentElement.style.colorScheme = normalized;
+  try {
+    localStorage.setItem('yt-theme', normalized);
+  } catch (_) {}
+  updateThemeToggle(normalized);
+}
+
+function toggleTheme() {
+  var currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  setTheme(currentTheme === 'light' ? 'dark' : 'light');
+}
+
 function escapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;
@@ -4995,6 +5167,12 @@ function setFontSize(size) {
   document.documentElement.classList.add('font-' + saved);
   // Update buttons after DOM ready
   setTimeout(function() { setFontSize(saved); }, 0);
+})();
+
+(function() {
+  updateThemeToggle(document.documentElement.getAttribute('data-theme') || 'dark');
+  var themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
 })();
 
 /* ══════════════════════════════════════════════
