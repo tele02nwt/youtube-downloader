@@ -2,6 +2,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 
 const tests = [
+  'public-index-modules.test.js',
   'templates.test.js',
   'tenant-isolation.test.js',
   'stats.test.js',
