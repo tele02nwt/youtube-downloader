@@ -1194,6 +1194,23 @@ select option {
   margin-bottom: 10px;
 }
 
+.dl-card-thumb-link {
+  display: block;
+  flex-shrink: 0;
+  width: 96px;
+  text-decoration: none;
+}
+
+.dl-card-thumb {
+  display: block;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-deep);
+}
+
 .dl-card-info {
   flex: 1;
   min-width: 0;
@@ -3606,6 +3623,38 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+function extractYouTubeVideoId(url) {
+  if (!url) return null;
+  try {
+    var parsed = new URL(url);
+    var host = parsed.hostname.toLowerCase();
+    if (host === 'youtu.be') return parsed.pathname.slice(1) || null;
+    if (host.endsWith('youtube.com')) {
+      if (parsed.pathname === '/watch') return parsed.searchParams.get('v');
+      var parts = parsed.pathname.split('/').filter(Boolean);
+      if (parts[0] === 'shorts' || parts[0] === 'embed' || parts[0] === 'live') return parts[1] || null;
+    }
+  } catch (_) {
+    return null;
+  }
+  return null;
+}
+
+function resolveThumbnailUrl(item) {
+  if (item && item.thumbnail) return item.thumbnail;
+  var videoId = extractYouTubeVideoId(item && item.url);
+  return videoId ? 'https://i.ytimg.com/vi/' + videoId + '/maxresdefault.jpg' : '';
+}
+
+function renderThumbnailLink(item) {
+  var videoUrl = item && item.url ? item.url : '#';
+  var thumbnailUrl = resolveThumbnailUrl(item);
+  if (!thumbnailUrl) return '';
+  return '<a class="dl-card-thumb-link" href="' + escapeHtml(videoUrl) + '" target="_blank" rel="noopener noreferrer" title="Open video">' +
+    '<img class="dl-card-thumb" src="' + escapeHtml(thumbnailUrl) + '" alt="' + escapeHtml((item && item.title) || 'Video thumbnail') + '">' +
+  '</a>';
+}
+
 function formatBytes(bytes) {
   if (bytes === null || bytes === undefined || Number.isNaN(Number(bytes))) return 'N/A';
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -4005,6 +4054,7 @@ async function startDownload() {
     var body = {
       url: document.getElementById('url-input').value.trim(),
       title: state.probeData.title,
+      thumbnail: resolveThumbnailUrl(state.probeData),
       categoryId: opt.value,
       categoryName: opt.dataset.name,
       datePrefix: datePrefix,
@@ -4115,6 +4165,7 @@ function renderActiveCard(d) {
   }
   return '<div class="card dl-card">' +
     '<div class="dl-card-top">' +
+      renderThumbnailLink(d) +
       '<div class="dl-card-info">' +
         '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
         '<div class="dl-card-meta">' +
@@ -4141,6 +4192,7 @@ function renderCompletedCard(d) {
   var date = d.completedAt ? new Date(d.completedAt).toLocaleDateString('zh-TW') : '';
   return '<div class="card dl-card">' +
     '<div class="dl-card-top">' +
+      renderThumbnailLink(d) +
       '<div class="dl-card-info">' +
         '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
         '<div class="dl-card-meta">' +
@@ -4162,6 +4214,7 @@ function renderCompletedCard(d) {
 function renderErrorCard(d) {
   return '<div class="card dl-card">' +
     '<div class="dl-card-top">' +
+      renderThumbnailLink(d) +
       '<div class="dl-card-info">' +
         '<div class="dl-card-title">' + escapeHtml(d.title || d.url) + '</div>' +
         '<div class="dl-card-meta">' +
