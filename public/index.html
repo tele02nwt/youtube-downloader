@@ -1537,7 +1537,8 @@ select option {
     <button class="tab-btn" data-tab="workflow">架構</button>
     <button class="tab-btn" data-tab="install">安裝</button>
     <button class="tab-btn" data-tab="guide">指南</button>
-    <button class="tab-btn" data-tab="settings" style="margin-left:auto;font-size:0.65rem;">⚙️</button>
+    <span id="user-badge" style="margin-left:auto;font-size:0.7rem;color:var(--text-dim);display:flex;align-items:center;gap:6px;"></span>
+    <button class="tab-btn" data-tab="settings" style="font-size:0.65rem;">⚙️</button>
   </nav>
 
   <!-- ═══════════════════════════════════════════
@@ -2066,6 +2067,146 @@ select option {
               <div style="color:var(--text-secondary);">gog CLI 目前僅支援 macOS/Linux。Windows 建議以下方案：</div>
               <div style="margin-top:6px;"><span style="color:#4ade80;">推薦:</span> 使用 <strong style="color:var(--text-primary);">WSL2</strong>（Windows Subsystem for Linux）在 Linux 環境內執行整個應用，然後透過 <span class="setup-code">localhost:3847</span> 或 Cloudflare Tunnel 存取。</div>
               <div style="margin-top:4px;"><span style="color:var(--cyan);">替代:</span> 使用 <a href="https://rclone.org/install/#windows" target="_blank" style="color:var(--cyan);">rclone</a>（需額外配置，詳見指南）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 通知設定 PANEL (P4) ═══ -->
+    <div class="panel" id="panel-notifications">
+      <div class="panel-header">// 通知設定</div>
+      <div style="padding:16px;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">設定多頻道通知。下載完成、失敗等事件會同時發送到所有已啟用的頻道。</p>
+
+        <!-- Notification sub-tabs -->
+        <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:8px;">
+          <button class="btn notify-tab-btn active" data-ntab="telegram" onclick="switchNotifyTab('telegram')" style="font-size:0.78rem;padding:6px 12px;">📲 Telegram</button>
+          <button class="btn notify-tab-btn" data-ntab="discord" onclick="switchNotifyTab('discord')" style="font-size:0.78rem;padding:6px 12px;color:var(--text-secondary);border:1px solid var(--border);">🎮 Discord</button>
+          <button class="btn notify-tab-btn" data-ntab="webhook" onclick="switchNotifyTab('webhook')" style="font-size:0.78rem;padding:6px 12px;color:var(--text-secondary);border:1px solid var(--border);">🔗 Webhook</button>
+        </div>
+
+        <!-- Telegram sub-panel (mirrors existing) -->
+        <div class="notify-panel" id="ntab-telegram">
+          <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:12px;">Telegram 設定在下方獨立面板中管理。</div>
+          <button class="btn btn-cyan" style="font-size:0.8rem;" onclick="document.getElementById('panel-telegram').scrollIntoView({behavior:'smooth'})">👇 前往 Telegram 設定</button>
+        </div>
+
+        <!-- Discord sub-panel -->
+        <div class="notify-panel" id="ntab-discord" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">Discord Webhook 通知</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">將通知發送到 Discord 頻道。</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+              <input type="checkbox" id="discord-enabled" style="opacity:0;width:0;height:0;" onchange="notifyToggleUI('discord')">
+              <span class="notify-toggle-slider" id="discord-slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:24px;transition:.3s;"></span>
+              <span class="notify-toggle-knob" id="discord-knob" style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+            </label>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">WEBHOOK URL <span style="color:var(--pink);font-size:0.68rem;">(必填)</span></label>
+            <input type="text" id="discord-webhook-url" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" data-form-type="other"
+              style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.82rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            <div style="margin-top:5px;font-size:0.73rem;color:var(--text-dim);">Discord → Server Settings → Integrations → Webhooks → New Webhook → Copy Webhook URL</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-cyan" onclick="saveNotificationChannels()">💾 儲存</button>
+            <button class="btn" style="color:var(--text-secondary);border:1px solid var(--border);" onclick="testNotifications()">🧪 測試</button>
+          </div>
+          <div id="discord-status" style="margin-top:10px;font-size:0.8rem;display:none;"></div>
+        </div>
+
+        <!-- Webhook sub-panel -->
+        <div class="notify-panel" id="ntab-webhook" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);margin-bottom:4px;">Generic Webhook 通知</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">發送 JSON payload 到自訂 URL。支援 HMAC-SHA256 簽名。</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+              <input type="checkbox" id="webhook-enabled" style="opacity:0;width:0;height:0;" onchange="notifyToggleUI('webhook')">
+              <span class="notify-toggle-slider" id="webhook-slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:24px;transition:.3s;"></span>
+              <span class="notify-toggle-knob" id="webhook-knob" style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+            </label>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">WEBHOOK URL <span style="color:var(--pink);font-size:0.68rem;">(必填)</span></label>
+            <input type="text" id="webhook-url" placeholder="https://example.com/webhook" autocomplete="off" data-form-type="other"
+              style="width:100%;padding:12px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.82rem;border-radius:var(--radius);outline:none;"
+              onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <div>
+              <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">METHOD</label>
+              <select id="webhook-method" style="padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.82rem;border-radius:var(--radius);outline:none;cursor:pointer;">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:8px;">SECRET <span style="color:var(--text-dim);font-size:0.68rem;">(選填，用於 HMAC 簽名)</span></label>
+              <input type="password" id="webhook-secret" placeholder="your-secret-key" autocomplete="off" data-form-type="other"
+                style="width:100%;padding:10px 14px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.82rem;border-radius:var(--radius);outline:none;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-cyan" onclick="saveNotificationChannels()">💾 儲存</button>
+            <button class="btn" style="color:var(--text-secondary);border:1px solid var(--border);" onclick="testNotifications()">🧪 測試</button>
+          </div>
+          <div id="webhook-status" style="margin-top:10px;font-size:0.8rem;display:none;"></div>
+        </div>
+
+        <!-- Last notification status -->
+        <div id="notify-test-result" style="margin-top:16px;font-size:0.8rem;display:none;padding:10px;background:var(--bg-deep);border-radius:var(--radius);border:1px solid var(--border);"></div>
+      </div>
+    </div>
+
+    <!-- ═══ 用戶管理 PANEL (P4, admin only) ═══ -->
+    <div class="panel" id="panel-user-management" style="display:none;">
+      <div class="panel-header">// 用戶管理</div>
+      <div style="padding:16px;">
+        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">管理系統用戶。每個用戶有獨立的下載歷史。</p>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-family:var(--font-heading);font-size:0.82rem;color:var(--text-primary);">系統用戶列表</div>
+          <button class="btn btn-cyan" onclick="showAddUserModal()" style="font-size:0.8rem;">➕ 新增用戶</button>
+        </div>
+
+        <div id="user-list" style="font-size:0.85rem;">載入中...</div>
+
+        <!-- Add/Edit User Modal -->
+        <div id="user-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center;">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:400px;width:90%;">
+            <div id="user-modal-title" style="font-family:var(--font-heading);font-size:0.95rem;color:var(--cyan);margin-bottom:20px;">新增用戶</div>
+            <input type="hidden" id="user-modal-id">
+            <div style="margin-bottom:14px;">
+              <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:6px;">USERNAME</label>
+              <input type="text" id="user-modal-username" placeholder="用戶名" autocomplete="off" data-form-type="other"
+                style="width:100%;padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:6px;">PASSWORD</label>
+              <input type="password" id="user-modal-password" placeholder="密碼" autocomplete="off" data-form-type="other"
+                style="width:100%;padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;"
+                onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='var(--border)'">
+            </div>
+            <div style="margin-bottom:20px;">
+              <label style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;display:block;margin-bottom:6px;">ROLE</label>
+              <select id="user-modal-role"
+                style="padding:10px 12px;background:var(--bg-deep);border:1px solid var(--border);color:var(--text-primary);font-family:var(--font-mono);font-size:0.85rem;border-radius:var(--radius);outline:none;cursor:pointer;">
+                <option value="user">user（一般用戶）</option>
+                <option value="admin">admin（管理員）</option>
+              </select>
+            </div>
+            <div id="user-modal-error" style="color:var(--pink);font-size:0.8rem;margin-bottom:12px;display:none;"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+              <button class="btn" style="color:var(--text-secondary);border:1px solid var(--border);" onclick="closeUserModal()">取消</button>
+              <button class="btn btn-cyan" id="user-modal-save-btn" onclick="saveUser()">💾 儲存</button>
             </div>
           </div>
         </div>
@@ -3337,7 +3478,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab !== 'manager') disconnectSSE();
     if (btn.dataset.tab === 'logs') loadLogs();
     if (btn.dataset.tab === 'files') { loadFilesCategoryFilter(); loadFiles(); }
-    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); }
+    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); loadNotificationSettings(); loadUsers(); }
   });
 });
 
@@ -4725,14 +4866,18 @@ async function gdPollAuth() {
    ═══════════════════════════════════════════════ */
 (function reorderSettingsPanels() {
   var container = document.getElementById('tab-settings');
+  var notify = document.getElementById('panel-notifications');
+  var userMgmt = document.getElementById('panel-user-management');
   var tg = document.getElementById('panel-telegram');
   var gd = document.getElementById('panel-gdrive');
   var cf = document.getElementById('panel-cloudflare');
-  if (!container || !tg || !gd || !cf) return;
-  // Append in target order: TG → GD → CF
-  container.appendChild(tg);
-  container.appendChild(gd);
-  container.appendChild(cf);
+  if (!container) return;
+  // Append in target order: Notifications → Users → TG → GD → CF
+  if (notify) container.appendChild(notify);
+  if (userMgmt) container.appendChild(userMgmt);
+  if (tg) container.appendChild(tg);
+  if (gd) container.appendChild(gd);
+  if (cf) container.appendChild(cf);
 })();
 
 /* ═══════════════════════════════════════════════
@@ -4862,6 +5007,263 @@ window.saveSpeedLimit = async function() {
 };
 
 /* ═══════════════════════════════════════════════
+   P4: NOTIFICATION SETTINGS
+   ═══════════════════════════════════════════════ */
+
+function switchNotifyTab(tab) {
+  document.querySelectorAll('.notify-panel').forEach(function(el) { el.style.display = 'none'; });
+  document.querySelectorAll('.notify-tab-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+    btn.style.color = 'var(--text-secondary)';
+    btn.style.background = '';
+  });
+  var panel = document.getElementById('ntab-' + tab);
+  var btn = document.querySelector('.notify-tab-btn[data-ntab="' + tab + '"]');
+  if (panel) panel.style.display = 'block';
+  if (btn) { btn.classList.add('active'); btn.style.color = ''; btn.style.background = ''; }
+}
+
+function notifyToggleUI(channel) {
+  var cb = document.getElementById(channel + '-enabled');
+  var slider = document.getElementById(channel + '-slider');
+  var knob = document.getElementById(channel + '-knob');
+  if (!slider || !knob || !cb) return;
+  if (cb.checked) {
+    slider.style.background = 'var(--cyan)';
+    knob.style.transform = 'translateX(20px)';
+  } else {
+    slider.style.background = '#334155';
+    knob.style.transform = 'translateX(0)';
+  }
+}
+
+async function loadNotificationSettings() {
+  try {
+    var res = await fetch('/api/settings/notifications', { credentials: 'include' });
+    var data = await res.json();
+    // Discord
+    var dcEnabled = document.getElementById('discord-enabled');
+    var dcUrl = document.getElementById('discord-webhook-url');
+    if (dcEnabled) dcEnabled.checked = !!(data.discord && data.discord.enabled);
+    if (dcUrl && data.discord) dcUrl.value = data.discord.webhookUrl || '';
+    notifyToggleUI('discord');
+    // Webhook
+    var whEnabled = document.getElementById('webhook-enabled');
+    var whUrl = document.getElementById('webhook-url');
+    var whMethod = document.getElementById('webhook-method');
+    var whSecret = document.getElementById('webhook-secret');
+    if (whEnabled) whEnabled.checked = !!(data.webhook && data.webhook.enabled);
+    if (whUrl && data.webhook) whUrl.value = data.webhook.url || '';
+    if (whMethod && data.webhook) whMethod.value = data.webhook.method || 'POST';
+    if (whSecret && data.webhook) whSecret.value = '';  // never show secret
+    notifyToggleUI('webhook');
+  } catch (e) { console.error('loadNotificationSettings error', e); }
+}
+
+async function saveNotificationChannels() {
+  try {
+    var discord = {
+      enabled: document.getElementById('discord-enabled')?.checked || false,
+      webhookUrl: document.getElementById('discord-webhook-url')?.value?.trim() || ''
+    };
+    var webhook = {
+      enabled: document.getElementById('webhook-enabled')?.checked || false,
+      url: document.getElementById('webhook-url')?.value?.trim() || '',
+      method: document.getElementById('webhook-method')?.value || 'POST',
+      secret: document.getElementById('webhook-secret')?.value?.trim() || ''
+    };
+    // Don't send empty secret (preserve existing)
+    if (!webhook.secret) delete webhook.secret;
+
+    var res = await fetch('/api/settings/notifications', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ discord, webhook })
+    });
+    var data = await res.json();
+    if (data.ok) {
+      showToast('通知設定已儲存 ✓', 'success');
+    } else {
+      showToast('儲存失敗：' + (data.error || ''), 'error');
+    }
+  } catch (e) {
+    showToast('網絡錯誤', 'error');
+  }
+}
+
+async function testNotifications() {
+  var resultEl = document.getElementById('notify-test-result');
+  if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = '📨 發送測試通知中...'; }
+  try {
+    var res = await fetch('/api/settings/notifications/test', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    var data = await res.json();
+    if (data.ok && data.results) {
+      var html = data.results.map(function(r) {
+        var icon = r.ok ? '✅' : '❌';
+        return '<div>' + icon + ' <strong>' + (r.channel || 'unknown') + '</strong>' + (r.error ? ' — ' + r.error : '') + '</div>';
+      }).join('');
+      if (resultEl) resultEl.innerHTML = html;
+      showToast('測試通知已發送', 'success');
+    } else {
+      if (resultEl) resultEl.innerHTML = '❌ ' + (data.error || '發送失敗');
+    }
+  } catch (e) {
+    if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = '❌ 網絡錯誤'; }
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   P4: USER MANAGEMENT
+   ═══════════════════════════════════════════════ */
+
+var _currentUserRole = 'admin';
+var _currentUserId = null;
+
+async function loadUserInfo() {
+  try {
+    var res = await fetch('/api/auth/info', { credentials: 'include' });
+    var data = await res.json();
+    _currentUserRole = data.role || 'admin';
+    _currentUserId = data.userId || null;
+    // Update user badge
+    var badge = document.getElementById('user-badge');
+    if (badge) {
+      var roleColor = data.role === 'admin' ? 'var(--cyan)' : 'var(--text-dim)';
+      badge.innerHTML = '<span style="color:' + roleColor + ';">' + (data.role === 'admin' ? '👑' : '👤') + '</span> ' + (data.username || '');
+    }
+    // Show/hide admin panels
+    var userPanel = document.getElementById('panel-user-management');
+    if (userPanel) userPanel.style.display = data.role === 'admin' ? 'block' : 'none';
+  } catch (e) { console.error('loadUserInfo error', e); }
+}
+
+async function loadUsers() {
+  try {
+    var res = await fetch('/api/users', { credentials: 'include' });
+    if (res.status === 403) { document.getElementById('user-list').innerHTML = '<div style="color:var(--text-dim);">需要管理員權限</div>'; return; }
+    var users = await res.json();
+    var listEl = document.getElementById('user-list');
+    if (!listEl) return;
+    if (!users.length) { listEl.innerHTML = '<div style="color:var(--text-dim);">暫無用戶</div>'; return; }
+
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
+    html += '<thead><tr style="border-bottom:1px solid var(--border);">';
+    html += '<th style="text-align:left;padding:8px 6px;color:var(--text-secondary);font-weight:normal;font-family:var(--font-heading);font-size:0.72rem;letter-spacing:1px;">USERNAME</th>';
+    html += '<th style="text-align:left;padding:8px 6px;color:var(--text-secondary);font-weight:normal;font-family:var(--font-heading);font-size:0.72rem;letter-spacing:1px;">ROLE</th>';
+    html += '<th style="text-align:left;padding:8px 6px;color:var(--text-secondary);font-weight:normal;font-family:var(--font-heading);font-size:0.72rem;letter-spacing:1px;">LAST LOGIN</th>';
+    html += '<th style="text-align:left;padding:8px 6px;color:var(--text-secondary);font-weight:normal;font-family:var(--font-heading);font-size:0.72rem;letter-spacing:1px;">CREATED</th>';
+    html += '<th style="text-align:right;padding:8px 6px;"></th>';
+    html += '</tr></thead><tbody>';
+
+    users.forEach(function(u) {
+      var isSelf = u.id === _currentUserId;
+      var roleColor = u.role === 'admin' ? 'var(--cyan)' : 'var(--text-dim)';
+      var roleBadge = '<span style="color:' + roleColor + ';font-size:0.75rem;padding:2px 8px;border:1px solid ' + roleColor + ';border-radius:10px;">' + u.role + '</span>';
+      var lastLogin = u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('zh-TW') : '—';
+      var created = u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-TW') : '—';
+
+      html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">';
+      html += '<td style="padding:10px 6px;color:var(--text-primary);">' + u.username + (isSelf ? ' <span style="color:var(--yellow);font-size:0.7rem;">（你）</span>' : '') + '</td>';
+      html += '<td style="padding:10px 6px;">' + roleBadge + '</td>';
+      html += '<td style="padding:10px 6px;color:var(--text-secondary);font-size:0.78rem;">' + lastLogin + '</td>';
+      html += '<td style="padding:10px 6px;color:var(--text-secondary);font-size:0.78rem;">' + created + '</td>';
+      html += '<td style="padding:10px 6px;text-align:right;">';
+      html += '<button class="btn" style="font-size:0.72rem;padding:4px 8px;color:var(--text-secondary);border:1px solid var(--border);margin-right:4px;" onclick="editUser(\'' + u.id + '\',\'' + u.username.replace(/'/g, "\\'") + '\',\'' + u.role + '\')">✏️</button>';
+      if (!isSelf) {
+        html += '<button class="btn" style="font-size:0.72rem;padding:4px 8px;color:var(--pink);border:1px solid rgba(248,113,113,0.3);" onclick="deleteUser(\'' + u.id + '\',\'' + u.username.replace(/'/g, "\\'") + '\')">🗑️</button>';
+      }
+      html += '</td></tr>';
+    });
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+  } catch (e) {
+    console.error('loadUsers error', e);
+    var listEl = document.getElementById('user-list');
+    if (listEl) listEl.innerHTML = '<div style="color:var(--pink);">載入失敗</div>';
+  }
+}
+
+function showAddUserModal() {
+  document.getElementById('user-modal-id').value = '';
+  document.getElementById('user-modal-username').value = '';
+  document.getElementById('user-modal-password').value = '';
+  document.getElementById('user-modal-role').value = 'user';
+  document.getElementById('user-modal-title').textContent = '新增用戶';
+  document.getElementById('user-modal-error').style.display = 'none';
+  document.getElementById('user-modal').style.display = 'flex';
+}
+
+function editUser(id, username, role) {
+  document.getElementById('user-modal-id').value = id;
+  document.getElementById('user-modal-username').value = username;
+  document.getElementById('user-modal-password').value = '';
+  document.getElementById('user-modal-role').value = role;
+  document.getElementById('user-modal-title').textContent = '編輯用戶';
+  document.getElementById('user-modal-error').style.display = 'none';
+  document.getElementById('user-modal').style.display = 'flex';
+}
+
+function closeUserModal() {
+  document.getElementById('user-modal').style.display = 'none';
+}
+
+async function saveUser() {
+  var id = document.getElementById('user-modal-id').value;
+  var username = document.getElementById('user-modal-username').value.trim();
+  var pw = document.getElementById('user-modal-password').value;
+  var role = document.getElementById('user-modal-role').value;
+  var errEl = document.getElementById('user-modal-error');
+
+  if (!username) { errEl.textContent = '請輸入用戶名'; errEl.style.display = 'block'; return; }
+  if (!id && !pw) { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
+
+  try {
+    var url = id ? '/api/users/' + id : '/api/users';
+    var method = id ? 'PUT' : 'POST';
+    var body = { username: username, role: role };
+    if (pw) body.password = pw;
+
+    var res = await fetch(url, {
+      method: method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var data = await res.json();
+    if (res.ok) {
+      closeUserModal();
+      showToast(id ? '用戶已更新 ✓' : '用戶已新增 ✓', 'success');
+      loadUsers();
+    } else {
+      errEl.textContent = data.error || '操作失敗';
+      errEl.style.display = 'block';
+    }
+  } catch (e) {
+    errEl.textContent = '網絡錯誤';
+    errEl.style.display = 'block';
+  }
+}
+
+async function deleteUser(id, username) {
+  if (!confirm('確定要刪除用戶 "' + username + '"？此操作無法撤銷。')) return;
+  try {
+    var res = await fetch('/api/users/' + id, { method: 'DELETE', credentials: 'include' });
+    var data = await res.json();
+    if (res.ok) {
+      showToast('用戶已刪除 ✓', 'success');
+      loadUsers();
+    } else {
+      showToast('刪除失敗：' + (data.error || ''), 'error');
+    }
+  } catch (e) {
+    showToast('網絡錯誤', 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════ */
 loadCategories();
@@ -4869,6 +5271,8 @@ loadCategorySelect();
 checkCookieStatus();
 loadAccountInfo();
 loadSpeedLimit();
+loadUserInfo();
+loadNotificationSettings();
 </script>
 </body>
 </html>

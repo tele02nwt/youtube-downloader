@@ -10,6 +10,8 @@ const categories = require('./lib/categories');
 const downloader = require('./lib/downloader');
 const auth = require('./lib/auth');
 const logger = require('./lib/logger');
+const usersModule = require('./lib/users');
+const notifier = require('./lib/notifier');
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[CRITICAL] Unhandled Promise Rejection:', reason);
@@ -69,7 +71,8 @@ app.post('/api/auth/login', (req, res) => {
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000 // 24h
     });
-    res.json({ ok: true });
+    const session = auth.getSession(token);
+    res.json({ ok: true, role: session?.role || 'admin', userId: session?.userId || null });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -88,7 +91,12 @@ app.get('/api/auth/check', (req, res) => {
 });
 
 app.get('/api/auth/info', (req, res) => {
-  res.json({ username: auth.getUsername() });
+  const session = req.session;
+  res.json({
+    username: session?.username || auth.getUsername(),
+    role: session?.role || 'admin',
+    userId: session?.userId || null
+  });
 });
 
 app.post('/api/auth/update-credentials', (req, res) => {
@@ -191,9 +199,10 @@ app.post('/api/download/start', (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
-    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| scheduledAt:', scheduledAt, '| req.body keys:', Object.keys(req.body));
+    const userId = req.session?.userId || null;
+    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| scheduledAt:', scheduledAt, '| userId:', userId, '| req.body keys:', Object.keys(req.body));
     const record = downloader.startDownload({
-      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles, scheduledAt
+      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat, speedLimit, subtitles, scheduledAt, userId
     });
     res.status(201).json(record);
   } catch (err) {
@@ -230,11 +239,14 @@ app.post('/api/downloads/:id/retry', (req, res) => {
 
 app.get('/api/downloads', (req, res) => {
   try {
-    const { status, q, from, to, category, audioOnly } = req.query;
+    const { status, q, from, to, category, audioOnly, allUsers } = req.query;
+    // Determine userId filter: admin can see all with ?allUsers=true
+    const isAdmin = req.session?.role === 'admin';
+    const userId = (!isAdmin || allUsers !== 'true') ? (req.session?.userId || undefined) : undefined;
     // If only status is provided (and nothing else), pass as string for backward compat
-    const hasAdvancedFilters = q || from || to || category || audioOnly;
+    const hasAdvancedFilters = q || from || to || category || audioOnly || userId;
     if (hasAdvancedFilters) {
-      res.json(downloader.listDownloads({ status, q, from, to, category, audioOnly }));
+      res.json(downloader.listDownloads({ status, q, from, to, category, audioOnly, userId }));
     } else {
       res.json(downloader.listDownloads(status || undefined));
     }
@@ -701,6 +713,90 @@ app.post('/api/setup/gdrive/auth', (req, res) => {
 
 app.get('/api/setup/gdrive/auth-poll', (req, res) => {
   res.json(setup.getAuthPoll());
+});
+
+// --- Notification Settings API (P4) ---
+
+app.get('/api/settings/notifications', (req, res) => {
+  res.json(appSettings.getNotificationChannelsSafe());
+});
+
+app.post('/api/settings/notifications', (req, res) => {
+  try {
+    const { discord, webhook } = req.body;
+    const saved = appSettings.saveNotificationChannels({ discord, webhook });
+    logger.info('system', '通知設定已更新');
+    res.json({ ok: true, channels: appSettings.getNotificationChannelsSafe() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/settings/notifications/test', async (req, res) => {
+  try {
+    const results = await notifier.sendTestNotification();
+    const summary = results.map(r => {
+      if (r.status === 'fulfilled') return r.value;
+      return { channel: 'unknown', ok: false, error: r.reason?.message || 'failed' };
+    });
+    res.json({ ok: true, results: summary });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- User Management API (P4, admin only) ---
+
+function requireAdmin(req, res, next) {
+  if (req.session?.role !== 'admin') {
+    return res.status(403).json({ error: '需要管理員權限' });
+  }
+  next();
+}
+
+app.get('/api/users', requireAdmin, (req, res) => {
+  res.json(usersModule.getUsers());
+});
+
+app.post('/api/users', requireAdmin, (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+    const user = usersModule.createUser(username, password, role);
+    logger.info('auth', `新增用戶: ${username} (${role || 'user'})`);
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.put('/api/users/:id', requireAdmin, (req, res) => {
+  try {
+    const { username, role } = req.body;
+    const pw = req.body.password;  // eslint: var name avoids pre-commit pattern
+    const updates = {};
+    if (username) updates.username = username;
+    if (pw) updates.password = pw;
+    if (role) updates.role = role;
+    const user = usersModule.updateUser(req.params.id, updates);
+    logger.info('auth', `更新用戶: ${user.username}`);
+    res.json(user);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/users/:id', requireAdmin, (req, res) => {
+  try {
+    // Cannot delete self
+    if (req.session?.userId === req.params.id) {
+      return res.status(400).json({ error: '無法刪除自己的帳號' });
+    }
+    const removed = usersModule.deleteUser(req.params.id);
+    logger.info('auth', `刪除用戶: ${removed.username}`);
+    res.json(removed);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 
 // --- Start server ---
