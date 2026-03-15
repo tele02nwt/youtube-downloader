@@ -1592,7 +1592,26 @@ select option {
           <div class="format-hint">// 封裝格式只改變容器，不重新編碼，預計大小不受影響</div>
         </div>
 
-        <div class="format-section">
+        <div class="format-section" id="audio-only-section">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="audio-only-toggle" onchange="toggleAudioOnly()">
+              <span class="toggle-slider"></span>
+            </label>
+            <label for="audio-only-toggle" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--text-primary);cursor:pointer;">🎵 Audio Only</label>
+          </div>
+          <div id="audio-format-row" style="display:none;margin-bottom:8px;">
+            <div class="panel-header">// 音訊格式</div>
+            <div class="format-btns" id="audio-format-btns">
+              <button class="format-btn active" data-aformat="mp3">MP3</button>
+              <button class="format-btn" data-aformat="m4a">M4A</button>
+              <button class="format-btn" data-aformat="opus">OPUS</button>
+              <button class="format-btn" data-aformat="wav">WAV</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="format-section" id="video-quality-section">
           <div class="panel-header">// 畫質 <span style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);font-weight:400;">（串流大小估算）</span></div>
           <div class="quality-list" id="quality-list"></div>
         </div>
@@ -1624,6 +1643,7 @@ select option {
        TAB 3: MANAGER
        ═══════════════════════════════════════════ -->
   <div class="tab-content" id="tab-manager">
+    <div id="queue-status-bar" style="display:none;padding:10px 16px;margin-bottom:12px;background:rgba(0,240,255,0.06);border:1px solid rgba(0,240,255,0.15);border-radius:var(--radius);font-family:var(--font-mono);font-size:0.8rem;color:var(--cyan);"></div>
     <div class="mgr-section" id="mgr-active-section">
       <div class="mgr-section-title">
         // 進行中 <span class="count" id="active-count">0</span>
@@ -1797,6 +1817,22 @@ select option {
             <li>返回此頁面上傳該檔案</li>
           </ol>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ YT-DLP 更新 ═══ -->
+    <div class="panel" id="panel-ytdlp">
+      <div class="panel-header">// YT-DLP 下載引擎</div>
+      <div style="padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+          <div>
+            <div style="font-family:var(--font-heading);font-size:0.72rem;color:var(--text-secondary);letter-spacing:1px;margin-bottom:6px;">CURRENT VERSION</div>
+            <div id="ytdlp-version" style="font-family:var(--font-mono);font-size:0.9rem;color:var(--text-primary);">檢查中...</div>
+          </div>
+          <button class="btn btn-cyan" id="ytdlp-update-btn" onclick="ytdlpUpdate()">🔄 Update yt-dlp</button>
+        </div>
+        <div id="ytdlp-update-log" class="setup-log" style="display:none;max-height:200px;overflow-y:auto;"></div>
+        <div id="ytdlp-update-result" style="display:none;margin-top:10px;font-size:0.85rem;"></div>
       </div>
     </div>
 
@@ -3178,7 +3214,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'download') loadCategorySelect();
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab === 'logs') loadLogs();
-    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); }
+    if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); }
   });
 });
 
@@ -3420,20 +3456,42 @@ function renderQualityOptions(options) {
   });
 }
 
-// Format buttons
+// Format buttons (video container format)
 document.getElementById('format-btns').addEventListener('click', e => {
   const btn = e.target.closest('.format-btn');
   if (!btn) return;
-  document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#format-btns .format-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   state.selectedFormat = btn.dataset.format;
 });
+
+// Audio format buttons
+document.getElementById('audio-format-btns').addEventListener('click', e => {
+  const btn = e.target.closest('.format-btn');
+  if (!btn || !btn.dataset.aformat) return;
+  document.querySelectorAll('#audio-format-btns .format-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.selectedAudioFormat = btn.dataset.aformat;
+});
+
+// Audio-only toggle
+state.audioOnly = false;
+state.selectedAudioFormat = 'mp3';
+
+function toggleAudioOnly() {
+  state.audioOnly = document.getElementById('audio-only-toggle').checked;
+  document.getElementById('audio-format-row').style.display = state.audioOnly ? 'block' : 'none';
+  document.getElementById('video-quality-section').style.display = state.audioOnly ? 'none' : 'block';
+  document.getElementById('format-btns').parentElement.style.display = state.audioOnly ? 'none' : 'block';
+  document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+}
 
 // Start download
 document.getElementById('start-btn').addEventListener('click', startDownload);
 
 async function startDownload() {
-  if (!state.probeData || !state.selectedQuality) return;
+  if (!state.probeData) return;
+  if (!state.audioOnly && !state.selectedQuality) return;
 
   const sel = document.getElementById('dl-category');
   const opt = sel.options[sel.selectedIndex];
@@ -3448,17 +3506,25 @@ async function startDownload() {
       datePrefix = state.probeData.uploadDate;
     }
 
-    await api('POST', '/download/start', {
+    var body = {
       url: document.getElementById('url-input').value.trim(),
       title: state.probeData.title,
-      formatId: state.selectedQuality.formatId,
-      audioFormatId: state.probeData.bestAudioFormatId,
-      resolution: state.selectedQuality.resolution,
       categoryId: opt.value,
       categoryName: opt.dataset.name,
-      remuxFormat: state.selectedFormat,
       datePrefix: datePrefix,
-    });
+    };
+
+    if (state.audioOnly) {
+      body.audioOnly = true;
+      body.audioFormat = state.selectedAudioFormat;
+    } else {
+      body.formatId = state.selectedQuality.formatId;
+      body.audioFormatId = state.probeData.bestAudioFormatId;
+      body.resolution = state.selectedQuality.resolution;
+      body.remuxFormat = state.selectedFormat;
+    }
+
+    await api('POST', '/download/start', body);
     toast('下載已開始');
 
     // Switch to manager tab
@@ -3478,13 +3544,24 @@ async function loadDownloads() {
     state.downloads = await api('GET', '/downloads');
     renderDownloads();
     managePoll();
+    // Update queue status bar
+    try {
+      var qs = await api('GET', '/downloads/queue');
+      var bar = document.getElementById('queue-status-bar');
+      if (qs.active > 0 || qs.queued > 0) {
+        bar.style.display = 'block';
+        bar.textContent = '⚡ ' + qs.active + '/' + qs.maxConcurrent + ' active' + (qs.queued > 0 ? '  |  ⏳ ' + qs.queued + ' waiting' : '');
+      } else {
+        bar.style.display = 'none';
+      }
+    } catch(_) {}
   } catch (e) {
     toast(e.message, 'error');
   }
 }
 
 function renderDownloads() {
-  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending');
+  const active = state.downloads.filter(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending' || d.status === 'queued');
   const completed = state.downloads.filter(d => d.status === 'completed');
   const errors = state.downloads.filter(d => d.status === 'error');
 
@@ -3504,11 +3581,11 @@ function renderDownloads() {
 }
 
 function statusClass(s) {
-  return { downloading: 'status-downloading', merging: 'status-merging', uploading: 'status-uploading', completed: 'status-completed', error: 'status-error', pending: 'status-pending' }[s] || 'status-pending';
+  return { downloading: 'status-downloading', merging: 'status-merging', uploading: 'status-uploading', completed: 'status-completed', error: 'status-error', pending: 'status-pending', queued: 'status-pending' }[s] || 'status-pending';
 }
 
 function statusLabel(s) {
-  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中' }[s] || s;
+  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中', queued: '排隊中' }[s] || s;
 }
 
 function renderActiveCard(d) {
@@ -3589,20 +3666,8 @@ window.deleteDownload = function(id) {
 };
 
 window.retryDownload = async function(id) {
-  var d = state.downloads.find(x => x.id === id);
-  if (!d) return;
   try {
-    await api('POST', '/download/start', {
-      url: d.url,
-      title: d.title,
-      formatId: d.formatId,
-      audioFormatId: d.audioFormatId,
-      resolution: d.resolution,
-      categoryId: d.categoryId,
-      categoryName: d.categoryName,
-      remuxFormat: d.remuxFormat,
-    });
-    try { await api('DELETE', '/downloads/' + id); } catch(_) {}
+    await api('POST', '/downloads/' + id + '/retry');
     toast('已重新開始下載');
     loadDownloads();
   } catch (e) {
@@ -3611,7 +3676,7 @@ window.retryDownload = async function(id) {
 };
 
 function managePoll() {
-  var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending');
+  var hasActive = state.downloads.some(d => d.status === 'downloading' || d.status === 'merging' || d.status === 'uploading' || d.status === 'pending' || d.status === 'queued');
   if (hasActive && !state.pollTimer) {
     state.pollTimer = setInterval(async () => {
       if (document.getElementById('tab-manager').classList.contains('active')) {
@@ -3963,6 +4028,60 @@ function cfModeChange() {
   var mode = document.querySelector('input[name="cf-mode"]:checked');
   var tokenSection = document.getElementById('cf-token-section');
   if (tokenSection) tokenSection.style.display = (mode && mode.value === 'token') ? 'block' : 'none';
+}
+
+/* ═══════════════════════════════════════════════
+   YT-DLP AUTO-UPDATE (P1)
+   ═══════════════════════════════════════════════ */
+async function ytdlpLoadVersion() {
+  try {
+    var data = await api('GET', '/setup/ytdlp/version');
+    document.getElementById('ytdlp-version').textContent = data.version || 'Unknown';
+  } catch (e) {
+    document.getElementById('ytdlp-version').textContent = '❌ ' + e.message;
+  }
+}
+
+var _ytdlpPollTimer = null;
+async function ytdlpUpdate() {
+  var btn = document.getElementById('ytdlp-update-btn');
+  var logBox = document.getElementById('ytdlp-update-log');
+  var resultBox = document.getElementById('ytdlp-update-result');
+  btn.disabled = true;
+  btn.textContent = '⏳ Updating...';
+  logBox.style.display = 'block';
+  logBox.textContent = 'Starting update...\n';
+  resultBox.style.display = 'none';
+
+  try {
+    await api('POST', '/setup/ytdlp/update');
+  } catch (e) {
+    logBox.textContent = 'Error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = '🔄 Update yt-dlp';
+    return;
+  }
+
+  // Poll update status
+  if (_ytdlpPollTimer) clearInterval(_ytdlpPollTimer);
+  _ytdlpPollTimer = setInterval(async function() {
+    try {
+      var s = await api('GET', '/setup/ytdlp/update-status');
+      logBox.textContent = s.lines.join('\n') || 'Waiting...';
+      logBox.scrollTop = logBox.scrollHeight;
+      if (!s.running) {
+        clearInterval(_ytdlpPollTimer);
+        _ytdlpPollTimer = null;
+        btn.disabled = false;
+        btn.textContent = '🔄 Update yt-dlp';
+        if (s.version) {
+          resultBox.style.display = 'block';
+          resultBox.innerHTML = '<span style="color:var(--green);">✅ Updated to ' + escapeHtml(s.version) + '</span>';
+          document.getElementById('ytdlp-version').textContent = s.version;
+        }
+      }
+    } catch (_) {}
+  }, 2000);
 }
 
 async function cfRefreshStatus() {

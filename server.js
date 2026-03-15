@@ -164,13 +164,13 @@ app.post('/api/download/probe', async (req, res) => {
 
 app.post('/api/download/start', (req, res) => {
   try {
-    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix } = req.body;
+    const { url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat } = req.body;
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
-    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| req.body keys:', Object.keys(req.body));
+    console.log('[DEBUG] startDownload datePrefix:', datePrefix, '| audioOnly:', audioOnly, '| req.body keys:', Object.keys(req.body));
     const record = downloader.startDownload({
-      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix
+      url, title, formatId, audioFormatId, resolution, categoryId, categoryName, remuxFormat, datePrefix, audioOnly, audioFormat
     });
     res.status(201).json(record);
   } catch (err) {
@@ -185,6 +185,21 @@ app.get('/api/download/status/:id', (req, res) => {
       return res.status(404).json({ error: 'Download not found' });
     }
     res.json(status);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// --- Download Queue Status (P1) ---
+app.get('/api/downloads/queue', (req, res) => {
+  res.json(downloader.getQueueStatus());
+});
+
+// --- Retry failed download (P1) ---
+app.post('/api/downloads/:id/retry', (req, res) => {
+  try {
+    const newRecord = downloader.retryDownload(req.params.id);
+    res.status(201).json({ success: true, newId: newRecord.id, record: newRecord });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -318,6 +333,58 @@ app.post('/api/settings/telegram/test', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// --- yt-dlp Auto-Update API (P1) ---
+const { execFile: execFileCb } = require('child_process');
+const YT_DLP_BIN = '/home/linuxbrew/.linuxbrew/bin/yt-dlp';
+const YTDLP_UPDATE_LOG = path.join(__dirname, 'data', 'ytdlp-update.log');
+let _ytdlpUpdateRunning = false;
+
+app.get('/api/setup/ytdlp/version', (req, res) => {
+  execFileCb(YT_DLP_BIN, ['--version'], { timeout: 10000 }, (err, stdout) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ version: stdout.trim() });
+  });
+});
+
+app.post('/api/setup/ytdlp/update', (req, res) => {
+  if (_ytdlpUpdateRunning) return res.json({ started: false, message: 'Update already in progress' });
+  _ytdlpUpdateRunning = true;
+  fs.writeFileSync(YTDLP_UPDATE_LOG, '', 'utf8');
+
+  const child = require('child_process').spawn(YT_DLP_BIN, ['-U'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: process.env
+  });
+
+  function appendLog(text) {
+    fs.appendFileSync(YTDLP_UPDATE_LOG, text, 'utf8');
+  }
+  child.stdout.on('data', d => appendLog(d.toString()));
+  child.stderr.on('data', d => appendLog(d.toString()));
+  child.on('close', () => { _ytdlpUpdateRunning = false; });
+  child.on('error', (err) => {
+    appendLog('ERROR: ' + err.message + '\n');
+    _ytdlpUpdateRunning = false;
+  });
+
+  res.json({ started: true });
+});
+
+app.get('/api/setup/ytdlp/update-status', (req, res) => {
+  let log = '';
+  try { log = fs.readFileSync(YTDLP_UPDATE_LOG, 'utf8'); } catch (_) {}
+  const lines = log.split('\n').filter(Boolean);
+  const last20 = lines.slice(-20);
+  // Get current version after update
+  execFileCb(YT_DLP_BIN, ['--version'], { timeout: 10000 }, (err, stdout) => {
+    res.json({
+      running: _ytdlpUpdateRunning,
+      lines: last20,
+      version: err ? null : stdout.trim()
+    });
+  });
 });
 
 // --- Setup API (Cloudflare + Google Drive) ---
