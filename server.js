@@ -13,6 +13,7 @@ const auth = require('./lib/auth');
 const logger = require('./lib/logger');
 const usersModule = require('./lib/users');
 const notifier = require('./lib/notifier');
+const tenantAccess = require('./lib/tenant-access');
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[CRITICAL] Unhandled Promise Rejection:', reason);
@@ -40,9 +41,14 @@ const MAX_SSE_CLIENTS = 10;
 
 function broadcastDownloads() {
   if (_sseClients.size === 0) return;
-  const data = JSON.stringify(downloader.getDownloads());
-  for (const [id, res] of _sseClients) {
-    try { res.write(`data: ${data}\n\n`); } catch (e) { _sseClients.delete(id); }
+  const downloads = downloader.getDownloads();
+  for (const [id, client] of _sseClients) {
+    try {
+      const scoped = tenantAccess.filterRecordsForSession(downloads, client.session);
+      client.res.write(`data: ${JSON.stringify(scoped)}\n\n`);
+    } catch (e) {
+      _sseClients.delete(id);
+    }
   }
 }
 
@@ -136,7 +142,7 @@ app.post('/api/auth/verify-code', (req, res) => {
 
 app.get('/api/categories', (req, res) => {
   try {
-    res.json(categories.list());
+    res.json(categories.list(req.session));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -144,8 +150,8 @@ app.get('/api/categories', (req, res) => {
 
 app.post('/api/categories', (req, res) => {
   try {
-    const cat = categories.add(req.body.name);
-    logger.info('category', `新增分類: ${req.body.name}`);
+    const cat = categories.add(req.body.name, req.session?.userId || null);
+    logger.info('category', `新增分類: ${req.body.name}`, { userId: req.session?.userId || null, categoryId: cat.id });
     res.status(201).json(cat);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -154,7 +160,7 @@ app.post('/api/categories', (req, res) => {
 
 app.put('/api/categories/reorder', (req, res) => {
   try {
-    const result = categories.reorder(req.body.ids);
+    const result = categories.reorder(req.body.ids, req.session);
     res.json(result);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -163,7 +169,7 @@ app.put('/api/categories/reorder', (req, res) => {
 
 app.put('/api/categories/:id', (req, res) => {
   try {
-    const cat = categories.update(req.params.id, req.body.name);
+    const cat = categories.update(req.params.id, req.body.name, req.session);
     res.json(cat);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -172,8 +178,8 @@ app.put('/api/categories/:id', (req, res) => {
 
 app.delete('/api/categories/:id', (req, res) => {
   try {
-    const cat = categories.remove(req.params.id);
-    logger.info('category', `刪除分類: ${cat.name || req.params.id}`);
+    const cat = categories.remove(req.params.id, req.session);
+    logger.info('category', `刪除分類: ${cat.name || req.params.id}`, { userId: req.session?.userId || null, categoryId: cat.id });
     res.json(cat);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -214,7 +220,7 @@ app.post('/api/download/start', (req, res) => {
 
 app.get('/api/download/status/:id', (req, res) => {
   try {
-    const status = downloader.getStatus(req.params.id);
+    const status = downloader.getDownloadForSession(req.params.id, req.session);
     if (!status) {
       return res.status(404).json({ error: 'Download not found' });
     }
@@ -226,12 +232,15 @@ app.get('/api/download/status/:id', (req, res) => {
 
 // --- Download Queue Status (P1) ---
 app.get('/api/downloads/queue', (req, res) => {
-  res.json(downloader.getQueueStatus());
+  res.json(downloader.getQueueStatusForSession(req.session));
 });
 
 // --- Retry failed download (P1) ---
 app.post('/api/downloads/:id/retry', (req, res) => {
   try {
+    if (!downloader.getDownloadForSession(req.params.id, req.session)) {
+      return res.status(404).json({ error: 'Download not found' });
+    }
     const newRecord = downloader.retryDownload(req.params.id);
     res.status(201).json({ success: true, newId: newRecord.id, record: newRecord });
   } catch (err) {
@@ -241,17 +250,13 @@ app.post('/api/downloads/:id/retry', (req, res) => {
 
 app.get('/api/downloads', (req, res) => {
   try {
-    const { status, q, from, to, category, audioOnly, allUsers } = req.query;
-    // Determine userId filter: admin can see all with ?allUsers=true
-    const isAdmin = req.session?.role === 'admin';
-    const userId = (!isAdmin || allUsers !== 'true') ? (req.session?.userId || undefined) : undefined;
-    // If only status is provided (and nothing else), pass as string for backward compat
-    const hasAdvancedFilters = q || from || to || category || audioOnly || userId;
+    const { status, q, from, to, category, audioOnly } = req.query;
+    const hasAdvancedFilters = q || from || to || category || audioOnly;
     if (hasAdvancedFilters) {
-      res.json(downloader.listDownloads({ status, q, from, to, category, audioOnly, userId }));
-    } else {
-      res.json(downloader.listDownloads(status || undefined));
+      res.json(downloader.listDownloadsForSession(req.session, { status, q, from, to, category, audioOnly }));
+      return;
     }
+    res.json(downloader.listDownloadsForSession(req.session, status || undefined));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -268,10 +273,10 @@ app.get('/api/downloads/stream', (req, res) => {
   res.flushHeaders();
 
   const clientId = Date.now() + Math.random();
-  _sseClients.set(clientId, res);
+  _sseClients.set(clientId, { res, session: req.session });
 
   // Send current state immediately
-  const downloads = downloader.getDownloads();
+  const downloads = downloader.listDownloadsForSession(req.session);
   res.write(`data: ${JSON.stringify(downloads)}\n\n`);
 
   // Keepalive every 30s
@@ -291,8 +296,8 @@ app.get('/api/downloads/export', (req, res) => {
     const { status, q, from, to, category, audioOnly } = req.query;
     const hasFilters = status || q || from || to || category || audioOnly;
     const downloads = hasFilters
-      ? downloader.listDownloads({ status, q, from, to, category, audioOnly })
-      : downloader.listDownloads();
+      ? downloader.listDownloadsForSession(req.session, { status, q, from, to, category, audioOnly })
+      : downloader.listDownloadsForSession(req.session);
 
     // CSV escape helper: wrap in quotes, escape internal quotes
     function csvEscape(val) {
@@ -333,6 +338,9 @@ app.get('/api/downloads/export', (req, res) => {
 // --- Cancel scheduled download (P3) ---
 app.post('/api/downloads/:id/cancel-schedule', (req, res) => {
   try {
+    if (!downloader.getDownloadForSession(req.params.id, req.session)) {
+      return res.status(404).json({ error: 'Download not found' });
+    }
     downloader.cancelSchedule(req.params.id);
     res.json({ ok: true });
   } catch (err) {
@@ -342,6 +350,9 @@ app.post('/api/downloads/:id/cancel-schedule', (req, res) => {
 
 app.delete('/api/downloads/:id', (req, res) => {
   try {
+    if (!downloader.getDownloadForSession(req.params.id, req.session)) {
+      return res.status(404).json({ error: 'Download not found' });
+    }
     const removed = downloader.deleteDownload(req.params.id);
     res.json(removed);
   } catch (err) {
@@ -357,8 +368,8 @@ app.get('/api/files', (req, res) => {
     if (!fs.existsSync(basePath)) return res.json({ files: [] });
 
     const files = [];
-    const cats = categories.list();
-    const downloads = downloader.getDownloads();
+    const cats = categories.list(req.session);
+    const downloads = downloader.listDownloadsForSession(req.session);
 
     function scanDir(dir, categoryName) {
       if (!fs.existsSync(dir)) return;
@@ -394,7 +405,8 @@ app.get('/api/files', (req, res) => {
     files.sort((a, b) => b.mtime - a.mtime);
 
     const catFilter = req.query.category;
-    const filtered = catFilter ? files.filter(f => f.category === catFilter) : files;
+    const scopedFiles = tenantAccess.filterFilesForSession(files, downloads, req.session);
+    const filtered = catFilter ? scopedFiles.filter(f => f.category === catFilter) : scopedFiles;
 
     res.json({ files: filtered });
   } catch (err) {
@@ -411,6 +423,9 @@ app.get('/api/files/serve/:encodedPath', (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
     if (!fs.existsSync(resolved)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    if (!tenantAccess.canAccessFilePath(resolved, downloader.getDownloads(), req.session)) {
       return res.status(404).json({ error: 'File not found' });
     }
     const stat = fs.statSync(resolved);
@@ -459,6 +474,9 @@ app.delete('/api/files/:encodedPath', (req, res) => {
     if (!fs.existsSync(resolved)) {
       return res.status(404).json({ error: 'File not found' });
     }
+    if (!tenantAccess.canAccessFilePath(resolved, downloader.getDownloads(), req.session)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
     fs.unlinkSync(resolved);
     logger.info('system', `文件已刪除: ${path.basename(resolved)}`);
     res.json({ ok: true });
@@ -476,7 +494,8 @@ app.get('/api/logs', (req, res) => {
       category: category || undefined,
       level: level || undefined,
       limit: limit ? parseInt(limit) : 100,
-      before: before || undefined
+      before: before || undefined,
+      userId: tenantAccess.getScopedUserId(req.session) || undefined
     });
     res.json(logs);
   } catch (err) {
@@ -486,7 +505,7 @@ app.get('/api/logs', (req, res) => {
 
 app.get('/api/logs/stats', (req, res) => {
   try {
-    res.json(logger.getStats());
+    res.json(logger.getStats({ userId: tenantAccess.getScopedUserId(req.session) || undefined }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
