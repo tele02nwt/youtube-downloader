@@ -15,6 +15,7 @@ const logger = require('./lib/logger');
 const usersModule = require('./lib/users');
 const notifier = require('./lib/notifier');
 const tenantAccess = require('./lib/tenant-access');
+const stats = require('./lib/stats');
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[CRITICAL] Unhandled Promise Rejection:', reason);
@@ -546,6 +547,23 @@ app.get('/api/logs', (req, res) => {
 app.get('/api/logs/stats', (req, res) => {
   try {
     res.json(logger.getStats({ userId: tenantAccess.getScopedUserId(req.session) || undefined }));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/stats', (req, res) => {
+  try {
+    const scopedUserId = tenantAccess.getScopedUserId(req.session) || undefined;
+    const logs = scopedUserId
+      ? logger.getLogs().filter(log => log.userId === scopedUserId)
+      : logger.getLogs();
+
+    res.json(stats.buildStats({
+      downloads: downloader.listDownloadsForSession(req.session),
+      categories: categories.list(req.session),
+      logs
+    }));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
