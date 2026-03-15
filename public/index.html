@@ -2014,10 +2014,13 @@ select option {
         <h1>YT Downloader</h1>
         <div class="subtitle">// Powered by Wilson NG</div>
       </div>
-      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Toggle theme">
-        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
-        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
-      </button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Toggle theme">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+        </button>
+        <button class="theme-toggle" id="language-toggle" type="button" title="Language" aria-label="Language" onclick="setLanguage(getCurrentLanguage()==='zh-TW'?'en':'zh-TW')">EN</button>
+      </div>
     </div>
   </header>
 
@@ -3931,6 +3934,7 @@ select option {
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toast-container"></div>
 
+<script src="/js/i18n.js"></script>
 <script src="/js/state.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/ui.js"></script>
@@ -3939,6 +3943,8 @@ select option {
 /* ═══════════════════════════════════════════════
    APP STATE
    ═══════════════════════════════════════════════ */
+const i18n = window.i18n;
+if (typeof i18n === 'function') { i18n('English'); }
 const state = window.state;
 
 /* ═══════════════════════════════════════════════
@@ -6080,6 +6086,19 @@ async function deleteUser(id, username) {
 /* ═══════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════ */
+loadCategories();
+loadCategorySelect();
+checkCookieStatus();
+loadAccountInfo();
+loadSpeedLimit();
+loadUserInfo();
+loadNotificationSettings();
+</script>
+</body>
+</html>
+>
+</html>
+�═════════════════════ */
 loadCategories();
 loadCategorySelect();
 checkCookieStatus();

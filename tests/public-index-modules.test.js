@@ -9,6 +9,7 @@ const jsDir = path.join(projectRoot, 'public', 'js');
 const html = fs.readFileSync(indexPath, 'utf8');
 
 [
+  'i18n.js',
   'state.js',
   'api.js',
   'ui.js',
@@ -21,6 +22,27 @@ const html = fs.readFileSync(indexPath, 'utf8');
   assert.ok(
     html.includes(`<script src="/js/${file}"></script>`),
     `expected public/index.html to load /js/${file}`
+  );
+});
+
+[
+  'zh-TW.json',
+  'en.json'
+].forEach((file) => {
+  assert.ok(
+    fs.existsSync(path.join(projectRoot, 'public', 'i18n', file)),
+    `expected public/i18n/${file} to exist`
+  );
+});
+
+[
+  'id="language-toggle"',
+  'setLanguage(',
+  'i18n('
+].forEach((snippet) => {
+  assert.ok(
+    html.includes(snippet),
+    `expected public/index.html to include: ${snippet}`
   );
 });
 
