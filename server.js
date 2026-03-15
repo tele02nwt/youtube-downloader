@@ -372,6 +372,11 @@ function gracefulShutdown(signal) {
   shuttingDown = true;
   console.log(`[${signal}] Shutting down gracefully...`);
 
+  // Flush in-memory download state to disk before exit
+  try { downloader.flushToDisk(); } catch (e) {
+    console.error('Failed to flush downloads:', e.message);
+  }
+
   // Kill all active download child processes
   const active = downloader.activeProcesses;
   for (const id of Object.keys(active)) {
