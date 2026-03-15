@@ -6,6 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const fs = require('fs');
+const { execFileSync, execFile: execFileCb } = require('child_process');
 const categories = require('./lib/categories');
 const downloader = require('./lib/downloader');
 const auth = require('./lib/auth');
@@ -31,6 +32,7 @@ function formatFileSize(bytes) {
 const app = express();
 const PORT = 3847;
 const COOKIES_PATH = path.join(__dirname, 'data', 'cookies.txt');
+const DOWNLOAD_DIR = '/data/youtube-downloads';
 
 // SSE clients for download progress streaming (P2)
 const _sseClients = new Map();
@@ -598,13 +600,12 @@ app.post('/api/probe/playlist', async (req, res) => {
   try {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required' });
-    const { execFile: ef } = require('child_process');
     const YT_DLP_BIN = '/home/linuxbrew/.linuxbrew/bin/yt-dlp';
     const COOKIES_FILE = path.join(__dirname, 'data', 'cookies.txt');
     const args = ['--flat-playlist', '-J', '--no-warnings'];
     if (fs.existsSync(COOKIES_FILE)) args.unshift('--cookies', COOKIES_FILE);
     args.push(url);
-    ef(YT_DLP_BIN, args, { timeout: 60000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+    execFileCb(YT_DLP_BIN, args, { timeout: 60000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
       if (err) return res.status(500).json({ error: err.message });
       try {
         const data = JSON.parse(stdout);
@@ -630,7 +631,6 @@ app.post('/api/probe/playlist', async (req, res) => {
 });
 
 // --- yt-dlp Auto-Update API (P1) ---
-const { execFile: execFileCb } = require('child_process');
 const YT_DLP_BIN = '/home/linuxbrew/.linuxbrew/bin/yt-dlp';
 const YTDLP_UPDATE_LOG = path.join(__dirname, 'data', 'ytdlp-update.log');
 let _ytdlpUpdateRunning = false;
@@ -804,6 +804,168 @@ app.delete('/api/users/:id', requireAdmin, (req, res) => {
 // --- Health endpoint ---
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
+});
+
+function canExecute(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return false;
+  try {
+    fs.accessSync(filePath, fs.constants.X_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function canWrite(filePath) {
+  try {
+    fs.accessSync(filePath, fs.constants.W_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function runCommand(binPath, args) {
+  try {
+    return {
+      ok: true,
+      output: execFileSync(binPath, args, {
+        encoding: 'utf8',
+        timeout: 10000,
+        maxBuffer: 1024 * 1024
+      }).trim()
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: (err.stderr || err.stdout || err.message || '').trim().slice(0, 300)
+    };
+  }
+}
+
+function getFirstExistingParent(targetPath) {
+  let current = targetPath;
+  while (current && current !== path.dirname(current)) {
+    if (fs.existsSync(current)) return current;
+    current = path.dirname(current);
+  }
+  return fs.existsSync(current) ? current : __dirname;
+}
+
+function readDiskStats(targetPath) {
+  const statPath = getFirstExistingParent(targetPath);
+  try {
+    const stats = fs.statfsSync(statPath);
+    const total = Number(stats.blocks) * Number(stats.bsize);
+    const free = Number(stats.bavail) * Number(stats.bsize);
+    const used = total - free;
+    const percentage = total > 0 ? Number(((used / total) * 100).toFixed(2)) : 0;
+    return { ok: true, statPath, total, used, free, percentage };
+  } catch (err) {
+    return {
+      ok: false,
+      statPath,
+      total: null,
+      used: null,
+      free: null,
+      percentage: null,
+      error: err.message
+    };
+  }
+}
+
+function getDiagnostics() {
+  const ytDlpPath = fs.existsSync(YT_DLP_BIN) ? YT_DLP_BIN : (setup.findBinary('yt-dlp') || YT_DLP_BIN);
+  const ytDlpExecutable = canExecute(ytDlpPath);
+  const ytDlpVersion = ytDlpExecutable ? runCommand(ytDlpPath, ['--version']) : { ok: false, error: 'yt-dlp binary not executable' };
+
+  const ffmpegPath = setup.findBinary('ffmpeg');
+  const ffmpegVersion = ffmpegPath ? runCommand(ffmpegPath, ['-version']) : { ok: false, error: 'ffmpeg not found' };
+  const ffmpegVersionLine = ffmpegVersion.output ? ffmpegVersion.output.split('\n')[0] : null;
+
+  const gogStatus = setup.getGdriveStatus();
+
+  const diskStats = readDiskStats(DOWNLOAD_DIR);
+  const downloadDirExists = fs.existsSync(DOWNLOAD_DIR);
+  const downloadDirWritable = downloadDirExists ? canWrite(DOWNLOAD_DIR) : false;
+
+  const cookiesPresent = fs.existsSync(COOKIES_PATH);
+  const cookiesContent = cookiesPresent ? fs.readFileSync(COOKIES_PATH, 'utf8') : '';
+  const cookiesValid = cookiesPresent && cookiesContent.includes('.youtube.com');
+  const cookieLines = cookiesPresent
+    ? cookiesContent.split('\n').filter(line => line.trim() && !line.startsWith('#')).length
+    : 0;
+
+  const diagnostics = {
+    ok: false,
+    checkedAt: new Date().toISOString(),
+    ytDlp: {
+      ok: ytDlpExecutable && ytDlpVersion.ok,
+      version: ytDlpVersion.ok ? ytDlpVersion.output : null,
+      path: ytDlpPath,
+      executable: ytDlpExecutable,
+      error: ytDlpVersion.ok ? null : ytDlpVersion.error
+    },
+    ffmpeg: {
+      ok: !!ffmpegPath && ffmpegVersion.ok,
+      version: ffmpegVersionLine,
+      path: ffmpegPath,
+      error: ffmpegVersion.ok ? null : ffmpegVersion.error
+    },
+    gog: {
+      ok: gogStatus.installed && gogStatus.authenticated,
+      installed: gogStatus.installed,
+      authenticated: gogStatus.authenticated,
+      path: gogStatus.binPath || null,
+      error: gogStatus.error || null
+    },
+    diskSpace: {
+      ok: diskStats.ok,
+      path: diskStats.statPath,
+      total: diskStats.total,
+      used: diskStats.used,
+      free: diskStats.free,
+      percentage: diskStats.percentage,
+      error: diskStats.error || null
+    },
+    cookies: {
+      ok: cookiesPresent && cookiesValid,
+      present: cookiesPresent,
+      valid: cookiesValid,
+      path: COOKIES_PATH,
+      count: cookieLines
+    },
+    downloadDir: {
+      ok: downloadDirExists && downloadDirWritable,
+      path: DOWNLOAD_DIR,
+      exists: downloadDirExists,
+      writable: downloadDirWritable
+    },
+    node: {
+      ok: true,
+      version: process.version
+    }
+  };
+
+  diagnostics.ok = [
+    diagnostics.ytDlp.ok,
+    diagnostics.ffmpeg.ok,
+    diagnostics.gog.ok,
+    diagnostics.diskSpace.ok,
+    diagnostics.cookies.ok,
+    diagnostics.downloadDir.ok,
+    diagnostics.node.ok
+  ].every(Boolean);
+
+  return diagnostics;
+}
+
+app.get('/api/health/diagnostics', (req, res) => {
+  try {
+    res.json(getDiagnostics());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const server = app.listen(PORT, () => {

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "61fe727b0996e94e",
+    "username": "us20nwt@gmail.com",
+    "passwordHash": "c96160d084a48dc2d387f87ac01c14ffc749584613a79f920f3df15a54ed17c6",
+    "passwordSalt": "083f33b6fef5205db5e682c175113dc0",
+    "role": "admin",
+    "createdAt": "2026-03-15T17:44:34.588Z",
+    "lastLoginAt": "2026-03-15T17:45:12.556Z"
+  }
+]

@@ -275,6 +275,146 @@ body::after {
 }
 
 /* ═══════════════════════════════════════════════
+   HEALTH DIAGNOSTICS
+   ═══════════════════════════════════════════════ */
+.health-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.health-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.health-card {
+  border-color: rgba(0, 240, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(0, 240, 255, 0.05), transparent 45%),
+    var(--bg-card);
+}
+
+.health-card[data-status="fail"] {
+  border-color: rgba(255, 0, 102, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 0, 102, 0.06), transparent 45%),
+    var(--bg-card);
+}
+
+.health-card summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.health-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.health-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.health-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.health-card-name {
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: 0 0 10px;
+  box-shadow: 0 0 14px currentColor;
+}
+
+.status-dot.ok {
+  color: var(--green);
+  background: var(--green);
+}
+
+.status-dot.fail {
+  color: var(--pink);
+  background: var(--pink);
+}
+
+.health-card-value {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--cyan);
+  text-align: right;
+}
+
+.health-card[data-status="fail"] .health-card-value {
+  color: #ff7ea8;
+}
+
+.health-card-details {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  display: grid;
+  gap: 8px;
+}
+
+.health-detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.85rem;
+}
+
+.health-detail-label {
+  color: var(--text-dim);
+  flex: 0 0 38%;
+  word-break: break-word;
+}
+
+.health-detail-value {
+  color: var(--text-primary);
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+  font-family: var(--font-mono);
+}
+
+.health-empty {
+  padding: 28px 20px;
+  border: 1px dashed rgba(0, 240, 255, 0.18);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* ═══════════════════════════════════════════════
    INPUTS & BUTTONS
    ═══════════════════════════════════════════════ */
 input[type="text"], input[type="url"], select {
@@ -1534,6 +1674,7 @@ select option {
     <button class="tab-btn" data-tab="manager">管理</button>
     <button class="tab-btn" data-tab="files">📁 文件</button>
     <button class="tab-btn" data-tab="logs">日誌</button>
+    <button class="tab-btn" data-tab="health">Health</button>
     <button class="tab-btn" data-tab="workflow">架構</button>
     <button class="tab-btn" data-tab="install">安裝</button>
     <button class="tab-btn" data-tab="guide">指南</button>
@@ -1835,6 +1976,23 @@ select option {
     <!-- Load more -->
     <div style="text-align:center;padding:12px;display:none;" id="log-load-more-wrap">
       <button class="btn btn-cyan btn-sm" id="log-load-more" onclick="loadMoreLogs()">載入更多</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB: HEALTH
+       ═══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-health">
+    <div class="panel">
+      <div class="panel-header">// Health Diagnostics</div>
+      <div class="health-toolbar">
+        <div class="health-summary">
+          <span id="health-overall-dot" class="status-dot fail"></span>
+          <span id="health-last-run">尚未執行診斷</span>
+        </div>
+        <button class="btn btn-cyan" id="health-run-btn" onclick="runHealthDiagnostics()">Run Diagnostics</button>
+      </div>
+      <div id="health-content" class="health-empty">Press "Run Diagnostics" to inspect runtime dependencies and system status.</div>
     </div>
   </div>
 
@@ -3408,6 +3566,7 @@ const state = {
   downloads: [],
   pollTimer: null,
   deleteCallback: null,
+  healthDiagnostics: null,
 };
 
 /* ═══════════════════════════════════════════════
@@ -3447,6 +3606,25 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
+function formatBytes(bytes) {
+  if (bytes === null || bytes === undefined || Number.isNaN(Number(bytes))) return 'N/A';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = Number(bytes);
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  return value.toFixed(unitIndex === 0 ? 0 : 1) + ' ' + units[unitIndex];
+}
+
+function formatHealthValue(value) {
+  if (value === null || value === undefined || value === '') return 'N/A';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'number' && Number.isFinite(value) && value > 1024) return formatBytes(value);
+  return String(value);
+}
+
 /* ═══════════════════════════════════════════════
    TAB SWITCHING
    ═══════════════════════════════════════════════ */
@@ -3477,6 +3655,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'manager') loadDownloads();
     if (btn.dataset.tab !== 'manager') disconnectSSE();
     if (btn.dataset.tab === 'logs') loadLogs();
+    if (btn.dataset.tab === 'health') runHealthDiagnostics();
     if (btn.dataset.tab === 'files') { loadFilesCategoryFilter(); loadFiles(); }
     if (btn.dataset.tab === 'settings') { cfRefreshStatus(); gdRefreshStatus(); tgLoadSettings(); ytdlpLoadVersion(); loadSpeedLimit(); loadNotificationSettings(); loadUsers(); }
   });
@@ -4323,6 +4502,116 @@ window.deleteFile = function(encodedPath) {
     }
   });
 };
+
+/* ═══════════════════════════════════════════════
+   HEALTH DIAGNOSTICS
+   ═══════════════════════════════════════════════ */
+
+function healthCard(label, ok, summary, details) {
+  return '<details class="card health-card" data-status="' + (ok ? 'ok' : 'fail') + '">' +
+    '<summary>' +
+      '<div class="health-card-header">' +
+        '<div class="health-card-title">' +
+          '<span class="status-dot ' + (ok ? 'ok' : 'fail') + '"></span>' +
+          '<span class="health-card-name">' + escapeHtml(label) + '</span>' +
+        '</div>' +
+        '<div class="health-card-value">' + escapeHtml(summary) + '</div>' +
+      '</div>' +
+    '</summary>' +
+    '<div class="health-card-details">' + details + '</div>' +
+  '</details>';
+}
+
+function healthDetail(label, value) {
+  return '<div class="health-detail-row">' +
+    '<div class="health-detail-label">' + escapeHtml(label) + '</div>' +
+    '<div class="health-detail-value">' + escapeHtml(formatHealthValue(value)) + '</div>' +
+  '</div>';
+}
+
+function renderHealthDiagnostics(data) {
+  var content = document.getElementById('health-content');
+  var overallDot = document.getElementById('health-overall-dot');
+  var lastRun = document.getElementById('health-last-run');
+  if (!content || !overallDot || !lastRun) return;
+
+  if (!data) {
+    content.className = 'health-empty';
+    content.textContent = 'Press "Run Diagnostics" to inspect runtime dependencies and system status.';
+    overallDot.className = 'status-dot fail';
+    lastRun.textContent = '尚未執行診斷';
+    return;
+  }
+
+  overallDot.className = 'status-dot ' + (data.ok ? 'ok' : 'fail');
+  lastRun.textContent = 'Last run: ' + new Date(data.checkedAt).toLocaleString();
+  content.className = 'health-grid';
+  content.innerHTML = [
+    healthCard('yt-dlp', data.ytDlp.ok, data.ytDlp.version || (data.ytDlp.executable ? 'Unknown version' : 'Unavailable'), [
+      healthDetail('Version', data.ytDlp.version),
+      healthDetail('Path', data.ytDlp.path),
+      healthDetail('Executable', data.ytDlp.executable),
+      healthDetail('Error', data.ytDlp.error)
+    ].join('')),
+    healthCard('ffmpeg', data.ffmpeg.ok, data.ffmpeg.version || 'Unavailable', [
+      healthDetail('Version', data.ffmpeg.version),
+      healthDetail('Path', data.ffmpeg.path),
+      healthDetail('Error', data.ffmpeg.error)
+    ].join('')),
+    healthCard('gog', data.gog.ok, data.gog.authenticated ? 'Authenticated' : (data.gog.installed ? 'Not authenticated' : 'Not installed'), [
+      healthDetail('Installed', data.gog.installed),
+      healthDetail('Authenticated', data.gog.authenticated),
+      healthDetail('Path', data.gog.path),
+      healthDetail('Error', data.gog.error)
+    ].join('')),
+    healthCard('disk space', data.diskSpace.ok, data.diskSpace.percentage !== null ? (data.diskSpace.percentage + '% used') : 'Unavailable', [
+      healthDetail('Path', data.diskSpace.path),
+      healthDetail('Total', data.diskSpace.total),
+      healthDetail('Used', data.diskSpace.used),
+      healthDetail('Free', data.diskSpace.free),
+      healthDetail('Usage', data.diskSpace.percentage !== null ? (data.diskSpace.percentage + '%') : null),
+      healthDetail('Error', data.diskSpace.error)
+    ].join('')),
+    healthCard('cookies', data.cookies.ok, data.cookies.valid ? '.youtube.com detected' : 'Invalid or missing', [
+      healthDetail('Present', data.cookies.present),
+      healthDetail('Valid', data.cookies.valid),
+      healthDetail('Path', data.cookies.path),
+      healthDetail('Entries', data.cookies.count)
+    ].join('')),
+    healthCard('download dir', data.downloadDir.ok, data.downloadDir.writable ? 'Writable' : 'Unavailable', [
+      healthDetail('Path', data.downloadDir.path),
+      healthDetail('Exists', data.downloadDir.exists),
+      healthDetail('Writable', data.downloadDir.writable)
+    ].join('')),
+    healthCard('node', data.node.ok, data.node.version, [
+      healthDetail('Version', data.node.version)
+    ].join(''))
+  ].join('');
+}
+
+async function runHealthDiagnostics() {
+  var btn = document.getElementById('health-run-btn');
+  var content = document.getElementById('health-content');
+  if (btn) btn.disabled = true;
+  if (btn) btn.textContent = 'Running...';
+  if (content && !state.healthDiagnostics) {
+    content.className = 'health-empty';
+    content.textContent = 'Running diagnostics...';
+  }
+  try {
+    state.healthDiagnostics = await api('GET', '/health/diagnostics');
+    renderHealthDiagnostics(state.healthDiagnostics);
+  } catch (e) {
+    if (content) {
+      content.className = 'health-empty';
+      content.textContent = 'Diagnostics failed: ' + e.message;
+    }
+    toast(e.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btn) btn.textContent = 'Run Diagnostics';
+  }
+}
 
 /* ═══════════════════════════════════════════════
    MODAL EVENTS
