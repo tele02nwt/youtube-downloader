@@ -4020,13 +4020,13 @@ function renderCategories() {
   list.innerHTML = state.categories.map((c, i) => {
     const isDefault = c.id === 'default';
     return '<div class="card cat-card" data-id="' + c.id + '" data-idx="' + i + '" draggable="true">' +
-      '<span class="cat-drag-handle" title="拖曳排序">⠿</span>' +
+      '<span class="cat-drag-handle" title="' + i18n('拖曳排序') + '">⠿</span>' +
       '<span class="cat-icon">' + (isDefault ? '&#x2B22;' : '&#x2B21;') + '</span>' +
       '<span class="cat-name">' + escapeHtml(c.name) + '</span>' +
       (isDefault ? '<span class="cat-badge">DEFAULT</span>' : '') +
       (!isDefault ? '<div class="cat-actions">' +
-        '<button class="cat-action-btn edit" onclick="startEditCat(\'' + c.id + '\')" title="編輯">&#x270E;</button>' +
-        '<button class="cat-action-btn delete" onclick="deleteCat(\'' + c.id + '\', \'' + escapeHtml(c.name).replace(/'/g, "\\'") + '\')" title="刪除">&#x2715;</button>' +
+        '<button class="cat-action-btn edit" onclick="startEditCat(\'' + c.id + '\')" title="' + i18n('編輯') + '">&#x270E;</button>' +
+        '<button class="cat-action-btn delete" onclick="deleteCat(\'' + c.id + '\', \'' + escapeHtml(c.name).replace(/'/g, "\\'") + '\')" title="' + i18n('刪除') + '">&#x2715;</button>' +
       '</div>' : '') +
     '</div>';
   }).join('');
@@ -4045,7 +4045,7 @@ async function addCategory() {
   try {
     await api('POST', '/categories', { name });
     input.value = '';
-    toast('分類已新增');
+    toast(i18n('分類已新增'));
     loadCategories();
   } catch (e) {
     toast(e.message, 'error');
@@ -4053,7 +4053,7 @@ async function addCategory() {
 }
 
 window.startEditCat = function(id) {
-  if (id === 'default') { toast('預設分類無法編輯', 'error'); return; }
+  if (id === 'default') { toast(i18n('預設分類無法編輯'), 'error'); return; }
   const card = document.querySelector('.cat-card[data-id="' + id + '"]');
   const nameEl = card.querySelector('.cat-name');
   const currentName = nameEl.textContent;
@@ -4066,7 +4066,7 @@ window.saveEditCat = async function(id, newName) {
   if (!newName) { loadCategories(); return; }
   try {
     await api('PUT', '/categories/' + id, { name: newName });
-    toast('分類已更新');
+    toast(i18n('分類已更新'));
     loadCategories();
   } catch (e) {
     toast(e.message, 'error');
@@ -4075,14 +4075,14 @@ window.saveEditCat = async function(id, newName) {
 };
 
 window.deleteCat = function(id, name) {
-  if (id === 'default') { toast('預設分類無法刪除', 'error'); return; }
-  showModal('確定要刪除「' + name + '」分類嗎？', async () => {
+  if (id === 'default') { toast(i18n('預設分類無法刪除'), 'error'); return; }
+  showModal(i18n('確定要刪除「') + name + i18n('」分類嗎？'), async () => {
     try {
       await api('DELETE', '/categories/' + id);
-      toast('分類已刪除');
+      toast(i18n('分類已刪除'));
       loadCategories();
     } catch (e) {
-      toast(e.message === 'Cannot delete default category' ? '預設分類無法刪除' : e.message, 'error');
+      toast(e.message === 'Cannot delete default category' ? i18n('預設分類無法刪除') : e.message, 'error');
     }
   });
 };
@@ -4282,11 +4282,11 @@ function toggleAudioOnly() {
   document.getElementById('audio-format-row').style.display = state.audioOnly ? 'block' : 'none';
   document.getElementById('video-quality-section').style.display = state.audioOnly ? 'none' : 'block';
   document.getElementById('format-btns').parentElement.style.display = state.audioOnly ? 'none' : 'block';
-  document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+  document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : i18n('開始下載');
   // Reset schedule button text if schedule is off
   var schedTog = document.getElementById('schedule-toggle');
   if (schedTog && !schedTog.checked) {
-    document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+    document.getElementById('start-btn').textContent = state.audioOnly ? '⬇️ Download Audio' : i18n('開始下載');
   }
 }
 
@@ -4306,7 +4306,7 @@ function toggleSchedule() {
     updateScheduleButtonText();
     dtInput.addEventListener('change', updateScheduleButtonText);
   } else {
-    btn.textContent = state.audioOnly ? '⬇️ Download Audio' : '開始下載';
+    btn.textContent = state.audioOnly ? '⬇️ Download Audio' : i18n('開始下載');
   }
 }
 
@@ -4316,7 +4316,7 @@ function updateScheduleButtonText() {
   if (dtInput && dtInput.value) {
     var dt = new Date(dtInput.value);
     var formatted = dt.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
-    btn.textContent = '排程 (' + formatted + ')';
+    btn.textContent = i18n('排程') + ' (' + formatted + ')';
   }
 }
 
@@ -4377,7 +4377,7 @@ async function startDownload() {
     }
 
     await api('POST', '/download/start', body);
-    toast(body.scheduledAt ? '排程下載已建立' : '下載已開始');
+    toast(body.scheduledAt ? i18n('排程下載已建立') : i18n('下載已開始'));
 
     // Switch to manager tab
     document.querySelector('.tab-btn[data-tab="manager"]').click();
@@ -4437,7 +4437,7 @@ function statusClass(s) {
 }
 
 function statusLabel(s) {
-  return { downloading: '下載中', merging: '合併中', uploading: '上傳 Drive', completed: '完成', error: '失敗', pending: '等待中', queued: '排隊中', scheduled: '排程中' }[s] || s;
+  return { downloading: i18n('下載中'), merging: i18n('合併中'), uploading: i18n('上傳 Drive'), completed: i18n('完成'), error: i18n('失敗'), pending: i18n('等待中'), queued: i18n('排隊中'), scheduled: i18n('排程中') }[s] || s;
 }
 
 function renderActiveCard(d) {
@@ -4448,8 +4448,8 @@ function renderActiveCard(d) {
     var hours = Math.floor(Math.max(0, remaining) / 3600000);
     var mins = Math.floor((Math.max(0, remaining) % 3600000) / 60000);
     scheduleHtml = '<div style="padding:4px 16px 8px;display:flex;align-items:center;justify-content:space-between;">' +
-      '<span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--yellow);">排程中 · 剩餘 ' + hours + 'h ' + mins + 'm</span>' +
-      '<button class="btn btn-pink" style="font-size:0.75rem;padding:4px 12px;" onclick="cancelSchedule(\'' + d.id + '\')">取消排程</button>' +
+      '<span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--yellow);">' + i18n('排程中') + ' · ' + i18n('剩餘') + ' ' + hours + 'h ' + mins + 'm</span>' +
+      '<button class="btn btn-pink" style="font-size:0.75rem;padding:4px 12px;" onclick="cancelSchedule(\'' + d.id + '\')">' + i18n('取消排程') + '</button>'' +
     '</div>';
   }
   return '<div class="card dl-card">' +
@@ -4491,11 +4491,11 @@ function renderCompletedCard(d) {
           (d.categoryName ? '<span>' + escapeHtml(d.categoryName) + '</span>' : '') +
         '</div>' +
       '</div>' +
-      '<span class="status-badge status-completed">完成</span>' +
+      '<span class="status-badge status-completed">' + i18n('完成') + '</span>'' +
     '</div>' +
     (d.gdriveLink ? '<div style="padding:0 16px 8px;"><a href="' + escapeHtml(d.gdriveLink) + '" target="_blank" style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem;text-decoration:none;">📁 Google Drive ↗</a></div>' : '') +
     '<div class="dl-card-actions">' +
-      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">刪除記錄</button>' +
+      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">' + i18n('刪除記錄') + '</button>'' +
     '</div>' +
   '</div>';
 }
@@ -4510,11 +4510,11 @@ function renderErrorCard(d) {
           '<span style="color:var(--pink)">' + escapeHtml(d.error || 'Unknown error') + '</span>' +
         '</div>' +
       '</div>' +
-      '<span class="status-badge status-error">失敗</span>' +
+      '<span class="status-badge status-error">' + i18n('失敗') + '</span>'' +
     '</div>' +
     '<div class="dl-card-actions">' +
-      '<button class="btn btn-purple" onclick="retryDownload(\'' + d.id + '\')">重試</button>' +
-      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">刪除</button>' +
+      '<button class="btn btn-purple" onclick="retryDownload(\'' + d.id + '\')">' + i18n('重試') + '</button>'' +
+      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">' + i18n('刪除') + '</button>' +
     '</div>' +
   '</div>';
 }
@@ -4523,7 +4523,7 @@ function renderErrorCard(d) {
 window.cancelSchedule = async function(id) {
   try {
     await api('POST', '/downloads/' + id + '/cancel-schedule');
-    toast('排程已取消');
+    toast(i18n('排程已取消'));
     loadDownloads();
   } catch (e) {
     toast(e.message, 'error');
@@ -4531,10 +4531,10 @@ window.cancelSchedule = async function(id) {
 };
 
 window.deleteDownload = function(id) {
-  showModal('確定要刪除此下載記錄嗎？', async () => {
+  showModal(i18n('確定要刪除此下載記錄嗎？'), async () => {
     try {
       await api('DELETE', '/downloads/' + id);
-      toast('記錄已刪除');
+      toast(i18n('記錄已刪除'));
       loadDownloads();
     } catch (e) {
       toast(e.message, 'error');
@@ -4545,7 +4545,7 @@ window.deleteDownload = function(id) {
 window.retryDownload = async function(id) {
   try {
     await api('POST', '/downloads/' + id + '/retry');
-    toast('已重新開始下載');
+    toast(i18n('已重新開始下載'));
     loadDownloads();
   } catch (e) {
     toast(e.message, 'error');
@@ -4634,7 +4634,7 @@ function renderSubtitleOptions(subs) {
     return '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;">' +
       '<input type="checkbox" class="sub-checkbox" data-lang="' + escapeHtml(s.lang) + '" data-auto="' + (s.isAuto ? '1' : '0') + '" style="accent-color:var(--cyan);width:16px;height:16px;">' +
       '<span style="color:var(--text-primary);font-size:0.85rem;">' + escapeHtml(s.name || s.lang) + '</span>' +
-      (s.isAuto ? '<span style="font-size:0.7rem;color:var(--text-dim);background:var(--bg-deep);padding:2px 6px;border-radius:3px;">自動產生</span>' : '') +
+      (s.isAuto ? '<span style="font-size:0.7rem;color:var(--text-dim);background:var(--bg-deep);padding:2px 6px;border-radius:3px;">' + i18n('自動產生') + '</span>'' : '') +
     '</label>';
   }).join('');
 }
@@ -4659,7 +4659,7 @@ state.playlistFormat = 'mp4';
 function renderPlaylistResult(data) {
   state.playlistData = data;
   document.getElementById('playlist-title').textContent = '📋 ' + (data.title || 'Playlist');
-  document.getElementById('playlist-count').textContent = data.count + ' 部影片' + (data.count > 50 ? '（顯示前 50）' : '');
+  document.getElementById('playlist-count').textContent = data.count + ' ' + i18n('部影片') + (data.count > 50 ? ' ' + i18n('（顯示前 50）') : '');
 
   var entries = document.getElementById('playlist-entries');
   entries.innerHTML = data.entries.map(function(e, i) {
@@ -4692,7 +4692,7 @@ window.playlistSelectAll = function(checked) {
 
 window.updatePlaylistCount = function() {
   var count = document.querySelectorAll('.pl-checkbox:checked').length;
-  document.getElementById('playlist-dl-btn').textContent = '⬇️ 下載選定 (' + count + ')';
+  document.getElementById('playlist-dl-btn').textContent = '⬇️ ' + i18n('下載選定') + ' (' + count + ')';
 };
 
 // Playlist format buttons
@@ -4706,12 +4706,12 @@ document.getElementById('playlist-format-btns').addEventListener('click', functi
 
 window.startPlaylistDownload = async function() {
   var checks = document.querySelectorAll('.pl-checkbox:checked');
-  if (checks.length === 0) { toast('請選擇至少一部影片', 'error'); return; }
+  if (checks.length === 0) { toast(i18n('請選擇至少一部影片'), 'error'); return; }
 
   var sel = document.getElementById('playlist-category');
   var opt = sel.options[sel.selectedIndex];
   var categoryId = opt ? opt.value : 'default';
-  var categoryName = opt ? opt.dataset.name : '未分類';
+  var categoryName = opt ? opt.dataset.name : i18n('未分類');
   var format = state.playlistFormat || 'mp4';
   var msgEl = document.getElementById('playlist-progress-msg');
   msgEl.style.display = 'block';
@@ -4723,7 +4723,7 @@ window.startPlaylistDownload = async function() {
     var idx = parseInt(checks[i].dataset.idx);
     var entry = state.playlistData.entries[idx];
     if (!entry || !entry.url) continue;
-    msgEl.textContent = '已加入佇列: ' + queued + '/' + total;
+    msgEl.textContent = i18n('已加入佇列') + ': ' + queued + '/' + total;
     try {
       await api('POST', '/download/start', {
         url: entry.url,
@@ -4733,14 +4733,14 @@ window.startPlaylistDownload = async function() {
         remuxFormat: format
       });
       queued++;
-      msgEl.textContent = '已加入佇列: ' + queued + '/' + total;
+      msgEl.textContent = i18n('已加入佇列') + ': ' + queued + '/' + total;
     } catch(e) {
       console.error('Playlist download error:', e);
     }
   }
 
-  msgEl.textContent = '✅ 已加入佇列: ' + queued + '/' + total;
-  toast('已加入 ' + queued + ' 部影片到下載佇列');
+  msgEl.textContent = '✅ ' + i18n('已加入佇列') + ': ' + queued + '/' + total;
+  toast(i18n('已加入 {count} 部影片到下載佇列', { count: queued }));
   setTimeout(function() {
     document.querySelector('.tab-btn[data-tab="manager"]').click();
   }, 1000);
@@ -4757,7 +4757,7 @@ async function loadFiles() {
     var files = data.files || [];
 
     var countEl = document.getElementById('files-count');
-    countEl.textContent = files.length + ' 個文件';
+    countEl.textContent = files.length + ' ' + i18n('個文件');
 
     var list = document.getElementById('files-list');
     var empty = document.getElementById('files-empty');
@@ -4788,14 +4788,14 @@ async function loadFiles() {
           '</div>' +
         '</div>' +
         '<div class="dl-card-actions">' +
-          (isVideo || isAudio ? '<button class="btn btn-cyan" onclick="openPlayer(\'' + encodedPath.replace(/'/g, "\\'") + '\',\'' + escapeHtml(f.name).replace(/'/g, "\\'") + '\',\'' + (isVideo ? 'video' : 'audio') + '\')">▶ 播放</button>' : '') +
-          '<a href="/api/files/serve/' + encodedPath + '" download="' + escapeHtml(f.name) + '" class="btn" style="color:var(--text-secondary);border:1px solid var(--border);text-decoration:none;">📥 下載</a>' +
-          '<button class="btn btn-pink" onclick="deleteFile(\'' + encodedPath.replace(/'/g, "\\'") + '\')">刪除</button>' +
+          (isVideo || isAudio ? '<button class="btn btn-cyan" onclick="openPlayer(\'' + encodedPath.replace(/'/g, "\\'") + '\',\'' + escapeHtml(f.name).replace(/'/g, "\\'") + '\',\'' + (isVideo ? 'video' : 'audio') + '\')">▶ ' + i18n('播放') + '</button>' : '') +
+          '<a href="/api/files/serve/' + encodedPath + '" download="' + escapeHtml(f.name) + '" class="btn" style="color:var(--text-secondary);border:1px solid var(--border);text-decoration:none;">📥 ' + i18n('下載') + '</a>' +
+          '<button class="btn btn-pink" onclick="deleteFile(\'' + encodedPath.replace(/'/g, "\\'") + '\')">' + i18n('刪除') + '</button>' +
         '</div>' +
       '</div>';
     }).join('');
   } catch (e) {
-    toast('載入文件失敗: ' + e.message, 'error');
+    toast(i18n('載入文件失敗') + ': ' + e.message, 'error');
   }
 }
 
@@ -4804,7 +4804,7 @@ async function loadFilesCategoryFilter() {
     var cats = await api('GET', '/categories');
     var sel = document.getElementById('files-category-filter');
     var prev = sel.value;
-    sel.innerHTML = '<option value="">全部分類</option>' + cats.map(function(c) {
+    sel.innerHTML = '<option value="">' + i18n('全部分類') + '</option>' + cats.map(function(c) {
       return '<option value="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>';
     }).join('');
     if (prev) sel.value = prev;
@@ -4834,10 +4834,10 @@ function closePlayer() {
 }
 
 window.deleteFile = function(encodedPath) {
-  showModal('確定要刪除此文件嗎？此操作不可恢復。', async function() {
+  showModal(i18n('確定要刪除此文件嗎？此操作不可恢復。'), async function() {
     try {
       await api('DELETE', '/files/' + encodedPath);
-      toast('文件已刪除');
+      toast(i18n('文件已刪除'));
       loadFiles();
     } catch (e) {
       toast(e.message, 'error');
@@ -4881,7 +4881,7 @@ function renderHealthDiagnostics(data) {
     content.className = 'health-empty';
     content.textContent = 'Press "Run Diagnostics" to inspect runtime dependencies and system status.';
     overallDot.className = 'status-dot fail';
-    lastRun.textContent = '尚未執行診斷';
+    lastRun.textContent = i18n('尚未執行診斷');
     return;
   }
 
@@ -4978,10 +4978,10 @@ async function checkCookieStatus() {
     const statusEl = document.getElementById('cookie-status');
     const banner = document.getElementById('cookie-banner');
     if (data.hasCookies) {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✅ Cookies 已設定（' + data.cookieCount + ' 條記錄）</span>';
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--green)">✅ Cookies ' + i18n('已設定（{count} 條記錄）', { count: data.cookieCount }) + '</span>';
       if (banner) banner.style.display = 'none';
     } else {
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--pink)">❌ 未設定 Cookies — YouTube 下載可能失敗</span>';
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--pink)">❌ ' + i18n('未設定 Cookies — YouTube 下載可能失敗') + '</span>';
       if (banner) banner.style.display = 'block';
     }
   } catch (e) {
@@ -5005,7 +5005,7 @@ function closeCookieModal() {
 
 async function uploadCookieFromModal() {
   const fileInput = document.getElementById('cookie-modal-file');
-  if (!fileInput.files.length) { toast('請選擇 cookies.txt 檔案', 'error'); return; }
+  if (!fileInput.files.length) { toast(i18n('請選擇 cookies.txt 檔案'), 'error'); return; }
   const content = await fileInput.files[0].text();
   await doUploadCookies(content);
   closeCookieModal();
@@ -5019,7 +5019,7 @@ document.getElementById('cookie-file-input').addEventListener('change', async fu
 
 async function uploadCookieText() {
   const text = document.getElementById('cookie-textarea').value.trim();
-  if (!text) { toast('請貼上 cookies 內容', 'error'); return; }
+  if (!text) { toast(i18n('請貼上 cookies 內容'), 'error'); return; }
   await doUploadCookies(text);
 }
 
@@ -5032,7 +5032,7 @@ async function doUploadCookies(content) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-    toast('✅ Cookies 已儲存（' + data.cookieCount + ' 條）', 'success');
+    toast('✅ Cookies ' + i18n('已儲存（{count} 條）', { count: data.cookieCount }), 'success');
     checkCookieStatus();
   } catch (e) {
     toast('❌ ' + e.message, 'error');
@@ -5042,10 +5042,10 @@ async function doUploadCookies(content) {
 async function deleteCookies() {
   try {
     await fetch('/api/cookies', { method: 'DELETE' });
-    toast('Cookies 已清除', 'success');
+    toast(i18n('Cookies 已清除'), 'success');
     checkCookieStatus();
   } catch (e) {
-    toast('清除失敗: ' + e.message, 'error');
+    toast(i18n('清除失敗') + ': ' + e.message, 'error');
   }
 }
 
@@ -5073,9 +5073,9 @@ async function saveAccountSettings() {
   var confirmPass = document.getElementById('settings-confirm-password').value;
   var currentPass = document.getElementById('settings-current-password').value;
 
-  if (!currentPass) { toast('請輸入當前密碼驗證身份', 'error'); return; }
-  if (newPass && newPass !== confirmPass) { toast('新密碼與確認密碼不一致', 'error'); return; }
-  if (!username) { toast('Username 不可為空', 'error'); return; }
+  if (!currentPass) { toast(i18n('請輸入當前密碼驗證身份'), 'error'); return; }
+  if (newPass && newPass !== confirmPass) { toast(i18n('新密碼與確認密碼不一致'), 'error'); return; }
+  if (!username) { toast(i18n('Username 不可為空'), 'error'); return; }
 
   try {
     var res = await fetch('/api/auth/update-credentials', {
@@ -5089,7 +5089,7 @@ async function saveAccountSettings() {
     });
     var data = await res.json();
     if (!res.ok) throw new Error(data.error);
-    toast('✅ 帳號設定已更新，請重新登入', 'success');
+    toast('✅ ' + i18n('帳號設定已更新，請重新登入'), 'success');
     document.getElementById('settings-new-password').value = '';
     document.getElementById('settings-confirm-password').value = '';
     document.getElementById('settings-current-password').value = '';
@@ -5157,14 +5157,14 @@ async function fetchLogs(append) {
     // Guard: ensure response is JSON before parsing
     var contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
+      throw new Error(i18n('伺服器返回非 JSON 回應（HTTP ') + res.status + '）');
     }
 
     var data = await res.json();
 
     // Guard: ensure data is an array
     if (!Array.isArray(data)) {
-      throw new Error(data.error || '回應格式錯誤');
+      throw new Error(data.error || i18n('回應格式錯誤'));
     }
 
     if (append) {
@@ -5176,7 +5176,7 @@ async function fetchLogs(append) {
     logState.hasMore = data.length >= logState.pageSize;
     renderLogs();
   } catch (e) {
-    toast('載入日誌失敗: ' + e.message, 'error');
+    toast(i18n('載入日誌失敗') + ': ' + e.message, 'error');
   }
 }
 
@@ -5209,8 +5209,8 @@ function renderLogs() {
   list.innerHTML = logState.logs.map(function(log) {
     var catClass = 'log-cat-' + (log.category || 'system');
     var catLabel = {
-      download: '下載', upload: '上傳', probe: '分析',
-      auth: '認證', category: '分類', system: '系統'
+      download: i18n('下載'), upload: i18n('上傳'), probe: i18n('分析'),
+      auth: i18n('認證'), category: i18n('分類'), system: i18n('系統')
     }[log.category] || log.category;
 
     var ts = new Date(log.timestamp);
@@ -5243,13 +5243,13 @@ function renderLogs() {
 }
 
 function clearAllLogs() {
-  showModal('確定要清除所有日誌嗎？', async function() {
+  showModal(i18n('確定要清除所有日誌嗎？'), async function() {
     try {
       await fetch('/api/logs', { method: 'DELETE' });
-      toast('日誌已清除');
+      toast(i18n('日誌已清除'));
       loadLogs();
     } catch (e) {
-      toast('清除失敗: ' + e.message, 'error');
+      toast(i18n('清除失敗') + ': ' + e.message, 'error');
     }
   });
 }
@@ -5393,18 +5393,18 @@ async function loadStats() {
     }
     var contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      throw new Error('伺服器返回非 JSON 回應（HTTP ' + res.status + '）');
+      throw new Error(i18n('伺服器返回非 JSON 回應（HTTP ') + res.status + '）');
     }
     var data = await res.json();
-    if (!res.ok) throw new Error(data.error || '載入統計失敗');
+    if (!res.ok) throw new Error(data.error || i18n('載入統計失敗'));
     state.stats = data;
     renderStats(data);
   } catch (e) {
     if (content) {
       content.className = 'stats-empty';
-      content.textContent = '載入統計失敗: ' + e.message;
+      content.textContent = i18n('載入統計失敗') + ': ' + e.message;
     }
-    toast('載入統計失敗: ' + e.message, 'error');
+    toast(i18n('載入統計失敗') + ': ' + e.message, 'error');
   }
 }
 
@@ -5510,26 +5510,26 @@ async function cfRefreshStatus() {
   var badge = document.getElementById('cf-status-badge');
   var logEl = document.getElementById('cf-log');
   var stopBtn = document.getElementById('cf-stop-btn');
-  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> 檢查中...';
+  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> ' + i18n('檢查中...');
   try {
     var res = await fetch('/api/setup/cloudflare/status', { credentials: 'include' });
     var data = await res.json();
     if (!data.installed) {
       badge.className = 'status-badge err';
-      badge.innerHTML = '<span class="status-dot red"></span> cloudflared 未安裝';
+      badge.innerHTML = '<span class="status-dot red"></span> ' + i18n('cloudflared 未安裝');
       if (stopBtn) stopBtn.style.display = 'none';
     } else if (data.running) {
       badge.className = 'status-badge ok';
-      badge.innerHTML = '<span class="status-dot green"></span> 運行中 (PID ' + data.pid + ')';
+      badge.innerHTML = '<span class="status-dot green"></span> ' + i18n('運行中') + ' (PID ' + data.pid + ')';
       if (stopBtn) stopBtn.style.display = '';
     } else {
       badge.className = 'status-badge off';
-      badge.innerHTML = '<span class="status-dot grey"></span> 已停止（cloudflared 已安裝）';
+      badge.innerHTML = '<span class="status-dot grey"></span> ' + i18n('已停止（cloudflared 已安裝）');
       if (stopBtn) stopBtn.style.display = 'none';
     }
-    if (logEl) logEl.textContent = data.recentLog || '— 尚無日誌 —';
+    if (logEl) logEl.textContent = data.recentLog || i18n('— 尚無日誌 —');
   } catch (e) {
-    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> 無法取得狀態'; }
+    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> ' + i18n('無法取得狀態'); }
   }
 }
 
@@ -5541,9 +5541,9 @@ async function cfStartTunnel() {
   var port = portEl ? parseInt(portEl.value) || 3847 : 3847;
 
   if (mode === 'token' && !token.trim()) {
-    showToast('請輸入 Tunnel Token', 'error'); return;
+    showToast(i18n('請輸入 Tunnel Token'), 'error'); return;
   }
-  showToast('正在啟動 Tunnel...', 'info');
+  showToast(i18n('正在啟動 Tunnel...'), 'info');
   try {
     var res = await fetch('/api/setup/cloudflare/start', {
       method: 'POST', credentials: 'include',
@@ -5551,22 +5551,22 @@ async function cfStartTunnel() {
       body: JSON.stringify({ mode: mode, token: token.trim(), port: port })
     });
     var data = await res.json();
-    if (!res.ok) { showToast('啟動失敗: ' + (data.error || ''), 'error'); return; }
-    showToast('Tunnel 已啟動！', 'success');
+    if (!res.ok) { showToast(i18n('啟動失敗') + ': ' + (data.error || ''), 'error'); return; }
+    showToast(i18n('Tunnel 已啟動！'), 'success');
     setTimeout(cfRefreshStatus, 2000);
   } catch (e) {
-    showToast('啟動失敗: ' + e.message, 'error');
+    showToast(i18n('啟動失敗') + ': ' + e.message, 'error');
   }
 }
 
 async function cfStopTunnel() {
-  if (!confirm('確認停止 Cloudflare Tunnel？')) return;
+  if (!confirm(i18n('確認停止 Cloudflare Tunnel？'))) return;
   try {
     await fetch('/api/setup/cloudflare/stop', { method: 'POST', credentials: 'include' });
-    showToast('Tunnel 已停止', 'info');
+    showToast(i18n('Tunnel 已停止'), 'info');
     setTimeout(cfRefreshStatus, 500);
   } catch (e) {
-    showToast('停止失敗: ' + e.message, 'error');
+    showToast(i18n('停止失敗') + ': ' + e.message, 'error');
   }
 }
 
@@ -5578,52 +5578,52 @@ var _gdAuthPollTimer = null;
 
 async function gdRefreshStatus() {
   var badge = document.getElementById('gd-status-badge');
-  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> 檢查中...';
+  if (badge) badge.innerHTML = '<span class="status-dot grey"></span> ' + i18n('檢查中...');
   try {
     var res = await fetch('/api/setup/gdrive/status', { credentials: 'include' });
     var data = await res.json();
     if (!data.installed) {
       badge.className = 'status-badge err';
-      badge.innerHTML = '<span class="status-dot red"></span> gog CLI 未安裝';
+      badge.innerHTML = '<span class="status-dot red"></span> ' + i18n('gog CLI 未安裝');
     } else if (data.authenticated) {
       badge.className = 'status-badge ok';
-      badge.innerHTML = '<span class="status-dot green"></span> 已連接 Google Drive ✓';
+      badge.innerHTML = '<span class="status-dot green"></span> ' + i18n('已連接 Google Drive ✓');
     } else {
       badge.className = 'status-badge warn';
-      badge.innerHTML = '<span class="status-dot yellow"></span> 未授權（gog 已安裝，需要連接）';
+      badge.innerHTML = '<span class="status-dot yellow"></span> ' + i18n('未授權（gog 已安裝，需要連接）');
     }
   } catch (e) {
-    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> 無法取得狀態'; }
+    if (badge) { badge.className = 'status-badge err'; badge.innerHTML = '<span class="status-dot red"></span> ' + i18n('無法取得狀態'); }
   }
 }
 
 async function gdStartAuth() {
   var btn = document.getElementById('gd-auth-btn');
   var logEl = document.getElementById('gd-auth-log');
-  if (btn) { btn.disabled = true; btn.textContent = '🔄 授權中...'; }
-  if (logEl) { logEl.style.display = 'block'; logEl.textContent = '正在啟動授權程序，請稍候...\n'; }
+  if (btn) { btn.disabled = true; btn.textContent = i18n('🔄 授權中...'); }
+  if (logEl) { logEl.style.display = 'block'; logEl.textContent = i18n('正在啟動授權程序，請稍候...') + '\n'; }
 
   try {
     var res = await fetch('/api/setup/gdrive/auth', { method: 'POST', credentials: 'include' });
     var data = await res.json();
     if (!res.ok) {
-      showToast('授權失敗: ' + (data.error || ''), 'error');
-      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
-      if (logEl) logEl.textContent = '錯誤: ' + (data.error || '未知錯誤');
+      showToast(i18n('授權失敗') + ': ' + (data.error || ''), 'error');
+      if (btn) { btn.disabled = false; btn.textContent = i18n('🔗 開始授權'); }
+      if (logEl) logEl.textContent = i18n('錯誤: ') + (data.error || i18n('未知錯誤'));
       return;
     }
-    if (logEl) logEl.textContent += '已啟動授權程序 (PID ' + data.pid + ')。\n瀏覽器應已自動打開 Google 登入頁面...\n完成授權後，請點擊「✅ 已完成，刷新狀態」。\n';
+    if (logEl) logEl.textContent += i18n('已啟動授權程序') + ' (PID ' + data.pid + ')。\n' + i18n('瀏覽器應已自動打開 Google 登入頁面...') + '\n' + i18n('完成授權後，請點擊「✅ 已完成，刷新狀態」。') + '\n';
     // Poll for output
     if (_gdAuthPollTimer) clearInterval(_gdAuthPollTimer);
     _gdAuthPollTimer = setInterval(gdPollAuth, 1500);
     // Auto-stop polling after 3 minutes
     setTimeout(function() {
       if (_gdAuthPollTimer) { clearInterval(_gdAuthPollTimer); _gdAuthPollTimer = null; }
-      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+      if (btn) { btn.disabled = false; btn.textContent = i18n('🔗 開始授權'); }
     }, 180000);
   } catch (e) {
-    showToast('授權失敗: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+    showToast(i18n('授權失敗') + ': ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = i18n('🔗 開始授權'); }
   }
 }
 
@@ -5636,12 +5636,12 @@ async function gdPollAuth() {
     if (logEl && data.output) logEl.textContent = data.output;
     if (data.done) {
       if (_gdAuthPollTimer) { clearInterval(_gdAuthPollTimer); _gdAuthPollTimer = null; }
-      if (btn) { btn.disabled = false; btn.textContent = '🔗 開始授權'; }
+      if (btn) { btn.disabled = false; btn.textContent = i18n('🔗 開始授權'); }
       if (data.success) {
-        showToast('Google Drive 授權成功！🎉', 'success');
+        showToast(i18n('Google Drive 授權成功！🎉'), 'success');
         gdRefreshStatus();
       } else {
-        showToast('授權程序已結束，請確認是否完成授權再刷新狀態', 'warn');
+        showToast(i18n('授權程序已結束，請確認是否完成授權再刷新狀態'), 'warn');
       }
     }
   } catch (e) { /* ignore poll errors */ }
@@ -5712,7 +5712,7 @@ async function saveTelegramSettings() {
   var groupId = groupInput ? groupInput.value.trim() : '';
   var topicId = topicInput ? topicInput.value.trim() : '';
   if (enabled && !groupId) {
-    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '⚠️ 啟用通知時 Group ID 為必填'; }
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('⚠️ 啟用通知時 Group ID 為必填'); }
     return;
   }
   try {
@@ -5723,13 +5723,13 @@ async function saveTelegramSettings() {
     });
     var data = await res.json();
     if (data.ok) {
-      showToast('Telegram 設定已儲存 ✓', 'success');
-      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 設定已儲存'; }
+      showToast(i18n('Telegram 設定已儲存 ✓'), 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = i18n('✅ 設定已儲存'); }
     } else {
-      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ ' + (data.error || '儲存失敗'); }
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ ' + (data.error || i18n('儲存失敗')); }
     }
   } catch (e) {
-    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 網絡錯誤'; }
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('❌ 網絡錯誤'); }
   }
 }
 
@@ -5740,10 +5740,10 @@ async function testTelegramSettings() {
   var groupId = groupInput ? groupInput.value.trim() : '';
   var topicId = topicInput ? topicInput.value.trim() : '';
   if (!groupId) {
-    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '⚠️ 請先填寫 Group ID'; }
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('⚠️ 請先填寫 Group ID'); }
     return;
   }
-  if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--text-secondary)'; msgEl.textContent = '📨 發送中...'; }
+  if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--text-secondary)'; msgEl.textContent = i18n('📨 發送中...'); }
   try {
     var res = await fetch('/api/settings/telegram/test', {
       method: 'POST', credentials: 'include',
@@ -5752,13 +5752,13 @@ async function testTelegramSettings() {
     });
     var data = await res.json();
     if (data.ok) {
-      showToast('測試訊息已發送！請查看 Telegram 🎉', 'success');
-      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 測試訊息已發送'; }
+      showToast(i18n('測試訊息已發送！請查看 Telegram 🎉'), 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = i18n('✅ 測試訊息已發送'); }
     } else {
-      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 發送失敗：' + (data.error || '未知錯誤'); }
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('❌ 發送失敗：') + (data.error || i18n('未知錯誤')); }
     }
   } catch (e) {
-    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 網絡錯誤'; }
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('❌ 網絡錯誤'); }
   }
 }
 
@@ -5785,11 +5785,11 @@ window.saveSpeedLimit = async function() {
     });
     var data = await res.json();
     if (data.ok) {
-      showToast('速度限制已儲存 ✓', 'success');
-      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = '✅ 已儲存'; setTimeout(function(){ msgEl.style.display = 'none'; }, 2000); }
+      showToast(i18n('速度限制已儲存 ✓'), 'success');
+      if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--green)'; msgEl.textContent = i18n('✅ 已儲存'); setTimeout(function(){ msgEl.style.display = 'none'; }, 2000); }
     }
   } catch(e) {
-    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = '❌ 儲存失敗'; }
+    if (msgEl) { msgEl.style.display = 'block'; msgEl.style.color = 'var(--pink)'; msgEl.textContent = i18n('❌ 儲存失敗'); }
   }
 };
 
@@ -5869,18 +5869,18 @@ async function saveNotificationChannels() {
     });
     var data = await res.json();
     if (data.ok) {
-      showToast('通知設定已儲存 ✓', 'success');
+      showToast(i18n('通知設定已儲存 ✓'), 'success');
     } else {
-      showToast('儲存失敗：' + (data.error || ''), 'error');
+      showToast(i18n('儲存失敗：') + (data.error || ''), 'error');
     }
   } catch (e) {
-    showToast('網絡錯誤', 'error');
+    showToast(i18n('網絡錯誤'), 'error');
   }
 }
 
 async function testNotifications() {
   var resultEl = document.getElementById('notify-test-result');
-  if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = '📨 發送測試通知中...'; }
+  if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = i18n('📨 發送測試通知中...'); }
   try {
     var res = await fetch('/api/settings/notifications/test', {
       method: 'POST', credentials: 'include',
@@ -5894,12 +5894,12 @@ async function testNotifications() {
         return '<div>' + icon + ' <strong>' + (r.channel || 'unknown') + '</strong>' + (r.error ? ' — ' + r.error : '') + '</div>';
       }).join('');
       if (resultEl) resultEl.innerHTML = html;
-      showToast('測試通知已發送', 'success');
+      showToast(i18n('測試通知已發送'), 'success');
     } else {
-      if (resultEl) resultEl.innerHTML = '❌ ' + (data.error || '發送失敗');
+      if (resultEl) resultEl.innerHTML = '❌ ' + (data.error || i18n('發送失敗'));
     }
   } catch (e) {
-    if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = '❌ 網絡錯誤'; }
+    if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = i18n('❌ 網絡錯誤'); }
   }
 }
 
@@ -5931,11 +5931,11 @@ async function loadUserInfo() {
 async function loadUsers() {
   try {
     var res = await fetch('/api/users', { credentials: 'include' });
-    if (res.status === 403) { document.getElementById('user-list').innerHTML = '<div style="color:var(--text-dim);">需要管理員權限</div>'; return; }
+    if (res.status === 403) { document.getElementById('user-list').innerHTML = '<div style="color:var(--text-dim);">' + i18n('需要管理員權限') + '</div>'; return; }
     var users = await res.json();
     var listEl = document.getElementById('user-list');
     if (!listEl) return;
-    if (!users.length) { listEl.innerHTML = '<div style="color:var(--text-dim);">暫無用戶</div>'; return; }
+    if (!users.length) { listEl.innerHTML = '<div style="color:var(--text-dim);">' + i18n('暫無用戶') + '</div>'; return; }
 
     var html = '<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">';
     html += '<thead><tr style="border-bottom:1px solid var(--border);">';
@@ -5954,7 +5954,7 @@ async function loadUsers() {
       var created = u.createdAt ? new Date(u.createdAt).toLocaleDateString('zh-TW') : '—';
 
       html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">';
-      html += '<td style="padding:10px 6px;color:var(--text-primary);">' + u.username + (isSelf ? ' <span style="color:var(--yellow);font-size:0.7rem;">（你）</span>' : '') + '</td>';
+      html += '<td style="padding:10px 6px;color:var(--text-primary);">' + u.username + (isSelf ? ' <span style="color:var(--yellow);font-size:0.7rem;">' + i18n('（你）') + '</span>' : '') + '</td>';
       html += '<td style="padding:10px 6px;">' + roleBadge + '</td>';
       html += '<td style="padding:10px 6px;color:var(--text-secondary);font-size:0.78rem;">' + lastLogin + '</td>';
       html += '<td style="padding:10px 6px;color:var(--text-secondary);font-size:0.78rem;">' + created + '</td>';
@@ -5970,7 +5970,7 @@ async function loadUsers() {
   } catch (e) {
     console.error('loadUsers error', e);
     var listEl = document.getElementById('user-list');
-    if (listEl) listEl.innerHTML = '<div style="color:var(--pink);">載入失敗</div>';
+    if (listEl) listEl.innerHTML = '<div style="color:var(--pink);">' + i18n('載入失敗') + '</div>';
   }
 }
 
@@ -5979,7 +5979,7 @@ function showAddUserModal() {
   document.getElementById('user-modal-username').value = '';
   document.getElementById('user-modal-password').value = '';
   document.getElementById('user-modal-role').value = 'user';
-  document.getElementById('user-modal-title').textContent = '新增用戶';
+  document.getElementById('user-modal-title').textContent = i18n('新增用戶');
   document.getElementById('user-modal-error').style.display = 'none';
   document.getElementById('user-modal').style.display = 'flex';
 }
@@ -5989,7 +5989,7 @@ function editUser(id, username, role) {
   document.getElementById('user-modal-username').value = username;
   document.getElementById('user-modal-password').value = '';
   document.getElementById('user-modal-role').value = role;
-  document.getElementById('user-modal-title').textContent = '編輯用戶';
+  document.getElementById('user-modal-title').textContent = i18n('編輯用戶');
   document.getElementById('user-modal-error').style.display = 'none';
   document.getElementById('user-modal').style.display = 'flex';
 }
@@ -6005,8 +6005,8 @@ async function saveUser() {
   var role = document.getElementById('user-modal-role').value;
   var errEl = document.getElementById('user-modal-error');
 
-  if (!username) { errEl.textContent = '請輸入用戶名'; errEl.style.display = 'block'; return; }
-  if (!id && !pw) { errEl.textContent = '請輸入密碼'; errEl.style.display = 'block'; return; }
+  if (!username) { errEl.textContent = i18n('請輸入用戶名'); errEl.style.display = 'block'; return; }
+  if (!id && !pw) { errEl.textContent = i18n('請輸入密碼'); errEl.style.display = 'block'; return; }
 
   try {
     var url = id ? '/api/users/' + id : '/api/users';
@@ -6022,31 +6022,31 @@ async function saveUser() {
     var data = await res.json();
     if (res.ok) {
       closeUserModal();
-      showToast(id ? '用戶已更新 ✓' : '用戶已新增 ✓', 'success');
+      showToast(id ? i18n('用戶已更新 ✓') : i18n('用戶已新增 ✓'), 'success');
       loadUsers();
     } else {
-      errEl.textContent = data.error || '操作失敗';
+      errEl.textContent = data.error || i18n('操作失敗');
       errEl.style.display = 'block';
     }
   } catch (e) {
-    errEl.textContent = '網絡錯誤';
+    errEl.textContent = i18n('網絡錯誤');
     errEl.style.display = 'block';
   }
 }
 
 async function deleteUser(id, username) {
-  if (!confirm('確定要刪除用戶 "' + username + '"？此操作無法撤銷。')) return;
+  if (!confirm(i18n('確定要刪除用戶') + ' "' + username + '"？' + i18n('此操作無法撤銷。'))) return;
   try {
     var res = await fetch('/api/users/' + id, { method: 'DELETE', credentials: 'include' });
     var data = await res.json();
     if (res.ok) {
-      showToast('用戶已刪除 ✓', 'success');
+      showToast(i18n('用戶已刪除 ✓'), 'success');
       loadUsers();
     } else {
-      showToast('刪除失敗：' + (data.error || ''), 'error');
+      showToast(i18n('刪除失敗：') + (data.error || ''), 'error');
     }
   } catch (e) {
-    showToast('網絡錯誤', 'error');
+    showToast(i18n('網絡錯誤'), 'error');
   }
 }
 

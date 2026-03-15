@@ -35,16 +35,11 @@ const html = fs.readFileSync(indexPath, 'utf8');
   );
 });
 
-[
-  'id="language-toggle"',
-  'setLanguage(',
-  'i18n('
-].forEach((snippet) => {
-  assert.ok(
-    html.includes(snippet),
-    `expected public/index.html to include: ${snippet}`
-  );
-});
+// Check i18n integration: language toggle in HTML, setLanguage in i18n.js, i18n() calls in HTML
+assert.ok(html.includes('id="language-toggle"'), 'expected index.html to include language-toggle element');
+assert.ok(html.includes('i18n('), 'expected index.html to include i18n() calls');
+var i18nJs = fs.readFileSync(path.join(jsDir, 'i18n.js'), 'utf8');
+assert.ok(i18nJs.includes('setLanguage'), 'expected i18n.js to define setLanguage');
 
 [
   'const state = {',

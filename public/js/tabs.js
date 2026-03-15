@@ -12,6 +12,25 @@ window.switchInstallTab = function switchInstallTab(platform) {
   if (activePanel) activePanel.classList.add('active');
 };
 
+// Re-render dynamic content when language changes
+window.addEventListener('app:languagechange', function() {
+  var activeBtn = document.querySelector('.tab-btn.active');
+  if (!activeBtn) return;
+  var tab = activeBtn.dataset.tab;
+  if (tab === 'categories' && typeof loadCategories === 'function') loadCategories();
+  if (tab === 'manager' && typeof loadDownloads === 'function') loadDownloads();
+  if (tab === 'logs' && typeof loadLogs === 'function') loadLogs();
+  if (tab === 'stats' && typeof loadStats === 'function') loadStats();
+  if (tab === 'health' && typeof runHealthDiagnostics === 'function') runHealthDiagnostics();
+  if (tab === 'files' && typeof loadFiles === 'function') { loadFilesCategoryFilter(); loadFiles(); }
+  if (tab === 'settings') {
+    if (typeof cfRefreshStatus === 'function') cfRefreshStatus();
+    if (typeof gdRefreshStatus === 'function') gdRefreshStatus();
+    if (typeof loadUsers === 'function') loadUsers();
+    if (typeof checkCookieStatus === 'function') checkCookieStatus();
+  }
+});
+
 document.querySelectorAll('.tab-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach((button) => button.classList.remove('active'));
