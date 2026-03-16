@@ -301,6 +301,16 @@ function createApp(options = {}) {
   app.use(express.json({ limit: '5mb' }));
   app.use(express.text({ type: 'text/plain', limit: '5mb' }));
   app.use(auth.authMiddleware);
+
+  // Disable caching for JS/CSS/HTML so updates are always picked up
+  app.use((req, res, next) => {
+    if (req.path.match(/\.(js|css|html)$/)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+    next();
+  });
   app.use(express.static(path.join(__dirname, 'public')));
 
   routeModules.forEach((routeModule) => routeModule.register(app));
