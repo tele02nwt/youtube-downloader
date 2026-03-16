@@ -295,6 +295,7 @@ function createApp(options = {}) {
 
   app.locals.routeContext = routeContext;
 
+  app.set('trust proxy', 1); // Trust Cloudflare/reverse proxy
   app.use(cors({ origin: process.env.ALLOWED_ORIGIN || 'https://yt.ac02nwt.work', credentials: true }));
   app.use(cookieParser());
   app.use(express.json({ limit: '5mb' }));

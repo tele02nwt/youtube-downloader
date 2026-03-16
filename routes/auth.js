@@ -38,8 +38,8 @@ function register(app) {
 
       res.cookie('yt_session', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000
       });
 
