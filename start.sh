@@ -7,22 +7,20 @@ TUNNEL_CONFIG="/data/.cloudflared/config.yml"
 PID_DIR="$APP_DIR/data"
 mkdir -p "$PID_DIR"
 
-# Kill ALL existing server.js processes (not just pid file)
+# Kill existing processes by PID files first
 echo "🛑 Stopping existing processes..."
-pkill -9 -f "node server.js" 2>/dev/null || true
-sleep 1
-
-# Also kill by PID files
 for f in "$PID_DIR/server.pid" "$PID_DIR/tunnel.pid"; do
   if [ -f "$f" ]; then
-    kill -9 "$(cat "$f")" 2>/dev/null || true
+    OLD_PID=$(cat "$f")
+    kill -9 "$OLD_PID" 2>/dev/null || true
     rm -f "$f"
   fi
 done
 
-# Release port 3847 if anything else is holding it
+# Release ports if anything else is still holding them
 fuser -k 3847/tcp 2>/dev/null || true
-sleep 1
+fuser -k 3848/tcp 2>/dev/null || true
+sleep 2
 
 # Start Node server
 cd "$APP_DIR"
