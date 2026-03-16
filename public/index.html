@@ -4449,7 +4449,7 @@ function renderActiveCard(d) {
     var mins = Math.floor((Math.max(0, remaining) % 3600000) / 60000);
     scheduleHtml = '<div style="padding:4px 16px 8px;display:flex;align-items:center;justify-content:space-between;">' +
       '<span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--yellow);">' + i18n('排程中') + ' · ' + i18n('剩餘') + ' ' + hours + 'h ' + mins + 'm</span>' +
-      '<button class="btn btn-pink" style="font-size:0.75rem;padding:4px 12px;" onclick="cancelSchedule(\'' + d.id + '\')">' + i18n('取消排程') + '</button>'' +
+      '<button class="btn btn-pink" style="font-size:0.75rem;padding:4px 12px;" onclick="cancelSchedule(\'' + d.id + '\')">' + i18n('取消排程') + '</button>' +
     '</div>';
   }
   return '<div class="card dl-card">' +
@@ -4491,11 +4491,11 @@ function renderCompletedCard(d) {
           (d.categoryName ? '<span>' + escapeHtml(d.categoryName) + '</span>' : '') +
         '</div>' +
       '</div>' +
-      '<span class="status-badge status-completed">' + i18n('完成') + '</span>'' +
+      '<span class="status-badge status-completed">' + i18n('完成') + '</span>' +
     '</div>' +
     (d.gdriveLink ? '<div style="padding:0 16px 8px;"><a href="' + escapeHtml(d.gdriveLink) + '" target="_blank" style="color:var(--cyan);font-family:var(--font-mono);font-size:0.8rem;text-decoration:none;">📁 Google Drive ↗</a></div>' : '') +
     '<div class="dl-card-actions">' +
-      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">' + i18n('刪除記錄') + '</button>'' +
+      '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">' + i18n('刪除記錄') + '</button>' +
     '</div>' +
   '</div>';
 }
@@ -4510,10 +4510,10 @@ function renderErrorCard(d) {
           '<span style="color:var(--pink)">' + escapeHtml(d.error || 'Unknown error') + '</span>' +
         '</div>' +
       '</div>' +
-      '<span class="status-badge status-error">' + i18n('失敗') + '</span>'' +
+      '<span class="status-badge status-error">' + i18n('失敗') + '</span>' +
     '</div>' +
     '<div class="dl-card-actions">' +
-      '<button class="btn btn-purple" onclick="retryDownload(\'' + d.id + '\')">' + i18n('重試') + '</button>'' +
+      '<button class="btn btn-purple" onclick="retryDownload(\'' + d.id + '\')">' + i18n('重試') + '</button>' +
       '<button class="btn btn-pink" onclick="deleteDownload(\'' + d.id + '\')">' + i18n('刪除') + '</button>' +
     '</div>' +
   '</div>';
@@ -4634,7 +4634,7 @@ function renderSubtitleOptions(subs) {
     return '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;">' +
       '<input type="checkbox" class="sub-checkbox" data-lang="' + escapeHtml(s.lang) + '" data-auto="' + (s.isAuto ? '1' : '0') + '" style="accent-color:var(--cyan);width:16px;height:16px;">' +
       '<span style="color:var(--text-primary);font-size:0.85rem;">' + escapeHtml(s.name || s.lang) + '</span>' +
-      (s.isAuto ? '<span style="font-size:0.7rem;color:var(--text-dim);background:var(--bg-deep);padding:2px 6px;border-radius:3px;">' + i18n('自動產生') + '</span>'' : '') +
+      (s.isAuto ? '<span style="font-size:0.7rem;color:var(--text-dim);background:var(--bg-deep);padding:2px 6px;border-radius:3px;">' + i18n('自動產生') + '</span>' : '') +
     '</label>';
   }).join('');
 }
