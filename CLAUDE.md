@@ -633,3 +633,113 @@ GET    /api/health/diagnostics    # detailed system diagnostics
 88. ✅ i18n runtime：DOM TreeWalker 翻譯所有 text nodes，`querySelectorAll('[placeholder],[title],[aria-label]')` 翻譯 attributes
 89. ✅ Frontend module split：extract definitions to files that attach to window，inline script 留 alias
 90. ✅ Test isolation：每個 test file backup/restore JSON data，用 unique test user IDs 避免衝突
+
+---
+
+## Phase 19: i18n 全面修復（2026-03-15）
+
+### 問題根因分析
+
+| 問題 | 根因 |
+|------|------|
+| 選英文但頁面仍顯示中文 | `en.json` 只有 173 個 key，缺幾百個 UI 中文字串 |
+| 統計/健康頁選中文卻顯示英文 | JS 動態渲染後未 re-translate |
+| 語言切換後部分 tab 仍舊語言 | `app:languagechange` 冇 re-render dynamic content |
+
+### i18n 架構（關鍵理解）
+
+```
+en.json key = 中文原文（trimmed）
+en.json value = 英文翻譯
+
+zh-TW.json key = 原文（中文或英文）
+zh-TW.json value = 繁體中文
+
+translatePage() = DOM TreeWalker，只翻譯靜態 text nodes
+JS innerHTML 插入嘅字串唔會被 translatePage() 攔截
+```
+
+### 三層修復方案
+
+**Layer 1: 擴充 en.json**
+- 加入所有缺少的中文 UI 字串 → 英文翻譯
+- 涵蓋：panel headers（`// 分類管理`）、buttons、labels、options、toasts
+- 注意：`// 分類管理` 係 literal text node，trimmed 後係 `// 分類管理`
+
+**Layer 2: JS 動態字串改 i18n() 呼叫**
+```javascript
+// Before (壞)
+html += '<button>刪除記錄</button>';
+
+// After (好)
+html += '<button>' + window.i18n('刪除記錄') + '</button>';
+```
+- 受影響函數：`renderDownloads()`, `renderCategories()`, `loadLogs()`, `loadStats()`, toast() calls
+
+**Layer 3: languagechange 後 re-render**
+```javascript
+window.addEventListener('app:languagechange', function() {
+  translatePage();
+  var tab = getCurrentTab();
+  if (tab === 'manager') renderDownloads();
+  if (tab === 'logs') loadLogs();
+  if (tab === 'stats') loadStats();
+  if (tab === 'categories') renderCategories();
+  // etc.
+});
+```
+
+### Checklist 新增項目（Phase 19）
+91. ✅ i18n en.json key = 中文原文（trimmed text node value），value = 英文翻譯
+92. ✅ JS 動態 innerHTML 入面嘅中文字串必須用 `window.i18n('中文')` wrap
+93. ✅ 語言切換 `app:languagechange` event 後，必須 re-render 當前 tab 嘅動態內容
+94. ✅ Panel headers（`// 分類管理` 格式）係 literal text nodes，需加入 en.json
+95. ✅ `translatePage()` 只翻譯靜態 DOM，JS 插入後嘅 innerHTML 唔會自動翻譯
+96. ✅ Guide/Install 頁面長文唔需要翻譯，只翻譯 UI 元素（按鈕/標籤/標題/選項）
+
+---
+
+## Phase 19 後續：穩定性 Bug 修復（2026-03-15 晚）
+
+### Bug 1：JS SyntaxError（i18n wrapping 副作用）— 最嚴重
+
+**症狀**：所有 tab 顯示空白，`loadCategories()` 等 init 函數唔執行
+**根因**：Claude Code 做 i18n wrapping 時產生多餘 `'`：`i18n('xxx') + '</tag>'' +`
+**修復**：Python 腳本 scan + 修復，22 個 `'' +` → `' +`
+
+```bash
+# 驗證 syntax
+python3 -c "
+import re, subprocess, tempfile, os
+with open('public/index.html') as f: html = f.read()
+scripts = re.findall(r'<script>(.*?)</script>', html, re.DOTALL)
+with tempfile.NamedTemporaryFile(mode='w', suffix='.js', delete=False) as f:
+    f.write(scripts[-1]); fname = f.name
+r = subprocess.run(['node', '--check', fname], capture_output=True, text=True)
+print(r.stderr or '✅ Clean'); os.unlink(fname)
+"
+```
+
+### Bug 2：Sessions 重啟後消失
+
+**修復**：`data/sessions.json` file-backed sessions（見 `lib/auth.js` `_loadSessions`/`_saveSessions`）
+
+### Bug 3：start.sh 兩個 server 並存
+
+**修復**：改用 PID file kill + `fuser -k 3847/tcp`，唔用 `pkill -f`
+
+### Bug 4：Cloudflare Cache JS/CSS
+
+**修復**：server.js 加 no-cache middleware for `.js/.css/.html`
+
+### Bug 5：Cookie sameSite=strict 在 Cloudflare Tunnel 後失效
+
+**修復**：改 `sameSite: 'lax'` + 動態 `secure` + `app.set('trust proxy', 1)`
+
+### Checklist 新增項目（Phase 19 後）
+97. ✅ i18n wrapping 後必須 `node --check` 驗證 JS syntax
+98. ✅ Sessions 必須 persist 到 `data/sessions.json`，唔可以純 in-memory
+99. ✅ start.sh 用 PID file kill，唔用 `pkill -f`（會殺新進程）
+100. ✅ JS/CSS/HTML 必須加 no-cache headers 防 Cloudflare cache 舊版本
+101. ✅ Cookie `sameSite` 喺 reverse proxy 後用 `lax`，唔用 `strict`；`secure` 要動態判斷
+102. ✅ Rate limiter 設計要考慮 persist 或提供 admin unlock（否則 restart 才能解鎖）

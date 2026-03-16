@@ -488,3 +488,46 @@
 - [x] `tests/auth.test.js` — password module tests
 - [x] `tests/app-routes.test.js` — route registration tests
 - [x] `tests/public-index-modules.test.js` — frontend module split tests
+
+## Phase 19: i18n 全面修復 ✅
+
+### Task 19.1: 擴充翻譯字典
+- [x] 讀取 index.html 所有中文 text nodes
+- [x] 補充 en.json 缺少的中文→英文翻譯（原有 173 key → 擴展至完整覆蓋）
+- [x] 更新 zh-TW.json 確保完整對應
+
+### Task 19.2: 修復 JS 動態字串
+- [x] `renderDownloads()` 中文字串改 `window.i18n()` call
+- [x] `renderCategories()` 中文字串改 `window.i18n()` call
+- [x] `loadLogs()` 中文字串改 `window.i18n()` call
+- [x] `loadStats()` 中文字串改 `window.i18n()` call
+- [x] 所有 toast() 呼叫中文訊息改 i18n()
+
+### Task 19.3: 語言切換 re-render
+- [x] `app:languagechange` listener 加 re-render 當前 tab 邏輯
+- [x] 靜態部分 re-call `translatePage()`
+
+## Phase 19 後續：穩定性修復 ✅
+
+### Task 19.4: JS Syntax Error 修復
+- [x] Python 腳本掃描 index.html 所有 `<script>` block
+- [x] 修復 22 個 double-quote bug（`'' +` → `' +`）
+- [x] `node --check` 確認 zero syntax errors
+
+### Task 19.5: Session Persistence
+- [x] `lib/auth.js` 加 `_loadSessions()` / `_saveSessions()`
+- [x] Sessions 寫入 `data/sessions.json`
+- [x] Server restart 後 session 仍然有效
+
+### Task 19.6: start.sh 修復
+- [x] 改用 PID file kill + `fuser -k 3847/tcp`
+- [x] 移除 `pkill -f`（會殺新進程）
+
+### Task 19.7: Cloudflare Cache 修復
+- [x] server.js 加 no-cache middleware for .js/.css/.html
+- [x] 確認 `cf-cache-status: BYPASS`
+
+### Task 19.8: Cookie 修復
+- [x] `sameSite: 'lax'`（替換 `'strict'`）
+- [x] 動態 `secure`（替換 hardcode `true`）
+- [x] `app.set('trust proxy', 1)`

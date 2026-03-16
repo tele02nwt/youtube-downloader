@@ -670,3 +670,49 @@ The hook reads `task-meta.json` to override its default routing. Never modify th
 30. **i18n runtime**: Use DOM TreeWalker to translate all text nodes, querySelectorAll for [placeholder], [title], [aria-label]. Load JSON dictionaries on demand, fallback to zh-TW.
 31. **Frontend module split**: Keep original inline script structure as aliases (`const state = window.state`), extract definitions to separate files that attach to window.
 32. **Test isolation**: Each test file backup/restore JSON data files, use unique test user IDs to avoid conflicts.
+
+---
+
+### 2026-03-15 下午晚 — Phase 19: i18n 全面修復
+
+**Phase 19: i18n Fix** ✅ (WALL-E + Claude Code)
+
+**問題**：選英文時大部分頁面（下載、管理、FILE、日誌、統計、健康）仍顯示中文；選中文時統計/健康顯示英文。
+
+**根因三層**：
+1. `en.json` 嚴重缺 key（只有 173 個，缺幾百個 UI 字串）
+2. JS `innerHTML` 動態插入的中文唔會被 `translatePage()` 翻譯
+3. `app:languagechange` 事件後動態 tab 唔 re-render
+
+**修復**：
+- [x] 大幅擴充 en.json（中文原文 → 英文翻譯）
+- [x] renderDownloads / renderCategories / loadLogs / loadStats 改用 window.i18n()
+- [x] languagechange 後 re-render 當前 tab
+
+### 踩坑 / 學到的嘢（Phase 19）
+
+33. **i18n translatePage() 限制**：DOM TreeWalker 只處理已存在於 DOM 嘅 text nodes。JS `innerHTML` 插入後嘅新 nodes 唔會被翻譯，必須喺生成 HTML 時就用 `window.i18n('中文')` wrap。
+34. **en.json key = 中文原文**：i18n lookup 用 trimmed text node 值作 key，所以 key 必須係原始中文字串（包括 `// 分類管理` 格式）。
+35. **語言切換後動態 tab 需要 re-render**：`app:languagechange` 觸發後，靜態 DOM 會被 translatePage() 翻譯，但動態插入嘅 tab content（下載列表/日誌/統計等）需要重新 call render function。
+36. **Guide/Install 長文唔需要 i18n**：只翻譯 UI 元素（按鈕、標籤、標題、選項、placeholder），長段說明文字維持原語言係合理做法。
+
+---
+
+### 2026-03-15 晚 — Phase 19 後續：穩定性 Bug 修復
+
+**6 個 commits（da371f8 → 7a4ae2b）：**
+- `da371f8` — cookie SameSite=lax + trust proxy
+- `478742d` — sessions persist 到 sessions.json
+- `04d37d7` — start.sh pkill fix  
+- `167dd7d` — no-cache headers for JS/CSS/HTML
+- `5458dbe` — start.sh kill by PID only
+- `7a4ae2b` — fix 22 JS syntax errors from i18n wrapping ⭐
+
+### 踩坑 / 學到的嘢（Phase 19 後）
+
+37. **i18n wrapping 後必須 syntax check**：Claude Code 產生 `'' +`（多餘 quote），整個 JS block crash，頁面全白。Fix：`node --check` + Python batch fix。
+38. **Sessions in-memory 一定要 persist**：重啟後用戶需重新登入，且舊 cookie 返回 401 令人以為資料消失。
+39. **`pkill -f` 自殺陷阱**：`pkill -9 -f "node server.js"` 在 bash script 入面會殺掉自己剛 spawn 嘅新進程，造成兩個 server 並存。永遠用 PID file kill。
+40. **Cloudflare cache JS**：更新後瀏覽器收到 304 舊版本。加 no-cache headers + 確認 `cf-cache-status: BYPASS`。
+41. **Cookie sameSite=strict + Cloudflare Tunnel**：strict 在 reverse proxy 後有 cookie 丟失問題，改 lax。
+42. **頁面空白 debug 步驟**：① Console SyntaxError？② `fetch('/api/x')` 返回 data 或 401？③ 幾個 server.js 進程？④ cf-cache-status？⑤ Rate limit 鎖定？
